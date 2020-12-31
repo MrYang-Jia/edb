@@ -7,8 +7,9 @@
   - 2.1 @Table、 @Id 、 @Column 的注解进行扩展 (后续看情况继续扩展)
 - 3、分页对象支持 org.springframework.data.domain.PageRequest 对象，便于扩展
 - 4、基于 jfinal - Db 的相关方法进行扩展 （分别继承于 Db 和 DbPro 数据库操作对象）实现
-- 5、设计思想(居左原则)：jpa类型的的参数引入，必须是现有的 Db or DbPro的左侧参数引入，保证 Db or DbPro 的原汁原味
-  - 5.1 数据更新时，必须是有改变的字段数值才会更新到数据库，从而防并发更新导致数据错乱
+- 5、设计思想(居左原则)：jpa类型的的参数引入，原则上基于现有的 Db or DbPro的左侧对象类型作为参数引入，保证 Db or DbPro 的原汁原味
+  - 5.1 设计思想上的居左原则是基于原有的jfinal-db方法上进行改造，例如: EDb.use().find(Bean.class,id); 
+  - 5.2 数据更新时，必须是有改变的字段数值才会更新到数据库，从而防并发更新导致数据错乱
 - 6、部分改造的 Db、DbPro 方法做特殊说明
   - 6.1 基于 paginate 方法做统计总条数的扩展，也就是说，固定给予一个总记录集，不需要去数据库查，直接返回分页结果
      - 6.1.1 paginate 新增 spring 的 PageRequest 入参，替代分页参数 pageNum 和 pageSize 
@@ -43,7 +44,7 @@
 <!-- spring事务 + jfinalDb + enjoy -->
 <dependency>
     <groupId>com.edb.cloud</groupId>
-    <artifactId>spring-jf-activerecord</artifactId>
+    <artifactId>spring-jf-edb</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
