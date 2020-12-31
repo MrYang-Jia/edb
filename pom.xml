@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.edb.cloud</groupId>
+    <groupId>com.github.mryang-jia</groupId>
     <artifactId>spring-jf-edb</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -24,6 +24,43 @@
         <!--<aliyun-spring-boot.version>1.0.0</aliyun-spring-boot.version>-->
         <!--<spring-cloud-alibaba.version>2.2.2.RELEASE</spring-cloud-alibaba.version>-->
     </properties>
+
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <tag>master</tag>
+        <url>git@github.com/MrYang-Jia/edb.git</url>
+        <connection>scm:git:git@github.com/MrYang-Jia/edb.git</connection>
+        <developerConnection>scm:git:git@github.com/MrYang-Jia/edb.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>MrYang-Jia</name>
+            <email>yzj114477@qq.com</email>
+            <organization>MrYang-Jia</organization>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <!--<name>Sonatype Nexus Snapshots</name>-->
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <!--<name>Nexus Release Repository</name>-->
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
 
 

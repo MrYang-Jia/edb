@@ -43,7 +43,7 @@
 ```xml
 <!-- spring事务 + jfinalDb + enjoy -->
 <dependency>
-    <groupId>com.edb.cloud</groupId>
+    <groupId>com.github.mryang-jia</groupId>
     <artifactId>spring-jf-edb</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
