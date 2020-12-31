@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh">
+<head>
+<title>源代码</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package com.edb.cloud.util.json;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span><a name="line.3"></a>
+<span class="sourceLineNo">004</span>import com.fasterxml.jackson.annotation.JsonInclude;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import com.fasterxml.jackson.core.JsonParser;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import com.fasterxml.jackson.core.JsonProcessingException;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import com.fasterxml.jackson.databind.DeserializationFeature;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import com.fasterxml.jackson.databind.JavaType;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import com.fasterxml.jackson.databind.ObjectMapper;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import com.fasterxml.jackson.databind.SerializationFeature;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import com.fasterxml.jackson.databind.util.JSONPObject;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.springframework.util.StringUtils;<a name="line.12"></a>
+<span class="sourceLineNo">013</span><a name="line.13"></a>
+<span class="sourceLineNo">014</span>import java.io.IOException;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import java.util.Collection;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import java.util.List;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import java.util.Map;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import java.util.TimeZone;<a name="line.18"></a>
+<span class="sourceLineNo">019</span><a name="line.19"></a>
+<span class="sourceLineNo">020</span>/**<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * @ClassName EDbJsonUtil<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * @Description: json 工具集<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * @Author 杨志佳<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * @Date 2020/10/22<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * @Version V1.0<a name="line.25"></a>
+<span class="sourceLineNo">026</span> **/<a name="line.26"></a>
+<span class="sourceLineNo">027</span>public class EDbJsonUtil {<a name="line.27"></a>
+<span class="sourceLineNo">028</span><a name="line.28"></a>
+<span class="sourceLineNo">029</span>    public static ObjectMapper mapper;<a name="line.29"></a>
+<span class="sourceLineNo">030</span><a name="line.30"></a>
+<span class="sourceLineNo">031</span><a name="line.31"></a>
+<span class="sourceLineNo">032</span>    static {<a name="line.32"></a>
+<span class="sourceLineNo">033</span>        if(mapper==null){<a name="line.33"></a>
+<span class="sourceLineNo">034</span>            mapper = new ObjectMapper();<a name="line.34"></a>
+<span class="sourceLineNo">035</span>            mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>            mapper.configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);<a name="line.36"></a>
+<span class="sourceLineNo">037</span>            // 如果json中有新增的字段并且是实体类类中不存在的，不报错<a name="line.37"></a>
+<span class="sourceLineNo">038</span>            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);<a name="line.38"></a>
+<span class="sourceLineNo">039</span>            mapper.configure(SerializationFeature.WRITE_BIGDECIMAL_AS_PLAIN, true);<a name="line.39"></a>
+<span class="sourceLineNo">040</span>            mapper.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));<a name="line.40"></a>
+<span class="sourceLineNo">041</span>            mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);<a name="line.41"></a>
+<span class="sourceLineNo">042</span>            // 转换为格式化的json<a name="line.42"></a>
+<span class="sourceLineNo">043</span>//            mapper.enable(SerializationFeature.INDENT_OUTPUT);<a name="line.43"></a>
+<span class="sourceLineNo">044</span>        }<a name="line.44"></a>
+<span class="sourceLineNo">045</span>    }<a name="line.45"></a>
+<span class="sourceLineNo">046</span><a name="line.46"></a>
+<span class="sourceLineNo">047</span>    /**<a name="line.47"></a>
+<span class="sourceLineNo">048</span>     * 转json<a name="line.48"></a>
+<span class="sourceLineNo">049</span>     * @param object<a name="line.49"></a>
+<span class="sourceLineNo">050</span>     * @return<a name="line.50"></a>
+<span class="sourceLineNo">051</span>     */<a name="line.51"></a>
+<span class="sourceLineNo">052</span>    public static String toJson(Object object) {<a name="line.52"></a>
+<span class="sourceLineNo">053</span><a name="line.53"></a>
+<span class="sourceLineNo">054</span>        try {<a name="line.54"></a>
+<span class="sourceLineNo">055</span>            return mapper.writeValueAsString(object);<a name="line.55"></a>
+<span class="sourceLineNo">056</span>        } catch (IOException e) {<a name="line.56"></a>
+<span class="sourceLineNo">057</span><a name="line.57"></a>
+<span class="sourceLineNo">058</span>            throw  new RuntimeException("write to json string error",e);<a name="line.58"></a>
+<span class="sourceLineNo">059</span>        }<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    }<a name="line.60"></a>
+<span class="sourceLineNo">061</span><a name="line.61"></a>
+<span class="sourceLineNo">062</span>    /**<a name="line.62"></a>
+<span class="sourceLineNo">063</span>     * 格式化输出<a name="line.63"></a>
+<span class="sourceLineNo">064</span>     * @param object<a name="line.64"></a>
+<span class="sourceLineNo">065</span>     * @return<a name="line.65"></a>
+<span class="sourceLineNo">066</span>     * @throws<a name="line.66"></a>
+<span class="sourceLineNo">067</span>     */<a name="line.67"></a>
+<span class="sourceLineNo">068</span>    public static String toJsonForFormat(Object object)  {<a name="line.68"></a>
+<span class="sourceLineNo">069</span><a name="line.69"></a>
+<span class="sourceLineNo">070</span>        try {<a name="line.70"></a>
+<span class="sourceLineNo">071</span>            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);<a name="line.71"></a>
+<span class="sourceLineNo">072</span>        } catch (IOException e) {<a name="line.72"></a>
+<span class="sourceLineNo">073</span><a name="line.73"></a>
+<span class="sourceLineNo">074</span>            throw  new RuntimeException("write to json string error",e);<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        }<a name="line.75"></a>
+<span class="sourceLineNo">076</span>    }<a name="line.76"></a>
+<span class="sourceLineNo">077</span><a name="line.77"></a>
+<span class="sourceLineNo">078</span>    /**<a name="line.78"></a>
+<span class="sourceLineNo">079</span>     *<a name="line.79"></a>
+<span class="sourceLineNo">080</span>     * @param jsonString<a name="line.80"></a>
+<span class="sourceLineNo">081</span>     * @param clazz<a name="line.81"></a>
+<span class="sourceLineNo">082</span>     * @param &lt;T&gt;<a name="line.82"></a>
+<span class="sourceLineNo">083</span>     * @return<a name="line.83"></a>
+<span class="sourceLineNo">084</span>     */<a name="line.84"></a>
+<span class="sourceLineNo">085</span>    public static  &lt;T&gt; T fromJson(String jsonString, Class&lt;T&gt; clazz) {<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        if (StringUtils.isEmpty(jsonString)) {<a name="line.86"></a>
+<span class="sourceLineNo">087</span>            throw  new RuntimeException("格式JSON不能为空");<a name="line.87"></a>
+<span class="sourceLineNo">088</span>        }<a name="line.88"></a>
+<span class="sourceLineNo">089</span><a name="line.89"></a>
+<span class="sourceLineNo">090</span>        try {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>            return mapper.readValue(jsonString, clazz);<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        } catch (IOException e) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>            throw  new RuntimeException("parse json string error:",e);<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        }<a name="line.94"></a>
+<span class="sourceLineNo">095</span>    }<a name="line.95"></a>
+<span class="sourceLineNo">096</span><a name="line.96"></a>
+<span class="sourceLineNo">097</span>    /**<a name="line.97"></a>
+<span class="sourceLineNo">098</span>     *<a name="line.98"></a>
+<span class="sourceLineNo">099</span>     * @param jsonString<a name="line.99"></a>
+<span class="sourceLineNo">100</span>     * @param javaType<a name="line.100"></a>
+<span class="sourceLineNo">101</span>     * @param &lt;T&gt;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>     * @return<a name="line.102"></a>
+<span class="sourceLineNo">103</span>     */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>    public static  &lt;T&gt; T fromJson(String jsonString, JavaType javaType) {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        if (StringUtils.isEmpty(jsonString)) {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>            throw  new RuntimeException("格式JSON不能为空");<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        try {<a name="line.108"></a>
+<span class="sourceLineNo">109</span>            return (T) mapper.readValue(jsonString, javaType);<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        } catch (IOException e) {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>            throw  new RuntimeException("parse json string error:",e);<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        }<a name="line.112"></a>
+<span class="sourceLineNo">113</span>    }<a name="line.113"></a>
+<span class="sourceLineNo">114</span><a name="line.114"></a>
+<span class="sourceLineNo">115</span>    public static JavaType contructCollectionType(Class&lt;? extends Collection&gt; collectionClass, Class&lt;?&gt; elementClass) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>        return mapper.getTypeFactory().constructCollectionType(collectionClass, elementClass);<a name="line.116"></a>
+<span class="sourceLineNo">117</span>    }<a name="line.117"></a>
+<span class="sourceLineNo">118</span><a name="line.118"></a>
+<span class="sourceLineNo">119</span><a name="line.119"></a>
+<span class="sourceLineNo">120</span>    public static JavaType contructMapType(Class&lt;? extends Map&gt; mapClass, Class&lt;?&gt; keyClass, Class&lt;?&gt; valueClass) {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        return mapper.getTypeFactory().constructMapType(mapClass, keyClass, valueClass);<a name="line.121"></a>
+<span class="sourceLineNo">122</span>    }<a name="line.122"></a>
+<span class="sourceLineNo">123</span><a name="line.123"></a>
+<span class="sourceLineNo">124</span>    public void update(String jsonString, Object object){<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        try {<a name="line.125"></a>
+<span class="sourceLineNo">126</span>            mapper.readerForUpdating(object).readValue(jsonString);<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        } catch (JsonProcessingException e) {<a name="line.127"></a>
+<span class="sourceLineNo">128</span><a name="line.128"></a>
+<span class="sourceLineNo">129</span>            throw  new RuntimeException("update json string:" + jsonString + " to object:" + object + " error.",e);<a name="line.129"></a>
+<span class="sourceLineNo">130</span>        } catch (IOException e) {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>            throw  new RuntimeException("update json string:" + jsonString + " to object:" + object + " error.",e);<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        }<a name="line.132"></a>
+<span class="sourceLineNo">133</span>    }<a name="line.133"></a>
+<span class="sourceLineNo">134</span><a name="line.134"></a>
+<span class="sourceLineNo">135</span><a name="line.135"></a>
+<span class="sourceLineNo">136</span>    public static String toJsonP(String functionName, Object object) {<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        return toJson(new JSONPObject(functionName, object));<a name="line.137"></a>
+<span class="sourceLineNo">138</span>    }<a name="line.138"></a>
+<span class="sourceLineNo">139</span><a name="line.139"></a>
+<span class="sourceLineNo">140</span>    public static void enableEnumUseToString() {<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);<a name="line.142"></a>
+<span class="sourceLineNo">143</span>    }<a name="line.143"></a>
+<span class="sourceLineNo">144</span><a name="line.144"></a>
+<span class="sourceLineNo">145</span>    /**<a name="line.145"></a>
+<span class="sourceLineNo">146</span>     * jsonList字符串转对象数组<a name="line.146"></a>
+<span class="sourceLineNo">147</span>     * @param jsonList<a name="line.147"></a>
+<span class="sourceLineNo">148</span>     * @param elementClass<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     * @param &lt;T&gt;<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     * @return<a name="line.150"></a>
+<span class="sourceLineNo">151</span>     */<a name="line.151"></a>
+<span class="sourceLineNo">152</span>    public static  &lt;T&gt; T parseArray(String jsonList, Class&lt;?&gt; elementClass) {<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        JavaType javaType = contructCollectionType(List.class, elementClass);<a name="line.153"></a>
+<span class="sourceLineNo">154</span>        return fromJson(jsonList, javaType);<a name="line.154"></a>
+<span class="sourceLineNo">155</span>    }<a name="line.155"></a>
+<span class="sourceLineNo">156</span><a name="line.156"></a>
+<span class="sourceLineNo">157</span><a name="line.157"></a>
+<span class="sourceLineNo">158</span>}<a name="line.158"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

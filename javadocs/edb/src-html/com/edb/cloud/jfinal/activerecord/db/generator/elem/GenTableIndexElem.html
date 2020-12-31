@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh">
+<head>
+<title>源代码</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package com.edb.cloud.jfinal.activerecord.db.generator.elem;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>/**<a name="line.3"></a>
+<span class="sourceLineNo">004</span> * @ClassName GenTableIndexElem<a name="line.4"></a>
+<span class="sourceLineNo">005</span> * @Description: 表索引相关字段 -- 对应GenMysql.getTableIndexSql<a name="line.5"></a>
+<span class="sourceLineNo">006</span> * @Author 杨志佳<a name="line.6"></a>
+<span class="sourceLineNo">007</span> * @Date 2020/3/19<a name="line.7"></a>
+<span class="sourceLineNo">008</span> * @Version V1.0<a name="line.8"></a>
+<span class="sourceLineNo">009</span> **/<a name="line.9"></a>
+<span class="sourceLineNo">010</span>public class GenTableIndexElem {<a name="line.10"></a>
+<span class="sourceLineNo">011</span>    // 描述<a name="line.11"></a>
+<span class="sourceLineNo">012</span>    public static String Comment = "Comment";<a name="line.12"></a>
+<span class="sourceLineNo">013</span>    // 是否为null ，yes 则可以为null<a name="line.13"></a>
+<span class="sourceLineNo">014</span>    public static String Null ="Null";<a name="line.14"></a>
+<span class="sourceLineNo">015</span>    // 表名称<a name="line.15"></a>
+<span class="sourceLineNo">016</span>    public static String Table = "Table";<a name="line.16"></a>
+<span class="sourceLineNo">017</span>    // 平均数值组=索引基数/表总数据行，平均数值组越接近1就越有可能利用索引<a name="line.17"></a>
+<span class="sourceLineNo">018</span>    public static String Cardinality = "Cardinality";<a name="line.18"></a>
+<span class="sourceLineNo">019</span>    // 是否不是唯一索引 -- 0 不是，1是 ;    当值=0的时候，可以用来判断是否唯一索引<a name="line.19"></a>
+<span class="sourceLineNo">020</span>    public static String Non_unique = "Non_unique";<a name="line.20"></a>
+<span class="sourceLineNo">021</span>    // Collation=A 不区分大小写<a name="line.21"></a>
+<span class="sourceLineNo">022</span>    public static String Collation = "Collation";<a name="line.22"></a>
+<span class="sourceLineNo">023</span>    // 字段名称<a name="line.23"></a>
+<span class="sourceLineNo">024</span>    public static String Column_name = "Column_name";<a name="line.24"></a>
+<span class="sourceLineNo">025</span>    // Packed 指示关键字如何被压缩<a name="line.25"></a>
+<span class="sourceLineNo">026</span>    public static String Packed = "Packed";<a name="line.26"></a>
+<span class="sourceLineNo">027</span>    // 如果列只是被部分地编入索引，则为被编入索引的字符的数目。如果整列被编入索引，则为NULL。<a name="line.27"></a>
+<span class="sourceLineNo">028</span>    public static String Sub_part = "Sub_part";<a name="line.28"></a>
+<span class="sourceLineNo">029</span><a name="line.29"></a>
+<span class="sourceLineNo">030</span>    // 索引描述<a name="line.30"></a>
+<span class="sourceLineNo">031</span>    public static String Index_comment = "Index_comment";<a name="line.31"></a>
+<span class="sourceLineNo">032</span><a name="line.32"></a>
+<span class="sourceLineNo">033</span>    // 字段在索引中的顺序<a name="line.33"></a>
+<span class="sourceLineNo">034</span>    public static String Seq_in_index = "Seq_in_index";<a name="line.34"></a>
+<span class="sourceLineNo">035</span><a name="line.35"></a>
+<span class="sourceLineNo">036</span>    // 字段名称<a name="line.36"></a>
+<span class="sourceLineNo">037</span>    public static String Key_name = "Key_name";<a name="line.37"></a>
+<span class="sourceLineNo">038</span><a name="line.38"></a>
+<span class="sourceLineNo">039</span>    // Index_type 用过的索引方法（BTREE, FULLTEXT, HASH, RTREE）<a name="line.39"></a>
+<span class="sourceLineNo">040</span>    public static String Index_type = "Index_type";<a name="line.40"></a>
+<span class="sourceLineNo">041</span><a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span><a name="line.43"></a>
+<span class="sourceLineNo">044</span>}<a name="line.44"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh">
+<head>
+<title>源代码</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package com.edb.cloud.jfinal.activerecord.db.proxy;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span><a name="line.3"></a>
+<span class="sourceLineNo">004</span>import cn.hutool.core.bean.BeanUtil;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import cn.hutool.core.util.ReflectUtil;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import cn.hutool.json.JSONUtil;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import com.edb.cloud.jfinal.activerecord.db.EDbPro;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import com.edb.cloud.jfinal.activerecord.db.dto.FieldAndRel;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import com.edb.cloud.jfinal.activerecord.db.dto.FieldAndView;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import com.edb.cloud.jfinal.activerecord.db.jpa.JpaAnnotationUtil;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import com.edb.cloud.jfinal.activerecord.db.jpa.util.JpaRelUtil;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import com.jfinal.plugin.activerecord.SqlPara;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import lombok.Setter;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import net.sf.cglib.proxy.Enhancer;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import net.sf.cglib.proxy.MethodInterceptor;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import net.sf.cglib.proxy.MethodProxy;<a name="line.16"></a>
+<span class="sourceLineNo">017</span><a name="line.17"></a>
+<span class="sourceLineNo">018</span>import java.lang.reflect.Method;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import java.lang.reflect.ParameterizedType;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import java.lang.reflect.Type;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import java.util.HashMap;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import java.util.List;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import java.util.Map;<a name="line.23"></a>
+<span class="sourceLineNo">024</span><a name="line.24"></a>
+<span class="sourceLineNo">025</span>/**<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * @ClassName EDbViewProxy<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * @Description: view视图对象<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * @Author 杨志佳<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * @Date 2020/12/11<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * @Version V1.0<a name="line.30"></a>
+<span class="sourceLineNo">031</span> **/<a name="line.31"></a>
+<span class="sourceLineNo">032</span>public class EDbViewProxy implements MethodInterceptor {<a name="line.32"></a>
+<span class="sourceLineNo">033</span><a name="line.33"></a>
+<span class="sourceLineNo">034</span><a name="line.34"></a>
+<span class="sourceLineNo">035</span>    //要代理的原始对象<a name="line.35"></a>
+<span class="sourceLineNo">036</span>    private Object oriJpa ;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>    // 数据对象<a name="line.37"></a>
+<span class="sourceLineNo">038</span>    private EDbPro eDbPro;<a name="line.38"></a>
+<span class="sourceLineNo">039</span><a name="line.39"></a>
+<span class="sourceLineNo">040</span>    // 1- 创建代理对象<a name="line.40"></a>
+<span class="sourceLineNo">041</span>    public &lt;T&gt; T createProcy(T target,EDbPro eDbPro){<a name="line.41"></a>
+<span class="sourceLineNo">042</span>        // 需要判断是否已经是代理对象，如果是的话，无须二次代理<a name="line.42"></a>
+<span class="sourceLineNo">043</span>//        System.out.println("需要被代理的类："+this.getClass().getSimpleName());<a name="line.43"></a>
+<span class="sourceLineNo">044</span>        // 赋予操作对象<a name="line.44"></a>
+<span class="sourceLineNo">045</span>        this.oriJpa = target;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>        // 赋予数据库对象<a name="line.46"></a>
+<span class="sourceLineNo">047</span>        this.eDbPro = eDbPro;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>        //1-Enhancer类是CGLib中的一个字节码增强器，它可以方便的对你想要处理的类进行扩展<a name="line.48"></a>
+<span class="sourceLineNo">049</span>        Enhancer enhancer=new Enhancer();<a name="line.49"></a>
+<span class="sourceLineNo">050</span>        //2-将被代理类HuGe设置成父类<a name="line.50"></a>
+<span class="sourceLineNo">051</span>        enhancer.setSuperclass(this.oriJpa.getClass());<a name="line.51"></a>
+<span class="sourceLineNo">052</span>        //3-设置拦截器<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        enhancer.setCallback(this);<a name="line.53"></a>
+<span class="sourceLineNo">054</span>        //4-动态生成一个代理类<a name="line.54"></a>
+<span class="sourceLineNo">055</span>        Object objProxy = enhancer.create();<a name="line.55"></a>
+<span class="sourceLineNo">056</span>        return (T) objProxy;<a name="line.56"></a>
+<span class="sourceLineNo">057</span>    }<a name="line.57"></a>
+<span class="sourceLineNo">058</span><a name="line.58"></a>
+<span class="sourceLineNo">059</span>    //2-实现MethodInterceptor的intercept方法<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {<a name="line.60"></a>
+<span class="sourceLineNo">061</span>//        System.out.println("before: " + method);<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        //调用proxy.invoke()方法，会报java.lang.StackOverflowError错误，原因是invoke()内部会一直被反复调用<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        //Object object = proxy.invoke(obj, args);<a name="line.63"></a>
+<span class="sourceLineNo">064</span>//        Object object = proxy.invokeSuper(obj, args);<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        Object object = null;<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        // 获取调用方法的返回对象<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        Type returnType = method.getAnnotatedReturnType().getType();<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        // 如果返回类型有值，才进行关系扩展<a name="line.68"></a>
+<span class="sourceLineNo">069</span>        if(returnType!= null ){<a name="line.69"></a>
+<span class="sourceLineNo">070</span>            // 获取所有字段 -- 包含<a name="line.70"></a>
+<span class="sourceLineNo">071</span>            List&lt;FieldAndView&gt; fieldViews = JpaAnnotationUtil.getFieldViews(oriJpa.getClass());<a name="line.71"></a>
+<span class="sourceLineNo">072</span>            Class&lt;?&gt; entityClass = null;<a name="line.72"></a>
+<span class="sourceLineNo">073</span>            for(FieldAndView fieldAndView :fieldViews) {<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                // 排除掉非引用注解字段的get方法<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                if (method != null &amp;&amp; !method.getName().equals(JpaAnnotationUtil.getFieldMethod(fieldAndView.getField(), oriJpa.getClass()).getName())) {<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                    continue;<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                }<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                // 将当前对象的所有属性转换成入参对象<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                Map&lt;String,Object&gt; map = new HashMap&lt;&gt;();<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                // 原来只转一层map的时候，bean对象无法使用  map[field] 的语法  //BeanUtil.beanToMap(oriJpa);<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                // 将对象先转成json字符串，再转map对象，这样子对象里的对象，就都是map，否则enjoy解析器，基于bean的内部解析时，无法使用类似 map[field] 的语法<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                map = JSONUtil.toBean(JSONUtil.toJsonStr(oriJpa),map.getClass());<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                //<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                SqlPara sqlPara = eDbPro.getSqlPara(fieldAndView.getEDbView().name(), map);<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                if(sqlPara==null){<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                    throw new RuntimeException("未加载sql视图:" + fieldAndView.getEDbView().name());<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                }<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                if(returnType instanceof ParameterizedType){<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                    // List<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                    entityClass = (Class&lt;?&gt;)((ParameterizedType) returnType).getActualTypeArguments()[0];<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                    object = eDbPro.find(entityClass,sqlPara);<a name="line.91"></a>
+<span class="sourceLineNo">092</span><a name="line.92"></a>
+<span class="sourceLineNo">093</span>                }else{<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                    entityClass = Class.forName(returnType.getTypeName());<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                    object = eDbPro.findFirst(entityClass,sqlPara);<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                }<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                // 字段赋值 -- 反射赋值会比较消耗毫秒数<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                ReflectUtil.setFieldValue(oriJpa, fieldAndView.getField(), object);<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                // 跳出循环<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                break;<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            }<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        }<a name="line.102"></a>
+<span class="sourceLineNo">103</span><a name="line.103"></a>
+<span class="sourceLineNo">104</span>        // 如果不是rel对象，则返回原属性方法值<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        if(object == null){<a name="line.105"></a>
+<span class="sourceLineNo">106</span>            object = proxy.invokeSuper(obj, args);<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        return object;<a name="line.108"></a>
+<span class="sourceLineNo">109</span>    }<a name="line.109"></a>
+<span class="sourceLineNo">110</span><a name="line.110"></a>
+<span class="sourceLineNo">111</span><a name="line.111"></a>
+<span class="sourceLineNo">112</span><a name="line.112"></a>
+<span class="sourceLineNo">113</span>}<a name="line.113"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh">
+<head>
+<title>源代码</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package com.edb.cloud.jfinal.activerecord.db.jpa.task;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import cn.hutool.core.util.ReflectUtil;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import com.edb.cloud.jfinal.activerecord.db.EDbPro;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import com.jfinal.plugin.activerecord.DbPro;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import com.jfinal.plugin.activerecord.SqlPara;<a name="line.6"></a>
+<span class="sourceLineNo">007</span><a name="line.7"></a>
+<span class="sourceLineNo">008</span>import java.lang.reflect.Field;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import java.util.concurrent.Callable;<a name="line.9"></a>
+<span class="sourceLineNo">010</span><a name="line.10"></a>
+<span class="sourceLineNo">011</span>public class JpaRelTask implements Callable&lt;Object&gt; {<a name="line.11"></a>
+<span class="sourceLineNo">012</span><a name="line.12"></a>
+<span class="sourceLineNo">013</span>    private Class&lt;?&gt; jpaClass;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>    private SqlPara sqlPara;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>    private EDbPro eDbPro;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>    private Object oriJpa;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>    private Field field;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>    private boolean isList = false;<a name="line.18"></a>
+<span class="sourceLineNo">019</span><a name="line.19"></a>
+<span class="sourceLineNo">020</span>    public JpaRelTask(Object oriJpa,Field oriJpaField,Class&lt;?&gt; jpaClass, SqlPara sqlPara, EDbPro eDbPro,boolean isList){<a name="line.20"></a>
+<span class="sourceLineNo">021</span>        this.jpaClass = jpaClass;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>        this.sqlPara = sqlPara;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>        this.eDbPro = eDbPro;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>        this.oriJpa =oriJpa;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>        this.field = oriJpaField;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>        this.isList = isList;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>    }<a name="line.27"></a>
+<span class="sourceLineNo">028</span><a name="line.28"></a>
+<span class="sourceLineNo">029</span>    @Override<a name="line.29"></a>
+<span class="sourceLineNo">030</span>    public Object call() throws Exception {<a name="line.30"></a>
+<span class="sourceLineNo">031</span>        Object object = null;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>        if(isList){<a name="line.32"></a>
+<span class="sourceLineNo">033</span>            object = eDbPro.find(jpaClass, sqlPara);<a name="line.33"></a>
+<span class="sourceLineNo">034</span>        }else{<a name="line.34"></a>
+<span class="sourceLineNo">035</span>            object = eDbPro.findFirst(jpaClass, sqlPara);<a name="line.35"></a>
+<span class="sourceLineNo">036</span>        }<a name="line.36"></a>
+<span class="sourceLineNo">037</span>        System.out.println("===运行===");<a name="line.37"></a>
+<span class="sourceLineNo">038</span>        // 字段赋值 -- 反射赋值会比较消耗毫秒数<a name="line.38"></a>
+<span class="sourceLineNo">039</span>        ReflectUtil.setFieldValue(oriJpa, field, object);<a name="line.39"></a>
+<span class="sourceLineNo">040</span><a name="line.40"></a>
+<span class="sourceLineNo">041</span>        return object;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>    }<a name="line.42"></a>
+<span class="sourceLineNo">043</span><a name="line.43"></a>
+<span class="sourceLineNo">044</span>}<a name="line.44"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

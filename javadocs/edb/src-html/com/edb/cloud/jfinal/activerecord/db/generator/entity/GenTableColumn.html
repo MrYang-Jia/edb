@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="zh">
+<head>
+<title>源代码</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package com.edb.cloud.jfinal.activerecord.db.generator.entity;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import lombok.Data;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>/**<a name="line.5"></a>
+<span class="sourceLineNo">006</span> * 对表象字段工具类<a name="line.6"></a>
+<span class="sourceLineNo">007</span> */<a name="line.7"></a>
+<span class="sourceLineNo">008</span>@Data<a name="line.8"></a>
+<span class="sourceLineNo">009</span>public class GenTableColumn {<a name="line.9"></a>
+<span class="sourceLineNo">010</span>    // 表字段名称<a name="line.10"></a>
+<span class="sourceLineNo">011</span>    private String columnName ;<a name="line.11"></a>
+<span class="sourceLineNo">012</span><a name="line.12"></a>
+<span class="sourceLineNo">013</span>    // java 驼峰式字段名<a name="line.13"></a>
+<span class="sourceLineNo">014</span>    private String columnCode ;<a name="line.14"></a>
+<span class="sourceLineNo">015</span><a name="line.15"></a>
+<span class="sourceLineNo">016</span>    // 初始值<a name="line.16"></a>
+<span class="sourceLineNo">017</span>    private String columnDefault ;<a name="line.17"></a>
+<span class="sourceLineNo">018</span><a name="line.18"></a>
+<span class="sourceLineNo">019</span>    // 数据类型<a name="line.19"></a>
+<span class="sourceLineNo">020</span>    private String dataType ;<a name="line.20"></a>
+<span class="sourceLineNo">021</span><a name="line.21"></a>
+<span class="sourceLineNo">022</span>    // java 数据类型<a name="line.22"></a>
+<span class="sourceLineNo">023</span>    private String columnType ;<a name="line.23"></a>
+<span class="sourceLineNo">024</span><a name="line.24"></a>
+<span class="sourceLineNo">025</span>    // 字段描述<a name="line.25"></a>
+<span class="sourceLineNo">026</span>    private String columnComment ;<a name="line.26"></a>
+<span class="sourceLineNo">027</span><a name="line.27"></a>
+<span class="sourceLineNo">028</span>    // 主键 - PRI 对应唯一主键<a name="line.28"></a>
+<span class="sourceLineNo">029</span>    private String columnKey ;<a name="line.29"></a>
+<span class="sourceLineNo">030</span><a name="line.30"></a>
+<span class="sourceLineNo">031</span>    // 函数 - auto_increment 对应自增id<a name="line.31"></a>
+<span class="sourceLineNo">032</span>    private String extra ;<a name="line.32"></a>
+<span class="sourceLineNo">033</span><a name="line.33"></a>
+<span class="sourceLineNo">034</span>    // 是否允许为null ， 0 -不允许，1-允许<a name="line.34"></a>
+<span class="sourceLineNo">035</span>    private String isN ;<a name="line.35"></a>
+<span class="sourceLineNo">036</span><a name="line.36"></a>
+<span class="sourceLineNo">037</span>    // 最大长度, 数字或NULL ，NULL 一般为时间 或 TEXT<a name="line.37"></a>
+<span class="sourceLineNo">038</span>    private String maxL ;<a name="line.38"></a>
+<span class="sourceLineNo">039</span><a name="line.39"></a>
+<span class="sourceLineNo">040</span>    // 根据长度回填 9<a name="line.40"></a>
+<span class="sourceLineNo">041</span>    private String maxValue;<a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span>    // 小数位数<a name="line.43"></a>
+<span class="sourceLineNo">044</span>    private String decimalDigit;<a name="line.44"></a>
+<span class="sourceLineNo">045</span><a name="line.45"></a>
+<span class="sourceLineNo">046</span><a name="line.46"></a>
+<span class="sourceLineNo">047</span>}<a name="line.47"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>
