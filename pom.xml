@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.mryang-jia</groupId>
+    <artifactId>spring-jf-edb</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+
+
+    <properties>
+
+        <jfinal.version>4.9.02</jfinal.version>
+        <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
+        <druid.version>1.1.21_1</druid.version>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
+        <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
+
+        <!--<aliyun-spring-boot.version>1.0.0</aliyun-spring-boot.version>-->
+        <!--<spring-cloud-alibaba.version>2.2.2.RELEASE</spring-cloud-alibaba.version>-->
+    </properties>
+
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <tag>master</tag>
+        <url>git@github.com/MrYang-Jia/edb.git</url>
+        <connection>scm:git:git@github.com/MrYang-Jia/edb.git</connection>
+        <developerConnection>scm:git:git@github.com/MrYang-Jia/edb.git</developerConnection>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>MrYang-Jia</name>
+            <email>yzj114477@qq.com</email>
+            <organization>MrYang-Jia</organization>
+        </developer>
+    </developers>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <!--<name>Sonatype Nexus Snapshots</name>-->
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <!--<name>Nexus Release Repository</name>-->
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+
+
+
+    <dependencies>
+
+
+        <!-- 公司内部基础服务组件 -->
+        <!--<dependency>-->
+            <!--<groupId>com.whbj.cloud</groupId>-->
+            <!--<artifactId>common</artifactId>-->
+            <!--<version>1.0-SNAPSHOT</version>-->
+        <!--</dependency>-->
+
+
+        <!-- === 必须依赖的jar包 === -->
+        <dependency>
+            <groupId>com.jfinal</groupId>
+            <artifactId>jfinal</artifactId>
+            <version>${jfinal.version}</version>
+        </dependency>
+        <!-- jfinal-db操作工具包 -->
+        <!--<dependency>-->
+            <!--<groupId>com.jfinal</groupId>-->
+            <!--<artifactId>activerecord</artifactId>-->
+            <!--<version>${jfinal.version}</version>-->
+        <!--</dependency>-->
+
+        <!--&lt;!&ndash; jfinal-视图、sql、文件内容解析工具包 &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>com.jfinal</groupId>-->
+            <!--<artifactId>enjoy</artifactId>-->
+            <!--<version>${jfinal.version}</version>-->
+        <!--</dependency>-->
+        <!-- jpa注解规范工具类 -->
+        <dependency>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+            <version>2.2</version>
+        </dependency>
+
+        <!-- hutool 常用工具，性能基本不错，常用方法较多，api文档清晰 -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+            <version>5.4.4</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+        </dependency>
+
+
+        <!-- === 必须依赖的jar包 end === -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>${druid.version}</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.17</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.11</version>
+        </dependency>
+
+        <!-- cglib 扩展 CglibProxyFactory extends ProxyFactory -->
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>3.2.5</version>
+            <!-- 依赖时可选 -->
+            <!--<optional>true</optional>-->
+            <scope>provided</scope>
+        </dependency>
+
+
+
+
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.11.3</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+        </dependency>
+
+        <!-- springJdbc 常用工具类 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jdbc</artifactId>
+            <version>${spring-boot.version}</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+        </dependency>
+
+        <!-- @Data注解 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+        </dependency>
+
+
+
+        <!-- 测试工具类 -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.14.3</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <!-- 堆内存大小计算工具类 -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>4.0.0</version>
+            <!--<scope>provided</scope>-->
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <!-- **/* 打包代码生成器的模板文件 -->
+                    <include>**/*.tp</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+                <excludes>
+                    <exclude>
+                        *.properties
+                    </exclude>
+                    <exclude>
+                        *.sql
+                    </exclude>
+                </excludes>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <!-- 打包时提出test指令 -->
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <!-- <compilerArgument>-parameters</compilerArgument> -->
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <configuration>
+                    <windowtitle>edb</windowtitle>
+                    <doctitle>edb</doctitle>
+                    <show>private</show>
+                    <detectLinks>false</detectLinks>
+                    <detectOfflineLinks>true</detectOfflineLinks>
+                    <linksource>true</linksource>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <detectJavaApiLink>true</detectJavaApiLink>
+                    <source>8</source>
+                    <!-- 生成api文档 mvn javadoc:javadoc -->
+                    <!--<reportOutputDirectory>../javadocs</reportOutputDirectory>-->
+                    <reportOutputDirectory>javadocs</reportOutputDirectory>
+                    <destDir>edb</destDir>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 安装源码到本地仓库 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-gpg-plugin</artifactId>-->
+                <!--<version>1.6</version>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>sign-artifacts</id>-->
+                        <!--<phase>verify</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>sign</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
+        </plugins>
+    </build>
+
+</project>
