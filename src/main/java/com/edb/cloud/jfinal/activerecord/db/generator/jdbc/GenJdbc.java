@@ -3,6 +3,7 @@ package com.edb.cloud.jfinal.activerecord.db.generator.jdbc;
 import cn.hutool.core.map.CaseInsensitiveMap;
 import com.alibaba.druid.filter.Filter;
 import com.alibaba.druid.pool.DruidDataSource;
+import com.edb.cloud.jfinal.activerecord.db.EDb;
 import com.edb.cloud.jfinal.activerecord.db.jpa.kit.JpaKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
@@ -209,6 +210,8 @@ public class GenJdbc {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        // 初始化EDb资源
+        EDb.init(configName);
 
     }
 

@@ -3,10 +3,7 @@ package com.edb.cloud.jfinal.activerecord.db;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.edb.cloud.jfinal.activerecord.db.query.EDbQuery;
 import com.jfinal.kit.SyncWriteMap;
-import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.SqlPara;
+import com.jfinal.plugin.activerecord.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 
@@ -35,28 +32,17 @@ public class EDb extends Db{
     // 主要载体
     private static final Map<String, EDbPro> dbMap = new SyncWriteMap<String, EDbPro>(32, 0.25F);
 
-    // 加载类时进行初始化，存在加载失败的可能
-    static {
-        try {
-            if (MAIN == null) {
-                init();
-            }
-        }catch (Throwable e){
-            log.warn("初始化EDb失败",e);
-        }
-
-    }
 
     /**
      * 初始化 dbPro 对象
      */
     public static void init(){
-        EDbPro jDbPro = new EDbPro();
+        EDbPro EDbPro = new EDbPro();
         // 加载主对象
-        dbMap.put("main",jDbPro);
+        dbMap.put(DbKit.MAIN_CONFIG_NAME,EDbPro);
         // 加载主体对象
-        MAIN = jDbPro;
-        initPool("main",jDbPro);
+        MAIN = EDbPro;
+        initPool(DbKit.MAIN_CONFIG_NAME,EDbPro);
     }
 
     /**
@@ -70,16 +56,30 @@ public class EDb extends Db{
         edbFutruePools.put(configName,   Executors.newFixedThreadPool((int) (dataSource.getMaxActive() * 0.5) ));
     }
 
+    /**
+     * 初始化线程池
+     * @param configName
+     */
+    public static void init(String configName){
+        if(configName==null){
+            init();
+            return;
+        }
+        EDbPro eDbPro = new EDbPro(configName);
+        init(configName,eDbPro);
+        log.info("初始化 "+configName+" 的EDbPro数据对象成功");
+    }
+
 
     /**
-     * 初始化 jdbPro
+     * 初始化 EDbPro
      * @param configName
-     * @param jdbPro
+     * @param EDbPro
      */
-    public static void init(String configName, EDbPro jdbPro){
+    public static void init(String configName, EDbPro EDbPro){
         // 加载主对象
-        dbMap.put(configName,jdbPro);
-        initPool(configName,jdbPro);
+        dbMap.put(configName,EDbPro);
+        initPool(configName,EDbPro);
     }
 
 
@@ -98,16 +98,6 @@ public class EDb extends Db{
      * @return
      */
     public static EDbPro use(String configName){
-        //
-        synchronized (configName){
-            // 判断
-            if(dbMap.get(configName) == null){
-                EDbPro jDbPro = new EDbPro(configName);
-                init(configName,jDbPro);
-                log.info("初始化 "+configName+" 的JDbPro数据对象成功");
-                return jDbPro;
-            }
-        }
         return dbMap.get(configName);
     }
 

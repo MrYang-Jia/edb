@@ -48,11 +48,12 @@ public class EDbPro extends DbPro {
     private EDbListener eDbListener;
 
     public EDbPro(){
-        super.config =  Db.use().getConfig();
+        super.config =  Db.use(DbKit.MAIN_CONFIG_NAME).getConfig();
     }
 
     public EDbPro(String  configName){
-        super.config  =  Db.use(configName).getConfig();
+        Config config =  Db.use(configName).getConfig();
+        super.config  =  config;
     }
 
     /**
@@ -108,12 +109,9 @@ public class EDbPro extends DbPro {
         Record record = new Record();
         // 字段赋值
         for(FieldAndColValue fieldAndColumn : coumns){
-            // 字段赋值
+            // 字段赋值 -- 对象全字段赋值
             record.set(fieldAndColumn.getColumn().name().toLowerCase(), fieldAndColumn.getFieldValue());
         }
-
-
-
 
         // 保存前的监听
         if(eDbListener!=null){
@@ -122,10 +120,8 @@ public class EDbPro extends DbPro {
             Map<String,Object> dataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeSave(mClass,dataMap,allCoumns);
-            // 对象更新拷贝
-            BeanUtil.copyProperties(dataMap,record.getColumns());
-            // 释放map对象
-            dataMap = null;
+            // 替换数据
+            record.setColumns(dataMap);
         }
 
         // 保存前的方法事件
@@ -136,10 +132,8 @@ public class EDbPro extends DbPro {
             Map<String,Object> dataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
             ReflectUtil.invoke(m, beforeUpdate, dataMap,coumns);
-            // 对象更新拷贝
-            BeanUtil.copyProperties(dataMap,record.getColumns());
-            // 释放map对象
-            dataMap = null;
+            // 替换数据
+            record.setColumns(dataMap);
         }
 
         // 判断数据库类型
@@ -209,10 +203,8 @@ public class EDbPro extends DbPro {
                 dataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
                 eDbListener.beforeSave(mClass,dataMap,coumns);
-                // 对象更新拷贝
-                BeanUtil.copyProperties(dataMap,record.getColumns());
-                // 释放map对象
-                dataMap = null;
+                // 替换数据
+                record.setColumns(dataMap);
             }
 
             // 保存前的监听 -- 在统一监听之后执行
@@ -221,10 +213,8 @@ public class EDbPro extends DbPro {
                 dataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
                 ReflectUtil.invoke(m, beforeSave, dataMap,coumns);
-                // 对象更新拷贝
-                BeanUtil.copyProperties(dataMap,record.getColumns());
-                // 释放map对象
-                dataMap = null;
+                // 替换数据
+                record.setColumns(dataMap);
             }
 
             // 区分是否是 postgresql -- 目前注释，正常情况下不会交错id提交，交由id自增，或者自己传入id
@@ -299,10 +289,8 @@ public class EDbPro extends DbPro {
                 dataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
                 eDbListener.beforeSave(mClass,dataMap,coumns);
-                // 对象更新拷贝
-                BeanUtil.copyProperties(dataMap,record.getColumns());
-                // 释放map对象
-                dataMap = null;
+                // 替换数据
+                record.setColumns(dataMap);
             }
 
             // 全局监听之后
@@ -311,10 +299,8 @@ public class EDbPro extends DbPro {
                 dataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
                 ReflectUtil.invoke(m, beforeSave, dataMap,coumns);
-                // 对象更新拷贝
-                BeanUtil.copyProperties(dataMap,record.getColumns());
-                // 释放map对象
-                dataMap = null;
+                // 替换数据
+                record.setColumns(dataMap);
             }
 
             // 反向赋予键值
@@ -481,7 +467,8 @@ public class EDbPro extends DbPro {
                 dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
             }
         }
-
+        // 初始化对象
+        record.setColumns(dataMap);
         // 获取所有字段列表
         List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(mClass);
 
@@ -492,13 +479,11 @@ public class EDbPro extends DbPro {
         Map<String,Object> updateDataMap = null;
         // 保存前的监听
         if(eDbListener!=null){
-            updateDataMap =  new CaseInsensitiveMap(dataMap);
+            updateDataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
-            // 对象更新拷贝
-            BeanUtil.copyProperties(updateDataMap,dataMap);
-            // 释放map对象
-            updateDataMap = null;
+            // 替换数据
+            record.setColumns(updateDataMap);
         }
 
         //
@@ -513,12 +498,10 @@ public class EDbPro extends DbPro {
             updateDataMap =  new CaseInsensitiveMap(dataMap);
             // 执行对象方法
             ReflectUtil.invoke(ojb, beforeSave, updateDataMap,coumns);
-            // 对象更新拷贝
-            BeanUtil.copyProperties(updateDataMap,dataMap);
-            // 释放map对象
-            updateDataMap = null;
+            // 替换数据
+            record.setColumns(updateDataMap);
         }
-        record.setColumns(dataMap);
+
         // 更新对象
         return this.update(table.name(),keys,record);
     }
@@ -543,6 +526,8 @@ public class EDbPro extends DbPro {
 //        System.out.println(updateData);
         // 必须定义record对象，否则无法更新操作
         Record record = new Record();
+        // 初始化对象
+        record.setColumns(dataMap);
 
         // 获取所有字段列表
         List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(mClass);
@@ -552,36 +537,29 @@ public class EDbPro extends DbPro {
 
         // 保存前的监听
         if(eDbListener!=null){
-            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(dataMap);
+            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
-            // 对象更新拷贝
-            BeanUtil.copyProperties(updateDataMap,dataMap);
-            // 释放map对象
-            updateDataMap = null;
+            // 替换数据
+            record.setColumns(updateDataMap);
         }
 
         //
         if(beforeSave != null){
             // 替换成 忽略 大小写的 map
-            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(dataMap);
+            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
             ReflectUtil.invoke(updateM, beforeSave, updateDataMap,coumns);
-            // 对象更新拷贝
-            BeanUtil.copyProperties(updateDataMap,dataMap);
-            // 释放map对象
-            updateDataMap = null;
+            // 替换数据
+            record.setColumns(updateDataMap);
         }
 
         // 反向赋予键值
         for(FieldAndColumn fieldAndColumn : coumns) {
             // 字段赋值 -- 反向赋予主键的键值
-            ReflectUtil.setFieldValue(updateM,fieldAndColumn.getField(),dataMap.get(fieldAndColumn.getColumn().name().toLowerCase()));
+            ReflectUtil.setFieldValue(updateM,fieldAndColumn.getField(),record.getColumns().get(fieldAndColumn.getColumn().name().toLowerCase()));
         }
 
-
-        // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
-        record.setColumns(dataMap);
         // 更新对象
         return this.update(table.name(),keys,record);
     }
@@ -641,6 +619,8 @@ public class EDbPro extends DbPro {
 //        System.out.println(updateData);
         // 必须定义record对象，否则无法更新操作
         Record record = new Record();
+        // 初始化对象
+        record.setColumns(dataMap);
 
         // 获取所有字段列表
         List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(mClass);
@@ -648,35 +628,30 @@ public class EDbPro extends DbPro {
         Method beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbUpdate.class);
         // 保存前的监听
         if(eDbListener!=null){
-            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(dataMap);
+            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
-            // 对象更新拷贝
-            BeanUtil.copyProperties(updateDataMap,dataMap);
-            // 释放map对象
-            updateDataMap = null;
+            // 替换数据
+            record.setColumns(updateDataMap);
+
         }
 
         //
         if(beforeSave != null){
             // 替换成 忽略 大小写的 map
-            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(dataMap);
+            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
             ReflectUtil.invoke(m, beforeSave, updateDataMap,coumns);
-            // 对象更新拷贝
-            BeanUtil.copyProperties(updateDataMap,dataMap);
-            // 释放map对象
-            updateDataMap = null;
+            // 替换数据
+            record.setColumns(updateDataMap);
         }
 
         // 反向赋予键值
         for(FieldAndColumn fieldAndColumn : coumns) {
             // 字段赋值 -- 反向赋予主键的键值
-            ReflectUtil.setFieldValue(m,fieldAndColumn.getField(),dataMap.get(fieldAndColumn.getColumn().name().toLowerCase()));
+            ReflectUtil.setFieldValue(m,fieldAndColumn.getField(),record.getColumns().get(fieldAndColumn.getColumn().name().toLowerCase()));
         }
 
-        // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
-        record.setColumns(dataMap);
         // 更新对象
         return this.update(table.name(),keys,record);
     }
@@ -714,6 +689,7 @@ public class EDbPro extends DbPro {
             // 必须有更新条件，所以不用判断null
             dataMap = JpaAnnotationUtil.getJpaMap(obj,false);
 
+            record.setColumns(dataMap);
             if(beforeUpdate == null){
                 // 更新前的方法事件
                 beforeUpdate = JpaAnnotationUtil.getMethod(mClass, EDbUpdate.class);
@@ -721,34 +697,29 @@ public class EDbPro extends DbPro {
 
             // 保存前的监听
             if(eDbListener!=null){
-                updateDataMap =  new CaseInsensitiveMap(dataMap);
+                updateDataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
                 eDbListener.beforeUpdate(mClass , updateDataMap , coumns);
-                // 对象更新拷贝
-                BeanUtil.copyProperties(updateDataMap,dataMap);
-                // 释放map对象
-                updateDataMap = null;
+                // 替换数据
+                record.setColumns(updateDataMap);
             }
 
             //
             if(beforeUpdate != null){
                 // 替换成 忽略 大小写的 map
-                updateDataMap =  new CaseInsensitiveMap(dataMap);
+                updateDataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
                 ReflectUtil.invoke(obj, beforeUpdate, updateDataMap,coumns);
-                // 对象更新拷贝
-                BeanUtil.copyProperties(updateDataMap,dataMap);
-                // 释放map对象
-                updateDataMap = null;
+                // 替换数据
+                record.setColumns(updateDataMap);
             }
 
             // 反向赋予键值
             for(FieldAndColumn fieldAndColumn : coumns) {
                 // 字段赋值 -- 反向赋予主键的键值
-                ReflectUtil.setFieldValue(obj,fieldAndColumn.getField(),dataMap.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                ReflectUtil.setFieldValue(obj,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
             }
 
-            record.setColumns(dataMap);
             records.add(record);
         }
 
