@@ -118,9 +118,9 @@ public class BaseTest {
     /**
      * 切换数据源的测试
      */
-//    @Test
+    @Test
     public void testUseDb(){
-        int countSize = 100;
+        int countSize = 1000;
 
         // 并发切换数据源
         for(int i=0;i<countSize;i++){

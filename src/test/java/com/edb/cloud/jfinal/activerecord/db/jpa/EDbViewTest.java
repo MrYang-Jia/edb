@@ -20,7 +20,7 @@ public class EDbViewTest extends BaseTest {
         VehicleView vehicleView = new VehicleView();
 
         WhereKvParams whereKvParams = new WhereKvParams();
-        whereKvParams.setVehicleModeName("类型");
+        whereKvParams.setVehicleModeName("罐车");
         //
         vehicleView.setWhereKv(whereKvParams);
         // 指定id -- 将作为查询参数传递到视图对象里
@@ -31,9 +31,9 @@ public class EDbViewTest extends BaseTest {
 //        vehicleView.setCrVehicleTypeMode(crVehicleTypeMode);
         log.info("========================================");
         // 返回查询的对象      ;
-        System.out.println(EDb.getView(vehicleView).getCrVehicleType());
+        System.out.println(EDb.getView(vehicleView).getCrVehicleTypeView());
         // 返回查询列表
-        System.out.println(EDb.getView(vehicleView).getCrVehicleTypes());
+        System.out.println(EDb.getView(vehicleView).getCrVehicleTypesView());
     }
 
 }

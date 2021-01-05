@@ -116,7 +116,7 @@ public class JpaRelUtil {
 //                        }
                         if(typeName != null){
                             // 如果方面名和字段名提供的方法名不一致，则不是所命中对象的get方法
-                            if(method!=null && !method.getName().equals(JpaAnnotationUtil.getFieldMethod(fieldAndRel.getField(),oriJpa.getClass()).getName())){
+                            if(method!=null && !method.getName().equals(JpaAnnotationUtil.getFieldReadMethod(fieldAndRel.getField(),oriJpa.getClass()).getName())){
                                 continue;
                             }
                         }

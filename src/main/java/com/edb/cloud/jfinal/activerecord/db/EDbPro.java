@@ -571,47 +571,14 @@ public class EDbPro extends DbPro {
      * @return
      */
     public <M> boolean update(M m){
-
-        // 废弃  cglib 反射获取属性值变更的方式
-        // jpa 对象更新
-//        JpaProxy jpaProxy = JpaProxy.getCglibForJpaUpdate(m);
-//        Class mClass = null;
-//        // 更新集
-//        Map<String,Object> updateData = null;
-//        if(jpaProxy == null){
-////            mClass = m.getClass();
-//            throw new RuntimeException("必须使用 EDb.use().find 系列方法返回 查询的表对象 或者 EDb.forUpdate(T.class) 获取更新对象，尽量保证数据的一致性");
-//        }else{
-//            mClass = jpaProxy.getJpaClass();
-//            updateData = jpaProxy.getUpdateData();
-//        }
-
         //
         Class mClass = m.getClass();
         Map<String,Object> dataMap = null;
-
-        // 去除事务模式下 帮助用户记录数据初始值的功能 -- 减少内存损耗
-//        M oldM = null;
-//        Field originalField = JpaAnnotationUtil.getFieldForAnnationClass(mClass, EDbUuid.class);
-//        //
-//        if( originalField != null ){
-//            // 获取唯一标识
-//            Object edbUuid = ReflectUtil.getFieldValue(m,originalField);
-//            if(edbUuid == null){
-//                throw new RuntimeException("请使用 EDb.forUpdate(Class.class) 构建更新对象");
-//            }
-//            // 获取变更的对象
-//            oldM = (M) JpaBuilder.threadLocal.get().get(edbUuid);
-//            // 数据变更对象
-//            dataMap = JpaBuilder.contrastObjReturnColumnMap(oldM,m);
-//        }
-
         // 数据对象
         if(dataMap == null || dataMap.size() ==0 ){
             // 剔除null值
             dataMap = JpaAnnotationUtil.getJpaMap(m,false);
         }
-
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
@@ -621,7 +588,6 @@ public class EDbPro extends DbPro {
         Record record = new Record();
         // 初始化对象
         record.setColumns(dataMap);
-
         // 获取所有字段列表
         List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(mClass);
         // 更新前的方法事件
@@ -633,7 +599,6 @@ public class EDbPro extends DbPro {
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
             // 替换数据
             record.setColumns(updateDataMap);
-
         }
 
         //
@@ -688,7 +653,7 @@ public class EDbPro extends DbPro {
             dataMap = new HashMap<>();
             // 必须有更新条件，所以不用判断null
             dataMap = JpaAnnotationUtil.getJpaMap(obj,false);
-
+            // 设置到对象集
             record.setColumns(dataMap);
             if(beforeUpdate == null){
                 // 更新前的方法事件

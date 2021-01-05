@@ -5,12 +5,9 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.json.JSONUtil;
 import com.edb.cloud.jfinal.activerecord.db.EDbPro;
-import com.edb.cloud.jfinal.activerecord.db.dto.FieldAndRel;
 import com.edb.cloud.jfinal.activerecord.db.dto.FieldAndView;
 import com.edb.cloud.jfinal.activerecord.db.jpa.JpaAnnotationUtil;
-import com.edb.cloud.jfinal.activerecord.db.jpa.util.JpaRelUtil;
 import com.jfinal.plugin.activerecord.SqlPara;
-import lombok.Setter;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
@@ -72,7 +69,7 @@ public class EDbViewProxy implements MethodInterceptor {
             Class<?> entityClass = null;
             for(FieldAndView fieldAndView :fieldViews) {
                 // 排除掉非引用注解字段的get方法
-                if (method != null && !method.getName().equals(JpaAnnotationUtil.getFieldMethod(fieldAndView.getField(), oriJpa.getClass()).getName())) {
+                if (method != null && !method.getName().equals(JpaAnnotationUtil.getFieldReadMethod(fieldAndView.getField(), oriJpa.getClass()).getName())) {
                     continue;
                 }
                 // 将当前对象的所有属性转换成入参对象

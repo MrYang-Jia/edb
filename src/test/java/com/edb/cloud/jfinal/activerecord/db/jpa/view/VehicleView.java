@@ -23,9 +23,9 @@ public class VehicleView {
 
     // 指定视图 -- 在sql模板里，可以通过配置 对象1 和 查询对象2 进行组合查询，对于入参和出参的定义也能更加清晰直观,同时代码检索也更加容易
     @EDbView(name = "test.EDbViewTest")
-    private CrVehicleType crVehicleType;
+    private CrVehicleType crVehicleTypeView;
 
     @EDbView(name = "test.EDbViewTest")
-    private List<CrVehicleType> crVehicleTypes;
+    private List<CrVehicleType> crVehicleTypesView;
 
 }
