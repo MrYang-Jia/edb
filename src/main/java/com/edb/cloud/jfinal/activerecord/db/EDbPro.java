@@ -166,7 +166,7 @@ public class EDbPro extends DbPro {
 
     /**
      * 批量提交并返回主键
-     * 目前只测试了mysql会返回，所以独立方法，避免影响到原 jfinal 的批量提交
+     * 目前只测试了 mysql postgresql 会返回，所以独立方法，避免影响到原 jfinal 的批量提交
      * @param mClass
      * @param saveList
      * @param batchSize
