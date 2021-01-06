@@ -96,7 +96,8 @@ public class DataSourcesConfig {
         arp.setShowSql(true);
         // 启动Record容器
         arp.start();
-
+        // 重点：需要初始化一次配置信息，便于 EDb 继承 Db 的config信息
+        EDb.init();
         log.debug("===EDb启动成功===");
         return EDb.use();
     }
@@ -178,8 +179,8 @@ public class EDbConfig {
         arp.getEngine().addSharedMethod(new com.jfinal.kit.StrKit());
         // 启动Record容器
         arp.start();
-        System.out.println("=========  EDb启动成功  ============");
-
+        // 重点：需要初始化一次配置信息，便于 EDb 继承 Db 的config信息
+        EDb.init();
         log.debug("===EDb启动成功===");
         return EDb.use();
     }
