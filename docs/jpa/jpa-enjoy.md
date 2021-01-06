@@ -18,7 +18,7 @@
 
 > sql模板内容
 
-- [ 示例sql模板 ](../../src/main/resources/sql/logInfo.sql)
+- [ 示例sql模板 ](../../src/test/resources/sql/logInfo.sql)
 
 
 ```sql
