@@ -45,7 +45,7 @@
 <dependency>
     <groupId>com.github.mryang-jia</groupId>
     <artifactId>spring-jf-edb</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 </dependency>
 ```
 
@@ -57,6 +57,14 @@
 ### 支持的springBoot 版本（已测的部分）
 SpringBoot 1.x
 SpringBoot 2.x
+
+** jfinal源码变更部分 **
+Config.java
+    主要修改连接基于spring的事务管理
+DbPro.java
+    1、主要修改config可被EDbPro继承
+    2、其次，修改tx 和 newtx 事务的开启和关闭交予spring事务管理器管理    
+
 
 
 **基于Java的相关用例**
