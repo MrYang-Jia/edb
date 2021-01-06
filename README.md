@@ -17,7 +17,7 @@
   - 6.2 基于 findFirst 方法，针对sql语句做 limit 2 包装，主要是因为程序员不小心犯错的可能性有，导致大表全表查询
   - 6.3 新增实现 findOnlyOne 方法，主要是为了实现 1对1 查询，包装从数据结构和查询的准确性，如果超过 1 条记录，则会抛错告知
   - 6.4 新增 insertValues 方法，因为大数据不支持 batchSave 模式，只支持 insert into tables values(...),(...),(...)
-  - 6.5 新增 batchSaveRid 方法，batchSave 的扩展，带返回自增主键的方法 (目前只测试了mysql版本，其余待不断完善测试案例)
+  - 6.5 新增 batchSaveRid 方法，batchSave 的扩展，带返回自增主键的方法 (目前只测试了 mysql、postgresql 版本，其余待不断完善测试案例)
   - 6.6 使用 update(jpa) 对象方法时,只会默认更新非null值的赋值方式，如果需要更新部分字段，可以用 update(oldJpa,updateJpa) 的方式，或者 update(T.class,Map) 的方式指定更新，这两种方式都支持null值回填，推荐使用 update(T.class,Map) 方式，可以对照数据库说明书的流程字段准确进行数据更新  
   - 6.7 新增 findByIds 方法，可以传入id数组，ids字符串 + 自定义分隔符等方式实现居于主键的快捷查询
   - 6.8 增加类似 jpa 对象 or 全局监听的功能
