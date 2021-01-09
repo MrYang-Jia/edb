@@ -80,7 +80,7 @@ public class JpaBuilder  {
 
         while (rs.next()) {
             // 对象实例化
-            Object ar = beanClass.newInstance();
+            Object ar = beanClass.getDeclaredConstructor().newInstance();
             //
             attrs = new HashMap<>();
             for (int i=1; i<=columnCount; i++) {
@@ -152,7 +152,7 @@ public class JpaBuilder  {
 //                if(originalField != null){
 //                    // 每个对象单独一个地址空间标识
 //                    uuid = UUID.randomUUID().toString();
-//                    Object newAr = beanClass.newInstance();
+//                    Object newAr = beanClass.getDeclaredConstructor().newInstance();
 //                    // 设置原对象的UUID，便于标识
 //                    ReflectUtil.setFieldValue(ar,originalField,uuid);
 //                    // 拷贝新对象 -- 预留原始值

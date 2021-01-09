@@ -32,11 +32,11 @@ public class EDbJsonUtil {
     static {
         if(mapper==null){
             mapper = new ObjectMapper();
-            mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;
-            mapper.configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);
+//            mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true) ;
+//            mapper.configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);
             // 如果json中有新增的字段并且是实体类类中不存在的，不报错
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            mapper.configure(SerializationFeature.WRITE_BIGDECIMAL_AS_PLAIN, true);
+//            mapper.configure(SerializationFeature.WRITE_BIGDECIMAL_AS_PLAIN, true);
             mapper.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
             mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
             // 转换为格式化的json

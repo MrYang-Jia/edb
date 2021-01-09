@@ -6,7 +6,7 @@
 
     <groupId>com.github.mryang-jia</groupId>
     <artifactId>spring-jf-edb</artifactId>
-    <version>1.0</version>
+    <version>1.0-jdk15</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -18,7 +18,7 @@
         <jfinal.version>4.9.02</jfinal.version>
         <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
         <druid.version>1.1.21_1</druid.version>
-        <java.version>1.8</java.version>
+        <java.version>15</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
@@ -70,13 +70,6 @@
 
     <dependencies>
 
-
-        <!-- 公司内部基础服务组件 -->
-        <!--<dependency>-->
-            <!--<groupId>com.whbj.cloud</groupId>-->
-            <!--<artifactId>common</artifactId>-->
-            <!--<version>1.0-SNAPSHOT</version>-->
-        <!--</dependency>-->
 
 
         <!--&lt;!&ndash; === 必须依赖的jar包 === &ndash;&gt;-->
@@ -408,41 +401,43 @@
                 <version>3.6.1</version>
                 <configuration>
                     <!-- <compilerArgument>-parameters</compilerArgument> -->
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                     <encoding>UTF-8</encoding>
+                    <!--<compilerArgument>-Xlint:unchecked</compilerArgument>-->
+                    <!--<compilerArgument>-Xlint:deprecation</compilerArgument>-->
                 </configuration>
             </plugin>
 
             <!-- Javadoc -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.4</version>
-                <configuration>
-                    <windowtitle>edb</windowtitle>
-                    <doctitle>edb</doctitle>
-                    <show>private</show>
-                    <detectLinks>false</detectLinks>
-                    <detectOfflineLinks>true</detectOfflineLinks>
-                    <linksource>true</linksource>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                    <detectJavaApiLink>true</detectJavaApiLink>
-                    <source>8</source>
-                    <!-- 生成api文档 mvn javadoc:javadoc -->
-                    <!--<reportOutputDirectory>../javadocs</reportOutputDirectory>-->
-                    <reportOutputDirectory>javadocs</reportOutputDirectory>
-                    <destDir>edb</destDir>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+            <!--<plugin>-->
+                <!--<groupId>org.apache.maven.plugins</groupId>-->
+                <!--<artifactId>maven-javadoc-plugin</artifactId>-->
+                <!--<version>2.10.4</version>-->
+                <!--<configuration>-->
+                    <!--<windowtitle>edb</windowtitle>-->
+                    <!--<doctitle>edb</doctitle>-->
+                    <!--<show>private</show>-->
+                    <!--<detectLinks>false</detectLinks>-->
+                    <!--<detectOfflineLinks>true</detectOfflineLinks>-->
+                    <!--<linksource>true</linksource>-->
+                    <!--<additionalparam>-Xdoclint:none</additionalparam>-->
+                    <!--<detectJavaApiLink>true</detectJavaApiLink>-->
+                    <!--<source>15</source>-->
+                    <!--&lt;!&ndash; 生成api文档 mvn javadoc:javadoc &ndash;&gt;-->
+                    <!--&lt;!&ndash;<reportOutputDirectory>../javadocs</reportOutputDirectory>&ndash;&gt;-->
+                    <!--<reportOutputDirectory>javadocs</reportOutputDirectory>-->
+                    <!--<destDir>edb</destDir>-->
+                <!--</configuration>-->
+                <!--<executions>-->
+                    <!--<execution>-->
+                        <!--<id>attach-javadocs</id>-->
+                        <!--<goals>-->
+                            <!--<goal>jar</goal>-->
+                        <!--</goals>-->
+                    <!--</execution>-->
+                <!--</executions>-->
+            <!--</plugin>-->
 
             <!-- 安装源码到本地仓库 -->
             <plugin>

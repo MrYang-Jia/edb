@@ -47,7 +47,9 @@ public class MethodKit {
 	static {
 		Class<?>[] cs = {
 			System.class, Runtime.class, Thread.class, Class.class, ClassLoader.class, File.class,
-			Compiler.class, InheritableThreadLocal.class, Package.class, Process.class,
+			// jdk9里被删除，jdk11已弃用，否则无法正常编译通过
+			//Compiler.class,
+			InheritableThreadLocal.class, Package.class, Process.class,
 			RuntimePermission.class, SecurityManager.class, ThreadGroup.class, ThreadLocal.class,
 			
 			java.lang.reflect.Method.class,

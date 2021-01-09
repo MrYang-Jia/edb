@@ -247,7 +247,7 @@ public class EDbFilterKit implements Serializable {
         } else {
             Iterator iter = map.entrySet().iterator();
             while(iter.hasNext()) {
-                Map.Entry<K, V> entry = (Map.Entry)iter.next();
+                Map.Entry<K, V> entry = (Map.Entry<K, V>) iter.next();
                 if (StrKit.isBlank(String.valueOf(entry.getValue()))) {
                     iter.remove();
                 }

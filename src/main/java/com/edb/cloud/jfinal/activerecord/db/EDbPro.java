@@ -22,6 +22,7 @@ import com.edb.cloud.jfinal.activerecord.db.query.EDbQuery;
 import com.edb.cloud.jfinal.activerecord.db.query.EDbQueryUtil;
 import com.jfinal.kit.LogKit;
 import com.jfinal.plugin.activerecord.*;
+import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 import lombok.Setter;
 import org.springframework.data.domain.PageRequest;
@@ -117,7 +118,7 @@ public class EDbPro extends DbPro {
         if(eDbListener!=null){
             // 获取所有字段列表
             List<FieldAndColumn> allCoumns  = JpaAnnotationUtil.getCoumns(mClass);
-            Map<String,Object> dataMap =  new CaseInsensitiveMap(record.getColumns());
+            Map<String,Object> dataMap =  new CaseInsensitiveMap<String,Object>(record.getColumns());
             // 执行对象方法
             eDbListener.beforeSave(mClass,dataMap,allCoumns);
             // 替换数据
@@ -129,7 +130,7 @@ public class EDbPro extends DbPro {
         //
         if(beforeUpdate != null){
             // 替换成 忽略 大小写的 map
-            Map<String,Object> dataMap =  new CaseInsensitiveMap(record.getColumns());
+            Map<String,Object> dataMap =  new CaseInsensitiveMap<String,Object>(record.getColumns());
             // 执行对象方法
             ReflectUtil.invoke(m, beforeUpdate, dataMap,coumns);
             // 替换数据
@@ -490,7 +491,7 @@ public class EDbPro extends DbPro {
         if(beforeSave != null){
             Object ojb = null;
             try {
-                ojb = mClass.newInstance();
+                ojb = mClass.getDeclaredConstructor().newInstance();
             } catch (Throwable e) {
                 e.printStackTrace();
             }

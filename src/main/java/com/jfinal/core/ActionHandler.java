@@ -79,7 +79,7 @@ public class ActionHandler extends Handler {
 		
 		Controller controller = null;
 		try {
-			// Controller controller = action.getControllerClass().newInstance();
+			// Controller controller = action.getControllerClass().getDeclaredConstructor().newInstance();
 			controller = controllerFactory.getController(action.getControllerClass());
 			controller._init_(action, request, response, urlPara[0]);
 			

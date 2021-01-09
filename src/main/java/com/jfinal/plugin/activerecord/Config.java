@@ -48,13 +48,13 @@ public class Config {
     SqlKit sqlKit;
 
     Config(String name, DataSource dataSource, int transactionLevel) {
-        this.threadLocal = new ThreadLocal();
+        this.threadLocal = new ThreadLocal<Connection>();
         this.dbProFactory = IDbProFactory.defaultDbProFactory;
         this.init(name, dataSource, new MysqlDialect(), false, false, transactionLevel, IContainerFactory.defaultContainerFactory, new EhCache());
     }
 
     public Config(String name, DataSource dataSource, Dialect dialect, boolean showSql, boolean devMode, int transactionLevel, IContainerFactory containerFactory, ICache cache) {
-        this.threadLocal = new ThreadLocal();
+        this.threadLocal = new ThreadLocal<Connection>();
         this.dbProFactory = IDbProFactory.defaultDbProFactory;
         if (dataSource == null) {
             throw new IllegalArgumentException("DataSource can not be null");
@@ -94,7 +94,7 @@ public class Config {
     }
 
     private Config() {
-        this.threadLocal = new ThreadLocal();
+        this.threadLocal = new ThreadLocal<Connection>();
         this.dbProFactory = IDbProFactory.defaultDbProFactory;
     }
 

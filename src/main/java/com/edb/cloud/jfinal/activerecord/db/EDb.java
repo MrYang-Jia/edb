@@ -4,6 +4,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.edb.cloud.jfinal.activerecord.db.query.EDbQuery;
 import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
+import com.jfinal.plugin.activerecord.Record;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 
@@ -113,8 +114,8 @@ public class EDb extends Db{
 //        T obj = null;
 //        T newObj = null;
 //        try {
-//            obj = t.newInstance();
-//            newObj = t.newInstance();
+//            obj = t.getDeclaredConstructor().newInstance();
+//            newObj = t.getDeclaredConstructor().newInstance();
 //            String uuid = UUID.randomUUID().toString();
 //            Field originalField = JpaAnnotationUtil.getFieldForAnnationClass(t, EDbUuid.class);
 //            // 如果有字段用于存储旧jpa的值则赋予

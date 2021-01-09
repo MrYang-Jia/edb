@@ -51,7 +51,7 @@ public class ModelBuilder {
 		int[] types = new int[columnCount + 1];
 		buildLabelNamesAndTypes(rsmd, labelNames, types);
 		while (rs.next()) {
-			Model<?> ar = modelClass.newInstance();
+			Model<?> ar = modelClass.getDeclaredConstructor().newInstance();
 			Map<String, Object> attrs = ar._getAttrs();
 			for (int i=1; i<=columnCount; i++) {
 				Object value;
@@ -144,7 +144,7 @@ public class ModelBuilder {
 		int columnCount = rsmd.getColumnCount();
 		String[] labelNames = getLabelNames(rsmd, columnCount);
 		while (rs.next()) {
-			Model<?> ar = modelClass.newInstance();
+			Model<?> ar = modelClass.getDeclaredConstructor().newInstance();
 			Map<String, Object> attrs = ar.getAttrs();
 			for (int i=1; i<=columnCount; i++) {
 				Object attrValue = rs.getObject(i);
@@ -170,7 +170,7 @@ public class ModelBuilder {
 		ResultSetMetaData rsmd = rs.getMetaData();
 		List<String> labelNames = getLabelNames(rsmd);
 		while (rs.next()) {
-			Model<?> ar = modelClass.newInstance();
+			Model<?> ar = modelClass.getDeclaredConstructor().newInstance();
 			Map<String, Object> attrs = ar.getAttrs();
 			for (String lableName : labelNames) {
 				Object attrValue = rs.getObject(lableName);
