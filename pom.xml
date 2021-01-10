@@ -19,6 +19,8 @@
         <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
         <druid.version>1.1.21_1</druid.version>
         <java.version>15</java.version>
+        <!-- 指向jdk -->
+        <java.home>D:\tools\jdk-15.0.1\</java.home>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
@@ -404,40 +406,40 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>UTF-8</encoding>
-                    <!--<compilerArgument>-Xlint:unchecked</compilerArgument>-->
-                    <!--<compilerArgument>-Xlint:deprecation</compilerArgument>-->
                 </configuration>
             </plugin>
 
             <!-- Javadoc -->
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-javadoc-plugin</artifactId>-->
-                <!--<version>2.10.4</version>-->
-                <!--<configuration>-->
-                    <!--<windowtitle>edb</windowtitle>-->
-                    <!--<doctitle>edb</doctitle>-->
-                    <!--<show>private</show>-->
-                    <!--<detectLinks>false</detectLinks>-->
-                    <!--<detectOfflineLinks>true</detectOfflineLinks>-->
-                    <!--<linksource>true</linksource>-->
-                    <!--<additionalparam>-Xdoclint:none</additionalparam>-->
-                    <!--<detectJavaApiLink>true</detectJavaApiLink>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <configuration>
+                    <windowtitle>edb</windowtitle>
+                    <doctitle>edb</doctitle>
+                    <show>private</show>
+                    <detectLinks>false</detectLinks>
+                    <detectOfflineLinks>true</detectOfflineLinks>
+                    <linksource>true</linksource>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <detectJavaApiLink>true</detectJavaApiLink>
                     <!--<source>15</source>-->
-                    <!--&lt;!&ndash; 生成api文档 mvn javadoc:javadoc &ndash;&gt;-->
-                    <!--&lt;!&ndash;<reportOutputDirectory>../javadocs</reportOutputDirectory>&ndash;&gt;-->
-                    <!--<reportOutputDirectory>javadocs</reportOutputDirectory>-->
-                    <!--<destDir>edb</destDir>-->
-                <!--</configuration>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>attach-javadocs</id>-->
-                        <!--<goals>-->
-                            <!--<goal>jar</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-            <!--</plugin>-->
+                    <!-- 生成api文档 mvn javadoc:javadoc -->
+                    <!--<reportOutputDirectory>../javadocs</reportOutputDirectory>-->
+                    <reportOutputDirectory>javadocs</reportOutputDirectory>
+                    <!-- 指定路径，不然总是报环境变量找不到 -->
+                    <javadocExecutable>${java.home}bin/javadoc</javadocExecutable>
+                    <destDir>edbDocs</destDir>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
             <!-- 安装源码到本地仓库 -->
             <plugin>
