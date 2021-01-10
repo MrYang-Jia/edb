@@ -65,12 +65,12 @@ SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(T.class,eDbQuery);
 
 ```java
 
-package com.edbplus.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 
-import com.edbplus.cloud.jfinal.activerecord.db.EDb;
-import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edbplus.cloud.jfinal.activerecord.db.query.EDbFilter;
-import com.edbplus.cloud.jfinal.activerecord.db.query.EDbQuery;
+import com.edbplus.db.EDb;
+import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.query.EDbFilter;
+import com.edbplus.db.query.EDbQuery;
 import org.springframework.data.domain.PageRequest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;

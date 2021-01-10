@@ -12,7 +12,7 @@
 
 ```java
 
-package com.edbplus.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 import lombok.Data;
 import javax.persistence.*;
 
@@ -55,11 +55,11 @@ public class VehicleType  extends BaseJpa{
 - [基于JPA对象的 update 的相关测试案例](../../src/test/java/com/edb/cloud/jfinal/activerecord/db/jpa/JpaUpdate.java)
 
 ```java
-package com.edbplus.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.edbplus.cloud.jfinal.activerecord.db.EDb;
-import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.EDb;
+import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;

@@ -28,10 +28,10 @@
 - [引用 JpaListener 实体内容](../../src/test/java/com/edb/cloud/jfinal/activerecord/db/base/JpaListener.java)
 
 ```java
-package com.edbplus.cloud.jfinal.activerecord.db.base;
+package com.edbplus.db.jfinal.activerecord.db.base;
 
-import com.edbplus.cloud.jfinal.activerecord.db.dto.FieldAndColumn;
-import com.edbplus.cloud.jfinal.activerecord.db.listener.EDbListener;
+import com.edbplus.db.dto.FieldAndColumn;
+import com.edbplus.db.listener.EDbListener;
 
 import java.util.List;
 import java.util.Map;
@@ -119,7 +119,7 @@ public class JpaListener implements EDbListener {
 
 ```java
 
-package com.edbplus.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -128,12 +128,12 @@ import java.util.Map;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
-import com.edbplus.cloud.jfinal.activerecord.db.annotation.EDbSave;
-import com.edbplus.cloud.jfinal.activerecord.db.annotation.EDbUpdate;
-import com.edbplus.cloud.jfinal.activerecord.db.dto.FieldAndColumn;
+import com.edbplus.db.annotation.EDbSave;
+import com.edbplus.db.annotation.EDbUpdate;
+import com.edbplus.db.dto.FieldAndColumn;
 import lombok.Data;
 import javax.persistence.*;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.model.base.BaseVehicleType;
+import com.edbplus.db.jpa.model.base.BaseVehicleType;
 
 /**
  * @program: xzw-dac
@@ -200,11 +200,11 @@ public class VehicleType extends BaseVehicleType{
 - [单体jpa的测试案例](../../src/test/java/com/edb/cloud/jfinal/activerecord/db/jpa/JpaEasyTest.java)
 
 ```java
-package com.edbplus.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 
 import cn.hutool.json.JSONUtil;
-import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edbplus.cloud.jfinal.activerecord.db.EDb;
+import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.EDb;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 

@@ -41,18 +41,18 @@
 
 ```sql
 
-package com.edbplus.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 
 
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.pool.DruidDataSource;
-import com.edbplus.cloud.jfinal.activerecord.db.EDb;
-import com.edbplus.cloud.jfinal.activerecord.db.EDbPro;
-import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.model.CrVehicleType;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.model.CrVehicleTypeModeRel;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.util.JpaRelUtil;
+import com.edbplus.db.EDb;
+import com.edbplus.db.EDbPro;
+import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.jpa.model.CrVehicleType;
+import com.edbplus.db.jpa.model.CrVehicleTypeModeRel;
+import com.edbplus.db.jpa.util.JpaRelUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.template.Engine;
@@ -123,18 +123,18 @@ Disconnected from the target VM, address: '127.0.0.1:62898', transport: 'socket'
 **基于 @EDbRel 关联对象注解测试案例 -- 同步返回之测试案例 **
 
 ```java
-package com.edbplus.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 
 
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.pool.DruidDataSource;
-import com.edbplus.cloud.jfinal.activerecord.db.EDb;
-import com.edbplus.cloud.jfinal.activerecord.db.EDbPro;
-import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.model.CrVehicleType;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.model.CrVehicleTypeModeRel;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.util.JpaRelUtil;
+import com.edbplus.db.EDb;
+import com.edbplus.db.EDbPro;
+import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.jpa.model.CrVehicleType;
+import com.edbplus.db.jpa.model.CrVehicleTypeModeRel;
+import com.edbplus.db.jpa.util.JpaRelUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.template.Engine;
@@ -250,18 +250,18 @@ Disconnected from the target VM, address: '127.0.0.1:64716', transport: 'socket'
 **基于 @EDbRel 关联对象注解测试案例 -- 异步返回之测试案例 **
 
 ```java
-package com.edbplus.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 
 
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.pool.DruidDataSource;
-import com.edbplus.cloud.jfinal.activerecord.db.EDb;
-import com.edbplus.cloud.jfinal.activerecord.db.EDbPro;
-import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.model.CrVehicleType;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.model.CrVehicleTypeModeRel;
-import com.edbplus.cloud.jfinal.activerecord.db.jpa.util.JpaRelUtil;
+import com.edbplus.db.EDb;
+import com.edbplus.db.EDbPro;
+import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.jpa.model.CrVehicleType;
+import com.edbplus.db.jpa.model.CrVehicleTypeModeRel;
+import com.edbplus.db.jpa.util.JpaRelUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.template.Engine;
@@ -350,7 +350,7 @@ public class JpaRelTest extends BaseTest {
 ===运行===
 返回的结果集为null
 ===运行===
-com.edbplus.cloud.jfinal.activerecord.db.jpa.model.CrVehicleType
+com.edbplus.db.jpa.model.CrVehicleType
 ................................ 运行结束.................准备打印信息获取对应的结果集.....................
 {"vehicleTypeId":100,"createTime":1604826026000,"isDel":0,"vehicleTypeName":"罐车"}
 {"vehicleTypeModeId":2,"vehicleModeName":"款式2","isDel":0}
