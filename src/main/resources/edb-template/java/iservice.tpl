@@ -1,7 +1,7 @@
 package #(genClass.iservicePackageName);
 
 import #(genClass.jpaPackageName).#(genClass.className);
-import com.edb.cloud.jfinal.activerecord.db.query.EDbQuery;
+import com.edbplus.cloud.jfinal.activerecord.db.query.EDbQuery;
 import com.jfinal.plugin.activerecord.Page;
 import org.springframework.data.domain.PageRequest;
 import java.util.Map;

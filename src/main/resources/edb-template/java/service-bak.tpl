@@ -5,8 +5,8 @@ import #(genClass.iservicePackageName).#(genClass.className)Service;
 import #(genClass.jpaPackageName).#(genClass.className) ;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.edb.cloud.jfinal.activerecord.db.EDb;
-import com.edb.cloud.jfinal.activerecord.db.EDbPro;
+import com.edbplus.cloud.jfinal.activerecord.db.EDb;
+import com.edbplus.cloud.jfinal.activerecord.db.EDbPro;
 
 
 /**

@@ -15,12 +15,12 @@
 - [基于JPA对象的 分页查询 测试案例](../../src/test/java/com/edb/cloud/jfinal/activerecord/db/jpa/JpaPaginateTest.java)
 
 ```java
-package com.edb.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.cloud.jfinal.activerecord.db.jpa;
 
-import com.edb.cloud.jfinal.activerecord.db.EDb;
-import com.edb.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edb.cloud.jfinal.activerecord.db.query.EDbFilter;
-import com.edb.cloud.jfinal.activerecord.db.query.EDbQuery;
+import com.edbplus.cloud.jfinal.activerecord.db.EDb;
+import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.cloud.jfinal.activerecord.db.query.EDbFilter;
+import com.edbplus.cloud.jfinal.activerecord.db.query.EDbQuery;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.springframework.data.domain.PageRequest;
 import org.testng.annotations.BeforeTest;

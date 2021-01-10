@@ -16,10 +16,10 @@
 
 ```java
 
-package com.edb.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.cloud.jfinal.activerecord.db.jpa;
 
-import com.edb.cloud.jfinal.activerecord.db.EDb;
-import com.edb.cloud.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.cloud.jfinal.activerecord.db.EDb;
+import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 

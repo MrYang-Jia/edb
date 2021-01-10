@@ -12,7 +12,7 @@
 
 ```java
 
-package com.edb.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.cloud.jfinal.activerecord.db.jpa;
 import lombok.Data;
 import javax.persistence.*;
 
@@ -55,11 +55,11 @@ public class VehicleType  extends BaseJpa{
 - [单体jpa的测试案例](src/test/java/com/edb/cloud/jfinal/activerecord/db/jpa/JpaEasyTest.java)
 
 ```java
-package com.edb.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.cloud.jfinal.activerecord.db.jpa;
 
 import cn.hutool.json.JSONUtil;
-import com.edb.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edb.cloud.jfinal.activerecord.db.EDb;
+import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.cloud.jfinal.activerecord.db.EDb;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -164,11 +164,11 @@ Sql: select * from `cr_vehicle_type` where `vehicle_type_id` = ?
 
 ```java
 
-package com.edb.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.cloud.jfinal.activerecord.db.jpa;
 
 import cn.hutool.json.JSONUtil;
-import com.edb.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edb.cloud.jfinal.activerecord.db.EDb;
+import com.edbplus.cloud.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.cloud.jfinal.activerecord.db.EDb;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
