@@ -33,13 +33,13 @@ select * from cr_vehicle_type where VEHICLE_TYPE_ID = #para(0)
 
 ```java
 
-package com.edb.cloud.jfinal.activerecord.db.jpa;
+package com.edbplus.db.jpa;
 
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
-import com.edb.cloud.jfinal.activerecord.db.EDb;
-import com.edb.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edb.cloud.jfinal.activerecord.db.vo.VehicleTypeVo;
+import com.edbplus.db.EDb;
+import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.jfinal.activerecord.db.vo.VehicleTypeVo;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.testng.annotations.BeforeTest;

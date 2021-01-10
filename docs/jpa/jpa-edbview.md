@@ -73,10 +73,10 @@ ps: 大家会发现 enjoySql 非常的easy和简单明了，比现有的很多�
 # 基于 @EDbView 视图对象的定义
 
 ```java
-package com.edb.cloud.jfinal.activerecord.db.jpa.view;
-import com.edb.cloud.jfinal.activerecord.db.annotation.EDbView;
-import com.edb.cloud.jfinal.activerecord.db.jpa.model.CrVehicleType;
-import com.edb.cloud.jfinal.activerecord.db.jpa.model.CrVehicleTypeMode;
+package com.edbplus.db.jpa.view;
+import com.edbplus.db.annotation.EDbView;
+import com.edbplus.db.jpa.model.CrVehicleType;
+import com.edbplus.db.jpa.model.CrVehicleTypeMode;
 import lombok.Data;
 import java.util.List;
 
@@ -107,11 +107,11 @@ public class VehicleView {
 
 ```java
 
-package com.edb.cloud.jfinal.activerecord.db.jpa;
-import com.edb.cloud.jfinal.activerecord.db.EDb;
-import com.edb.cloud.jfinal.activerecord.db.base.BaseTest;
-import com.edb.cloud.jfinal.activerecord.db.jpa.view.VehicleView;
-import com.edb.cloud.jfinal.activerecord.db.jpa.model.CrVehicleTypeMode;
+package com.edbplus.db.jpa;
+import com.edbplus.db.EDb;
+import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.jpa.view.VehicleView;
+import com.edbplus.db.jpa.model.CrVehicleTypeMode;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 

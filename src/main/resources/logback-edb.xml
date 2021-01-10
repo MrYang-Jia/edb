@@ -61,7 +61,7 @@
 
 
     <!-- 系统模块日志级别控制  -->
-    <logger name="com.edb.cloud" level="debug" />
+    <logger name="com.edbplus.db" level="debug" />
     <!-- Spring日志级别控制  -->
     <logger name="org.springframework" level="warn" />
 

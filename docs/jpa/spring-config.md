@@ -27,14 +27,14 @@ spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
 
 ```java
 
-package com.edb.cloud.spring.bootConfig;
+package com.edbplus.db.spring.bootConfig;
 
 import com.alibaba.druid.filter.Filter;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.support.http.StatViewServlet;
 import com.alibaba.druid.support.http.WebStatFilter;
-import com.edb.cloud.jfinal.activerecord.db.EDb;
-import com.edb.cloud.jfinal.activerecord.db.EDbPro;
+import com.edbplus.db.EDb;
+import com.edbplus.db.EDbPro;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.template.source.ClassPathSourceFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -131,10 +131,10 @@ public class DataSourcesConfig {
 - 方式二案例 [ EDbPro 配置实例化参考 ](../../src/test/java/com/edb/cloud/spring/bootConfig/EDbConfig.java)
 
 ```java
-package com.edb.cloud.spring.bootConfig;
+package com.edbplus.db.spring.bootConfig;
 
-import com.edb.cloud.jfinal.activerecord.db.EDb;
-import com.edb.cloud.jfinal.activerecord.db.EDbPro;
+import com.edbplus.db.EDb;
+import com.edbplus.db.EDbPro;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.template.source.ClassPathSourceFactory;
 import lombok.extern.slf4j.Slf4j;
