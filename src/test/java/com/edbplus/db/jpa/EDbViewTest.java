@@ -33,6 +33,11 @@ public class EDbViewTest extends BaseTest {
         System.out.println(EDb.getView(vehicleView).getCrVehicleTypeView());
         // 返回查询列表
         System.out.println(EDb.getView(vehicleView).getCrVehicleTypesView());
+        // 返回查询page列表 -- 已兼容springData page返回结果页，便于适配
+        System.out.println(EDb.getViewForPage(vehicleView,1,10).getCrVehicleTypePageView().getList());
+
+        // 返回查询page列表 -- 已兼容springData page返回结果页，便于适配
+        System.out.println(EDb.getViewForPage(vehicleView,1,10).getCrVehicleTypeSpringPageView().getContent());
     }
 
 }

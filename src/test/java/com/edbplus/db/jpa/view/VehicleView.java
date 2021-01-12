@@ -4,6 +4,7 @@ import com.edbplus.db.annotation.EDbView;
 import com.edbplus.db.jpa.model.CrVehicleType;
 import com.edbplus.db.jpa.model.CrVehicleTypeMode;
 import com.edbplus.db.jpa.view.query.WhereKvParams;
+import com.jfinal.plugin.activerecord.Page;
 import lombok.Data;
 
 import java.util.List;
@@ -27,5 +28,12 @@ public class VehicleView {
 
     @EDbView(name = "test.EDbViewTest")
     private List<CrVehicleType> crVehicleTypesView;
+
+    @EDbView(name = "test.EDbViewTest")
+    private Page<CrVehicleType> crVehicleTypePageView;
+
+    @EDbView(name = "test.EDbViewTest")
+    private org.springframework.data.domain.Page<CrVehicleType> crVehicleTypeSpringPageView;
+
 
 }

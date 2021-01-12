@@ -1,4 +1,4 @@
-package com.edbplus.db.web.util;
+package com.edbplus.db.web.api;
 
 import lombok.Data;
 

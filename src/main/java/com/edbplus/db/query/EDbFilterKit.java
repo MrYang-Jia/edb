@@ -2,9 +2,9 @@ package com.edbplus.db.query;
 
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.edbplus.db.jpa.kit.JpaKit;
 import com.jfinal.kit.StrKit;
-import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -81,7 +81,7 @@ public class EDbFilterKit implements Serializable {
             // 判断是否有排序的模式字段
             if(whereMap.containsKey("order")){
                 String newOrder = (String) whereMap.get("order");
-                if(!StringUtils.isEmpty(newOrder)){
+                if(!StrKit.isBlank(newOrder)){
                     order = newOrder;
                 }
             }
@@ -226,7 +226,7 @@ public class EDbFilterKit implements Serializable {
     public static void removeEmetyForQuery(EDbBaseQuery baseQuery){
         if(baseQuery.getAndEDbFilters()!=null){
             for(EDbFilter eDbFilter:baseQuery.getAndEDbFilters()){
-                if (StringUtils.isEmpty(eDbFilter.getValue())){
+                if (ObjectUtil.isEmpty(eDbFilter.getValue())){
                     baseQuery.getAndEDbFilters().remove(eDbFilter);
                 }
             }

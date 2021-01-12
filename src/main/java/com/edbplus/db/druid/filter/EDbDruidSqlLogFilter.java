@@ -174,11 +174,8 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
      * @param e
      */
     public void sendErrLog(Throwable e){
-        // 主动删除当前线程的存储对象，避免线程池复用！
-//        t1.remove();
         // 当作是job类型的异常报送 -- 避免真的错误了都不知道处理
         log.error("sql日志拦截类报错（不影响sql的正常执行，但发现请告知）:",e);
-//        LogSender.getInstance().sendJobError(e);
     }
 
 

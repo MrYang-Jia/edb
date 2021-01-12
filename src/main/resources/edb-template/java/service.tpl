@@ -1,16 +1,20 @@
 package #(genClass.servicePackageName);
 
+import com.edbplus.db.web.shiro.ShiroUser;
+import com.edbplus.db.web.util.OperationUtil;
 import #(genClass.iservicePackageName).#(genClass.className)Service;
-import #(genClass.jpaPackageName).#(genClass.className) ;
+import #(genClass.entityPackageName).#(genClass.className);
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
 import org.springframework.transaction.annotation.Transactional;
 import com.edbplus.db.query.EDbQuery;
 import com.jfinal.plugin.activerecord.Page;
 import org.springframework.data.domain.PageRequest;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
 
 /**
  * @program: #(genClass.projectName)
@@ -31,7 +35,9 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
      * @return
      */
     @Transactional(rollbackFor=Throwable.class)
-    public boolean save(#(genClass.className) saveObj){
+    public boolean save(#(genClass.className) saveObj,ShiroUser shiroUser){
+        // 加载操作人信息
+        OperationUtil.loadJpa(saveObj,shiroUser);
         // 保存信息
         return eDbPro.save(saveObj);
     }
@@ -41,7 +47,7 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
      * @param id
      * @return
      */
-    public #(genClass.className) findById(Object id){
+    public #(genClass.className) findById(#(genClass.priKeyJavaType) id){
         // 根据id查询对象
         return eDbPro.findById(#(genClass.className).class,id);
     }
@@ -53,9 +59,11 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
      * @return
      */
     @Transactional(rollbackFor=Throwable.class)
-    public boolean update(Map<String,Object> update){
+    public boolean update(#(genClass.className) update,ShiroUser shiroUser){
+        // 保存操作人信息
+        OperationUtil.loadJpa(update,shiroUser);
         // 更新信息
-        return eDbPro.update(#(genClass.className).class,update);
+        return eDbPro.update(update);
     }
 
 
@@ -65,9 +73,63 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
      * @return
      */
     @Transactional(rollbackFor=Throwable.class)
-    public boolean deteteById(Object id){
+    public boolean deteteById(#(genClass.priKeyJavaType) id,ShiroUser shiroUser){
+    #for(x:fields)
+    #### 判断是否有逻辑删除字段
+        #if(x.columnCode.equals("removeFlag"))
+            #set(isRemove = true)
+        #end
+    #end
+    #if(isRemove)
+        // 逻辑删除操作
+        #(genClass.className) update = new #(genClass.className)();
+        // 设置唯一主键
+        update.set#(genClass.priKeyBigClassName)(id);
+        // 将该记录标记为逻辑删除，并记录操作人信息
+        OperationUtil.loadJpaDeletion(update,shiroUser);
+        // 执行结果
+        return eDbPro.update(update);
+    #else
         // 根据id删除一条记录
         return eDbPro.deleteById(#(genClass.className).class,id);
+    #end
+    }
+
+
+    /**
+     * 删除对象
+     * @param idsArray
+     * @return
+     */
+    @Transactional(rollbackFor=Throwable.class)
+    public int[] deteteByIds( String[] idsArray ,ShiroUser shiroUser){
+    #for(x:fields)
+    #### 判断是否有逻辑删除字段
+        #if(x.columnCode.equals("removeFlag"))
+            #set(isRemove = true)
+        #end
+    #end
+    #if(isRemove)
+    #(genClass.className) update = new #(genClass.className)();
+    List<#(genClass.className)> list = new ArrayList<>();
+    for(String id:idsArray){
+        update = new #(genClass.className)();
+        #if(genClass.priKeyJavaType.equals("String"))
+        // 设置唯一主键
+        update.set#(genClass.priKeyBigClassName)(id);
+        #else
+        // 设置唯一主键
+        update.set#(genClass.priKeyBigClassName)(Long.valueOf(id));
+        #end
+        // 将该记录标记为逻辑删除，并记录操作人信息
+        OperationUtil.loadJpaDeletion(update,shiroUser);
+        list.add(update);
+    }
+    // 执行结果
+    return eDbPro.batchUpdate(#(genClass.className).class,list,1000);
+    #else
+        return new int[]{eDbPro.deleteByIds(#(genClass.className).class, Arrays.asList(idsArray))};
+    #end
     }
 
     /**

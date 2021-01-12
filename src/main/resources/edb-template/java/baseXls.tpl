@@ -1,4 +1,4 @@
-package #(genClass.entityPackageName);
+package #(genClass.xlsPackageName);
 
 import java.io.Serializable;
 import lombok.Data;
@@ -15,7 +15,6 @@ import cn.afterturn.easypoi.excel.annotation.ExcelEntity;
  * @create:#(nowdatetime)
  **/
 @Data
-@Table(name = "#(genClass.tableName)")
 public class #(genClass.className)Xls implements Serializable{
 
 #for(x : fields)

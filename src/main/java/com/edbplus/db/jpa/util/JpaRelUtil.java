@@ -11,8 +11,8 @@ import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.jpa.pip.JpaRelPip;
 import com.edbplus.db.proxy.EDbRelProxy;
 import com.edbplus.db.jpa.task.JpaRelTask;
+import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.SqlPara;
-import org.springframework.util.StringUtils;
 
 import javax.persistence.Table;
 import java.lang.reflect.Method;
@@ -96,7 +96,7 @@ public class JpaRelUtil {
 
             for(FieldAndRel fieldAndRel :fieldRels){
                 // -- 判断指向的唯一标识是否有值
-                if(!StringUtils.isEmpty(relKey) ){
+                if(!StrKit.isBlank(relKey) ){
                     // 如果 relKey 有传递值，则必须匹配上对应的 relKey 字段才进行数据返回操作，否则跳过
                     if (!relKey.equals(fieldAndRel.getEDbRel().relKey())){
                         continue;
@@ -107,7 +107,7 @@ public class JpaRelUtil {
                 // 返回对象 和 rel 注解匹配，则返回对应的结果集 或者是有指向唯一标识 relKey
                 if(relKey!=null || typeName == null || fieldType.getTypeName().equals(typeName)){
 
-                    if(StringUtils.isEmpty(relKey) ){
+                    if(StrKit.isBlank(relKey) ){
                         //
 //                        if(fieldAndRel.getEDbRel().relKey().length() > 0 && typeName!=null){
 //                            throw new RuntimeException(" 请使用 edbPro.getRelKey 返回指定对象的结果 或 edbPro.getAllRel() 返回结果集 ");

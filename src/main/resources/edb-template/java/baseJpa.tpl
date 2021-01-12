@@ -1,4 +1,4 @@
-package #(genClass.entityPackageName);
+package #(genClass.entityPackageName).base;
 
 import java.io.Serializable;
 import lombok.Data;

@@ -14,7 +14,7 @@ import javax.persistence.*;
 import com.edbplus.db.jpa.model.base.BaseVehicleType;
 
 /**
- * @program: xzw-dac
+ * @program: dac
  * @description: CCS车辆类型表 - 实体
  * @author: MrYang
  * @create:2020-10-20 21:23:20

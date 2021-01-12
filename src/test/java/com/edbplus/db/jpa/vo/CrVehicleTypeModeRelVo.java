@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Date;
 
 /**
- * @program: xzw-dac
+ * @program: dac
  * @description: CCS车辆类型规格关系表 - Vo实体
  * @author: MrYang
  * @create:2020-12-04 18:18:08

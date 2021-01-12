@@ -6,10 +6,14 @@ import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.dto.FieldAndView;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
+import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
+import lombok.Setter;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -32,6 +36,18 @@ public class EDbViewProxy implements MethodInterceptor {
     private Object oriJpa ;
     // 数据对象
     private EDbPro eDbPro;
+
+    // 起始页
+    private int pageNo = 1;
+
+    // 每页的数量
+    private int pageSize = 10;
+
+    public void pageOf(int pageNo,int pageSize){
+        this.pageNo = pageNo;
+        this.pageSize = pageSize;
+    }
+
 
     // 1- 创建代理对象
     public <T> T createProcy(T target,EDbPro eDbPro){
@@ -82,10 +98,29 @@ public class EDbViewProxy implements MethodInterceptor {
                     throw new RuntimeException("未加载sql视图:" + fieldAndView.getEDbView().name());
                 }
                 if(returnType instanceof ParameterizedType){
-                    // List
+                    // 默认 jfinal page
                     entityClass = (Class<?>)((ParameterizedType) returnType).getActualTypeArguments()[0];
-                    object = eDbPro.find(entityClass,sqlPara);
-
+                    // com.jfinal.plugin.activerecord.Page -- 分页对象的情况
+                    if(((ParameterizedType) returnType).getRawType() == Page.class){
+                        object = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                    }
+                    // 适配spring分页
+                    else if(((ParameterizedType) returnType).getRawType() == org.springframework.data.domain.Page.class){
+                        Page jfinalPage = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                        // spring 分页从0开始，所以默认-1
+                        Pageable pageable = PageRequest.of(pageNo-1,pageSize);
+                        //
+                        org.springframework.data.domain.Page page = new org.springframework.data.domain.PageImpl(jfinalPage.getList(),pageable,jfinalPage.getTotalRow());
+                        // 返回对象
+                        object = page;
+                    }
+                    // 其他类型统一直接当作list返回
+                    else{
+                        //
+                        object = eDbPro.find(entityClass,sqlPara);
+                    }
+//                    //
+//                    object = eDbPro.find(entityClass,sqlPara);
                 }else{
                     entityClass = Class.forName(returnType.getTypeName());
                     object = eDbPro.findFirst(entityClass,sqlPara);

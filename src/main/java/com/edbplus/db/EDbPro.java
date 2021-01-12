@@ -2187,6 +2187,83 @@ public class EDbPro extends DbPro {
         return eDbViewProxy.createProcy(t,this);
     }
 
+    /**
+     * 获取翻页视图对象
+     * @param t
+     * @param pageNo
+     * @param pageSize
+     * @param <T>
+     * @return
+     */
+    public <T> T getViewForPage(T t,int pageNo,int pageSize){
+        if(t == null){
+            throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
+        }
+        // 已被代理则返回自身，不做二次代理
+        if (t.getClass().getSimpleName().indexOf("$$Enhancer") > 0){
+            // 存在奇葩的代理情况，则暂不做考虑，因为这种情况会比较少，否则直接抛错
+            return t;
+        }
+        // 生成视图对象
+        EDbViewProxy eDbViewProxy = new EDbViewProxy();
+        // 设置翻页参数
+        eDbViewProxy.pageOf(pageNo,pageSize);
+        return eDbViewProxy.createProcy(t,this);
+    }
+
+
+    /**
+     * 返回视图的总记录数
+     * @param key
+     * @param data
+     * @return
+     */
+    public Long templateForCount(String key,Map data){
+        //
+        SqlPara sqlPara = null;
+        if(data != null){
+            sqlPara = this.template(key,data).getSqlPara();
+        }else{
+            sqlPara = this.template(key).getSqlPara();
+        }
+
+        //
+        String totalRowSql = getCountSql(sqlPara.getSql());
+        List<Record> result = this.find(totalRowSql);
+        if(result!=null && result.size()>0){
+           return result.get(0).getLong("ct");
+        }
+        return 0L;
+    }
+
+
+    /**
+     * 返回sql对应的总记录数
+     * @param sql
+     * @return
+     */
+    public Long sqlForCount(String sql){
+        //
+        String totalRowSql = getCountSql(sql);
+        List<Record> result = this.find(totalRowSql);
+        if(result!=null && result.size()>0){
+            return result.get(0).getLong("ct");
+        }
+        return 0L;
+    }
+
+    /**
+     * 返回统计sql
+     * @param sql
+     * @return
+     */
+    public String getCountSql(String sql){
+        String[] sqls = PageSqlKit.parsePageSql(sql);
+        //
+        String totalRowSql = "select count(1) ct " + this.config.getDialect().replaceOrderBy(sqls[1]);
+        return totalRowSql;
+    }
+
 
 
 }

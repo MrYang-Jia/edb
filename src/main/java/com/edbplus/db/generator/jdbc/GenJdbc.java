@@ -30,15 +30,13 @@ public class GenJdbc {
     // 缩略前缀
     public static String tablePreRemove = "";
     // 创建人
-    public static String creater = "mysql脚手架";
+    public static String creater = "EDb-mysql脚手架";
     // 最小空闲连接数
     public static  int minIdle = 10;
     // 最大连接数
     public static  int maxActive = 32;
-
     // 使用大小写不敏感的对象封装
     public static Map<String,String> filedTypeMap =  new CaseInsensitiveMap();
-
     // 类对象引用时初始化
     static {
         // 数据库数据类型初始化
@@ -76,8 +74,6 @@ public class GenJdbc {
         filedTypeMap.put("int8","Long");
         filedTypeMap.put("float4","BigDecimal");
         filedTypeMap.put("float8","BigDecimal");
-
-
 
     }
 

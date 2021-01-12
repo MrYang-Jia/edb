@@ -10,7 +10,7 @@ import lombok.Setter;
 import java.util.List;
 
 /**
- * @program: xzw-dac
+ * @program: dac
  * @description: CCS车辆类型表 - 实体
  * @author: MrYang
  * @create:2020-11-14 16:03:00

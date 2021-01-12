@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 /**
- * @program: xzw-dac
+ * @program: dac
  * @description: CCS车辆类型规格表 - 实体
  * @author: MrYang
  * @create:2020-12-07 14:04:30

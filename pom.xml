@@ -6,7 +6,7 @@
 
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -23,6 +23,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
         <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
+        <spring-web.version>5.2.6.RELEASE</spring-web.version>
 
         <!--<aliyun-spring-boot.version>1.0.0</aliyun-spring-boot.version>-->
         <!--<spring-cloud-alibaba.version>2.2.2.RELEASE</spring-cloud-alibaba.version>-->
@@ -106,6 +107,8 @@
         </dependency>
 
 
+
+
         <!-- === 必须依赖的jar包 end === -->
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -161,6 +164,17 @@
             <!-- 依赖时可选 -->
             <optional>true</optional>
         </dependency>
+
+
+        <!-- 主要是为了测试web层工具类生成的代码是否正确，例如 @Post注解的引用 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring-web.version}</version>
+            <!-- 只有在本项目包里 -->
+            <scope>provided</scope>
+        </dependency>
+
 
         <!-- @Data注解 -->
         <dependency>
@@ -348,6 +362,31 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
             <version>4.3.8.RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <!-- ============ 不需依赖的jar包，只是引入作为脚手架生成时测试使用 ============ -->
+        <!-- 改成4.2.0版本即可,私有版本 4.2.1 修复了一些视图展示的bug -->
+        <dependency>
+            <groupId>cn.afterturn</groupId>
+            <artifactId>easypoi-base</artifactId>
+            <version>4.2.0</version>
+            <!-- 只有在本项目包里 -->
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cn.afterturn</groupId>
+            <artifactId>easypoi-web</artifactId>
+            <version>4.2.0</version>
+            <!-- 只有在本项目包里 -->
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cn.afterturn</groupId>
+            <artifactId>easypoi-annotation</artifactId>
+            <version>4.2.0</version>
+            <!-- 只有在本项目包里 -->
             <scope>provided</scope>
         </dependency>
 

@@ -9,7 +9,7 @@ import java.util.Date;
 
 
 /**
- * @program: xzw-dac
+ * @program: dac
  * @description: CCS车辆类型表 - 实体
  * @author: MrYang
  * @create:2020-10-21 17:49:41

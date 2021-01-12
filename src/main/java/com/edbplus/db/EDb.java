@@ -6,6 +6,7 @@ import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import sun.applet.Main;
 
 import java.util.List;
 import java.util.Map;
@@ -1004,6 +1005,37 @@ public class EDb extends Db{
      */
     public static <T> T getView(T t){
         return MAIN.getView(t);
+    }
+
+    /**
+     * 获取翻页视图对象
+     * @param t
+     * @param pageNo
+     * @param pageSize
+     * @param <T>
+     * @return
+     */
+    public static <T> T getViewForPage(T t,int pageNo,int pageSize){
+        return MAIN.getViewForPage(t,pageNo,pageSize);
+    }
+
+    /**
+     * 返回视图的总记录数
+     * @param key
+     * @param data
+     * @return
+     */
+    public static Long templateForCount(String key,Map data){
+        return MAIN.templateForCount(key,data);
+    }
+
+    /**
+     * 返回sql语句的总记录数
+     * @param sql
+     * @return
+     */
+    public static Long sqlForCount(String sql){
+        return MAIN.sqlForCount(sql);
     }
 
 }

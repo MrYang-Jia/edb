@@ -1,6 +1,7 @@
 package #(genClass.iservicePackageName);
 
-import #(genClass.jpaPackageName).#(genClass.className);
+import com.edbplus.db.web.shiro.ShiroUser;
+import #(genClass.entityPackageName).#(genClass.className);
 import com.edbplus.db.query.EDbQuery;
 import com.jfinal.plugin.activerecord.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,17 +19,17 @@ public interface #(genClass.className)Service  extends Serializable {
 
     /**
      * 保存对象并返回自增ID
-     * @param saveObj
+     * @param save
      * @return
      */
-    public boolean save(#(genClass.className) saveObj);
+    public boolean save(#(genClass.className) save,ShiroUser shiroUser);
 
     /**
      * 更新对象
      * @param update -- key 为数据库字段
      * @return
      */
-    public boolean update(Map<String,Object> update);
+    public boolean update(#(genClass.className) update,ShiroUser shiroUser);
 
 
     /**
@@ -36,14 +37,21 @@ public interface #(genClass.className)Service  extends Serializable {
      * @param id
      * @return
      */
-    public boolean deteteById(Object id);
+    public boolean deteteById(#(genClass.priKeyJavaType) id,ShiroUser shiroUser);
+
+    /**
+     * 删除多个对象
+     * @param idsArray
+     * @return
+     */
+    public int[] deteteByIds( String[] idsArray ,ShiroUser shiroUser);
 
     /**
      * 查询对象
      * @param id
      * @return
      */
-    public #(genClass.className) findById(Object id);
+    public #(genClass.className) findById(#(genClass.priKeyJavaType) id);
 
     /**
      * 分页查询 -- 返回的是 jfinal 的page对象，与spring不是一个体系，主要是db底层以jfinal为主，这方面的只是体系有点冲突

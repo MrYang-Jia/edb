@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @program: xzw-dac
+ * @program: dac
  * @description: CCS车辆类型规格关系表 - 实体
  * @author: MrYang
  * @create:2020-11-14 16:03:22

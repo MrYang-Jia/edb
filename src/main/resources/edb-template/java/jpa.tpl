@@ -1,9 +1,9 @@
-package #(genClass.jpaPackageName);
+package #(genClass.entityPackageName);
 
 import java.io.Serializable;
 import lombok.Data;
 import javax.persistence.*;
-import #(genClass.entityPackageName).Base#(genClass.className);
+import #(genClass.entityPackageName).base.Base#(genClass.className);
 
 /**
  * @program: #(genClass.projectName)

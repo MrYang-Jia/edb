@@ -5,16 +5,14 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.CaseInsensitiveMap;
 import cn.hutool.core.util.StrUtil;
-import com.edbplus.db.EDb;
-import com.edbplus.db.EDbPro;
 import com.edbplus.db.generator.entity.GenTable;
 import com.edbplus.db.generator.entity.GenTableColumn;
 import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.generator.jdbc.GenMysql;
-import com.edbplus.db.generator.jdbc.GenPg;
 import com.jfinal.kit.Kv;
+import com.jfinal.kit.StrKit;
+import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 
@@ -33,32 +31,18 @@ import java.util.Map;
 public class EDbGenCode {
 
 
-
-    public static EDbPro edbPro;
-
-    static {
-        if(edbPro==null){
-            edbPro = EDb.use();
-        }
-    }
-
     /**
      * 表数据初始化
      * @param table
      * @param columnList
      */
-    public static void loadTableData( GenTable table, List<GenTableColumn> columnList){
+    public static void loadTableData(GenTable table,List<GenTableColumn> columnList){
 
+        // 获取表名
         String tableName = table.getTableName().trim();
 
         // 先获取表对象属性
-        Record tableRecord = null;
-        if(edbPro.getConfig().getDialect() instanceof PostgreSqlDialect){
-            tableRecord = edbPro.findFirst(GenPg.getTableInfoSql(tableName));
-        }else{
-            tableRecord = edbPro.findFirst(GenMysql.getTableInfoSql(tableName));
-        }
-
+        Record tableRecord = Db.findFirst(GenMysql.getTableInfoSql(tableName));
         if(tableRecord==null){
             throw new  RuntimeException(" 数据库不存在该表： "+tableName);
         }
@@ -68,32 +52,17 @@ public class EDbGenCode {
 
         // 转换成bean对象
         GenTable genTable = BeanUtil.mapToBean(tableInfo,GenTable.class,false);
-
-        if(table.getCreater() != null){
+        if(table.getCreater() != null ){
+            // 回填创建人信息
             genTable.setCreater(table.getCreater());
         }else{
-            // 回填创建人信息
-            table.setCreater(GenJdbc.creater);
+            genTable.setCreater(GenJdbc.creater);
         }
-
-        if(table.getModelName() != null ){
-            genTable.setModelName(table.getModelName());
-        }
-
-        if(table.getProjectName() != null ){
-            genTable.setProjectName(table.getProjectName());
-        }
-
         // 必须使用赋值的方式，否则对象传递无法发挥作用，对象内存变化无法指定
-        BeanUtils.copyProperties(genTable,table);
+        BeanUtil.copyProperties(genTable,table);
 
 
-        List<Record> columns = null;
-        if(edbPro.getConfig().getDialect() instanceof PostgreSqlDialect){
-            columns = edbPro.find(GenPg.getTableColumnsSql(tableName));
-        }else{
-            columns = edbPro.find(GenMysql.getTableColumnsSql(tableName));
-        }
+        List<Record> columns = Db.find(GenMysql.getTableColumnsSql(tableName));
 
         GenTableColumn genTableColumn ;
         String[] nums ;
@@ -108,7 +77,7 @@ public class EDbGenCode {
             }
             // 指定字段的java类型
             genTableColumn.setColumnType(GenJdbc.filedTypeMap.get(genTableColumn.getDataType()));
-            // 驼峰式字段名
+            // 驼峰式字段名 -- 必须将字符转小写，不然驼峰字段转换会出意外
             genTableColumn.setColumnCode(StrUtil.toCamelCase(genTableColumn.getColumnName().toLowerCase()));
             // 通过sql语句获取的字段长度
             if(genTableColumn.getMaxL()!=null && genTableColumn.getMaxL().contains(",")){
@@ -136,7 +105,14 @@ public class EDbGenCode {
         // 回填表主键
         for(GenTableColumn column:columnList){
             if(column.getColumnKey().equalsIgnoreCase("PRI")){
+                // 设置主键名称
                 table.setPriKeyClassName(column.getColumnCode());
+                // 设置首字母大写的主键对象
+                table.setPriKeyBigClassName(StrUtil.upperFirst(column.getColumnCode()));
+                // 主键类型
+                table.setPriKeyJavaType(column.getColumnType());
+
+
                 break;
             }
         }
@@ -157,7 +133,7 @@ public class EDbGenCode {
         // 去掉第一个下划线表前缀，避免前端暴露表对象全名称
         //tableName = tableName.substring(tableName.indexOf("_")+1,tableName.length());
         // 非空的时候替换
-        if(StrUtil.isNotEmpty(GenJdbc.tablePreRemove)){
+        if(!StrKit.isBlank(GenJdbc.tablePreRemove)){
             preTableName = GenJdbc.tablePreRemove.trim();
             if(preTableName.indexOf("_") < 0){
                 preTableName +="_";
@@ -167,13 +143,12 @@ public class EDbGenCode {
             // 表名转小写并做替换处理
             className = tableName.toLowerCase().replaceAll(preTableName,"");
             // 驼峰转换
-            className = StrUtil.toCamelCase(className);
+            className = StrUtil.upperFirst(StrUtil.toCamelCase(className));
             // 设置javaClass表名称
             table.setClassName(className);
         }else{
             // 设置javaClass表名称, false 大驼峰
             table.setClassName(StrUtil.upperFirst(StrUtil.toCamelCase(tableName)));
-
         }
         // 转小驼峰 - 大驼峰的首字母小写即可
         table.setSmallClassName(StringUtils.uncapitalize(table.getClassName()));
@@ -223,8 +198,9 @@ public class EDbGenCode {
         //table.setEntityPackageName(packageName);
         tableMap.put(objPre + "PackageName",packageName);
         //
-        BeanUtils.copyProperties(BeanUtil.mapToBean(tableMap,table.getClass(),false),table);
+        BeanUtil.copyProperties(BeanUtil.mapToBean(tableMap,table.getClass(),false),table);
     }
+
 
 
     /**
@@ -233,128 +209,44 @@ public class EDbGenCode {
      * @param packageName
      * @param table
      */
-    public static void loadEntityUrlAndPackageName(String projectUrl,String packageName,GenTable table){
+    public static void loadEDbEntityUrlAndPackageName(String projectUrl,String packageName,GenTable table){
         loadObjUrlAndObjPackageName("entity",projectUrl,packageName,table);
     }
 
 
-
-
-
-
     /**
-     * 生成实体类
-     * @param projectUrl -- 实体对象目录
-     * @param packageName -- 实体对象包名
-     * @param genTable -- 实体表对象
-     * @param genTableColumns -- 实体表对象字段集
+     * 生成实体类 -- EDb jpa实体
+     * @param genClass
+     * @param list
      */
-    public static void generatorBaseJpaBean(String projectUrl,String packageName,GenTable genTable, List<GenTableColumn> genTableColumns){
-
-        // 加载文件路径 -- 实体对象目录,实体的包名
-        loadEntityUrlAndPackageName(projectUrl,packageName,genTable);
+    public static void generatorEDbEntity(String projectUrl,String packageName,GenTable genClass, List<GenTableColumn> list){
+        // 加载文件路径
+        loadEDbEntityUrlAndPackageName(projectUrl,packageName,genClass);
         // 模板的位置
         URL baseUrl = EDbGenCode.class.getResource("/edb-template");
-
-        // 生成的java文件名
-        String javaFileName = "Base" + genTable.getClassName()+".java" ;
-
-        StringBuilder outJavaFile = new StringBuilder()
-                // .append(System.getProperty("user.dir"))
-                // 实体对象的目录
-                .append(genTable.getEntityProjectUrl() )
-                // 大驼峰
-                .append(javaFileName);
-        File file = new File(outJavaFile.toString());
-
-        if(file.exists()){
-            System.out.println(" === "+ javaFileName +" 文件重写 === ");
-            //file.delete();
-        }
-
-
-        // 指向目录
-        EngineUtil.render(baseUrl.getPath(),
+        EngineUtil engineUtil = new EngineUtil();
+        // 先渲染baseJpa
+        engineUtil.render(baseUrl.getPath(),
                 // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
                 "/edb-template/java/baseJpa.tpl",
-                Kv.by("genClass", genTable)
-                        .set("fields",genTableColumns)
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
-                ,outJavaFile
+                ,
+                new StringBuilder()
+                        // .append(System.getProperty("user.dir"))
+                        .append(genClass.getEntityProjectUrl() + genClass.getEntityPackageUrl() + File.separator + "base"+ File.separator )
+                        //.append(File.separator)
+                        // 大驼峰
+                        .append("Base"+genClass.getClassName()+".java")
         );
-    }
-
-
-    /**
-     * 生成VO实体类
-     * @param projectUrl -- 实体对象目录
-     * @param packageName -- 实体对象包名
-     * @param genTable -- 实体表对象
-     * @param genTableColumns -- 实体表对象字段集
-     */
-    public static void generatorVoBean(String projectUrl,String packageName,GenTable genTable, List<GenTableColumn> genTableColumns){
-
-        // 加载文件路径 -- 实体对象目录,实体的包名
-        loadEntityUrlAndPackageName(projectUrl,packageName,genTable);
-        // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
-
-        // 生成的java文件名
-        String javaFileName =  genTable.getClassName()+"Vo.java" ;
 
         StringBuilder outJavaFile = new StringBuilder()
                 // .append(System.getProperty("user.dir"))
-                // 实体对象的目录
-                .append(genTable.getEntityProjectUrl() )
+                .append(genClass.getEntityProjectUrl() + genClass.getEntityPackageUrl())
+                //.append(File.separator)
                 // 大驼峰
-                .append(javaFileName);
-        File file = new File(outJavaFile.toString());
-
-        // 已存在则不做任何处理 -- 必须删除后重新创建
-        if(file.exists()){
-           System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
-           return;
-        }
-
-
-        // 指向目录
-        EngineUtil.render(baseUrl.getPath(),
-                // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
-                "/edb-template/java/baseVo.tpl",
-                Kv.by("genClass", genTable)
-                        .set("fields",genTableColumns)
-                        .set("nowdatetime", DateUtil.now())
-                ,outJavaFile
-        );
-    }
-
-
-    /**
-     * 生成 Xls 实体类
-     * @param projectUrl -- 实体对象目录
-     * @param packageName -- 实体对象包名
-     * @param genTable -- 实体表对象
-     * @param genTableColumns -- 实体表对象字段集
-     */
-    public static void generatorXlsBean(String projectUrl,String packageName,GenTable genTable, List<GenTableColumn> genTableColumns){
-
-
-        loadObjUrlAndObjPackageName("xls",projectUrl,packageName,genTable);
-
-        // 加载文件路径 -- 实体对象目录,实体的包名
-        loadEntityUrlAndPackageName(projectUrl,packageName,genTable);
-        // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
-
-        // 生成的java文件名
-        String javaFileName =  genTable.getClassName()+"Xls.java" ;
-
-        StringBuilder outJavaFile = new StringBuilder()
-                // .append(System.getProperty("user.dir"))
-                // 实体对象的目录
-                .append(genTable.getEntityProjectUrl() )
-                // 大驼峰
-                .append(javaFileName);
+                .append(genClass.getClassName()+".java");
         File file = new File(outJavaFile.toString());
 
         // 已存在则不做任何处理 -- 必须删除后重新创建
@@ -363,166 +255,409 @@ public class EDbGenCode {
             return;
         }
 
-
-        // 指向目录
-        EngineUtil.render(baseUrl.getPath(),
+        // 再渲染Jpa
+        engineUtil.render(baseUrl.getPath(),
                 // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
-                "/edb-template/java/baseXls.tpl",
-                Kv.by("genClass", genTable)
-                        .set("fields",genTableColumns)
+                "/edb-template/java/jpa.tpl",
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
-                ,outJavaFile
+                ,
+                outJavaFile
+        );
+    }
+
+
+    /**
+     * service接口
+     * @param projectUrl
+     * @param packageName
+     * @param table
+     */
+    public static void loadEDbServiceApiUrlAndServiceApiPackageName(String projectUrl,String packageName,GenTable table){
+        loadObjUrlAndObjPackageName("iservice",projectUrl,packageName,table);
+    }
+
+
+    /**
+     * 生成数据库服务接口
+     * @param serviceApiProjectUrl
+     * @param serviceApiPackageName
+     * @param genClass
+     * @param list
+     */
+    public final static void generatorEDbServiceApi(String serviceApiProjectUrl,String serviceApiPackageName,GenTable genClass, List<GenTableColumn> list){
+        loadEDbServiceApiUrlAndServiceApiPackageName(serviceApiProjectUrl,serviceApiPackageName,genClass);
+
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        EngineUtil engineUtil = new EngineUtil();
+
+        StringBuilder outJavaFile =  new StringBuilder()
+                // .append(System.getProperty("user.dir"))
+                .append(genClass.getIserviceProjectUrl() + genClass.getIservicePackageUrl())
+                //.append(File.separator)
+                // 大驼峰
+                .append(genClass.getClassName()+"Service.java");
+
+        File file = new File(outJavaFile.toString());
+
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(file.exists()){
+            System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
+        engineUtil.render(baseUrl.getPath(),
+                "/edb-template/java/iservice.tpl",
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
+                        .set("nowdatetime", DateUtil.now())
+                ,
+                outJavaFile
+        );
+    }
+
+
+    /**
+     * xls对象数据封装
+     * @param projectUrl
+     * @param packageName
+     * @param table
+     */
+    public static void loadEDbXlsUrlAndPackageName(String projectUrl,String packageName,GenTable table){
+        loadObjUrlAndObjPackageName("xls",projectUrl,packageName,table);
+    }
+
+    /**
+     * 生成数据库服务接口
+     * @param projectUrl
+     * @param packageName
+     * @param genClass
+     * @param list
+     */
+    public final static void generatorEDbXlsBean(String projectUrl,String packageName,GenTable genClass, List<GenTableColumn> list){
+        loadEDbXlsUrlAndPackageName(projectUrl,packageName,genClass);
+
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        EngineUtil engineUtil = new EngineUtil();
+
+        StringBuilder outJavaFile =  new StringBuilder()
+                // .append(System.getProperty("user.dir"))
+                .append(genClass.getXlsProjectUrl() + genClass.getXlsPackageUrl())
+                //.append(File.separator)
+                // 大驼峰
+                .append(genClass.getClassName()+"Xls.java");
+
+        File file = new File(outJavaFile.toString());
+
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(file.exists()){
+            System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
+        engineUtil.render(baseUrl.getPath(),
+                "/edb-template/java/baseXls.tpl",
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
+                        .set("nowdatetime", DateUtil.now())
+                ,
+                outJavaFile
+        );
+    }
+
+
+    /**
+     * service实现类
+     * @param projectUrl
+     * @param packageName
+     * @param table
+     */
+    public static void loadEDbServiceUrlAndServicePackageName(String projectUrl,String packageName,GenTable table){
+        loadObjUrlAndObjPackageName("service",projectUrl,packageName,table);
+    }
+
+
+    /**
+     * 生成数据库服务实现类
+     * @param serviceProjectUrl
+     * @param servicePackageName
+     * @param genClass
+     * @param list
+     */
+    public final static void generatorEDbService(String serviceProjectUrl,String servicePackageName,GenTable genClass, List<GenTableColumn> list){
+        // 实现类
+        loadEDbServiceUrlAndServicePackageName(serviceProjectUrl,servicePackageName,genClass);
+
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        EngineUtil engineUtil = new EngineUtil();
+        StringBuilder outJavaFile =   new StringBuilder()
+                // .append(System.getProperty("user.dir"))
+                .append(genClass.getServiceProjectUrl() + genClass.getServicePackageUrl())
+                //.append(File.separator)
+                // 大驼峰
+                .append(genClass.getClassName()+"ServiceImpl.java");
+
+        File file = new File(outJavaFile.toString());
+
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(file.exists()){
+            System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
+
+        engineUtil.render(baseUrl.getPath(),
+                "/edb-template/java/service.tpl",
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
+                        .set("nowdatetime", DateUtil.now())
+                ,
+                outJavaFile
+        );
+    }
+
+
+    /**
+     * controller 对象
+     * @param projectUrl
+     * @param packageName
+     * @param table
+     */
+    public static void loadEDbControllerUrlAndControllerPackageName(String projectUrl,String packageName,GenTable table){
+        loadObjUrlAndObjPackageName("controller",projectUrl,packageName,table);
+        // 需要生成controller的相关web路径
+        // 规则表名前缀/表名驼峰+Action
+        int firstSp = table.getTableName().indexOf("_");
+        // 获取表名第一个下划线前缀
+        String preTableName = table.getTableName().substring(0,firstSp);
+        // 获取表名第一个下划线之后的所有字符串
+        String lastTableName = table.getTableName().substring(firstSp+1,table.getTableName().length());
+        String preUrl = preTableName.toLowerCase();
+        // 小驼峰
+        String lastUrl = StringUtils.uncapitalize(lastTableName);
+
+        if(!StrKit.isBlank(table.getModelName())){
+            // 取传递进来的包名 ，而不用表名前缀分包
+            preUrl = table.getModelName().trim().toLowerCase();
+        }
+        // 小写 + 小驼峰
+        String webUrl = preUrl + "/" + lastUrl;
+        // 小写 + 全小写的小驼峰
+        String webHtmlUrl = preUrl + "/" + lastUrl.toLowerCase();
+        table.setControllerWebUrl(webUrl);
+        table.setControllerHttpUrl(webHtmlUrl);
+
+    }
+
+
+    /**
+     * 生成controller层页面
+     * @param controllerProjectUrl
+     * @param controllerPackageName
+     * @param genClass
+     * @param list
+     */
+    public final static void generatorEDbController(String controllerProjectUrl,String controllerPackageName,GenTable genClass, List<GenTableColumn> list){
+        // 实现类
+        loadEDbControllerUrlAndControllerPackageName(controllerProjectUrl,controllerPackageName,genClass);
+
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        EngineUtil engineUtil = new EngineUtil();
+        StringBuilder outJavaFile =   new StringBuilder()
+                // .append(System.getProperty("user.dir"))
+                .append(genClass.getControllerProjectUrl() + genClass.getControllerPackageUrl())
+                // 大驼峰
+                .append(genClass.getClassName()+"Controller.java");
+
+        File file = new File(outJavaFile.toString());
+
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(file.exists()){
+            System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
+        engineUtil.render(baseUrl.getPath(),
+                "/edb-template/java/controller.tpl",
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
+                        .set("nowdatetime", DateUtil.now())
+                ,
+                outJavaFile
+        );
+    }
+
+
+    /**
+     * 生成controller层页面
+     * @param controllerProjectUrl
+     * @param controllerPackageName
+     * @param genClass
+     * @param list
+     */
+    public final static void generatorEDbVueController(String controllerProjectUrl,String controllerPackageName,GenTable genClass, List<GenTableColumn> list){
+        // 实现类
+        loadEDbControllerUrlAndControllerPackageName(controllerProjectUrl,controllerPackageName,genClass);
+
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        EngineUtil engineUtil = new EngineUtil();
+        StringBuilder outJavaFile =   new StringBuilder()
+                // .append(System.getProperty("user.dir"))
+                .append(genClass.getControllerProjectUrl() + genClass.getControllerPackageUrl())
+                // 大驼峰
+                .append(genClass.getClassName()+"Controller.java");
+
+        File file = new File(outJavaFile.toString());
+
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(file.exists()){
+            System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
+        engineUtil.render(baseUrl.getPath(),
+                "/edb-template/java/vueController.tpl",
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
+                        .set("nowdatetime", DateUtil.now())
+                ,
+                outJavaFile
+        );
+    }
+
+    /**
+     * 生成HTML
+     * @param htmlPre
+     * @param controllerProjectUrl
+     * @param controllerPackageName
+     * @param genClass
+     * @param list
+     */
+    public static void generatorEDbHtml(String htmlPre,String controllerProjectUrl,String controllerPackageName,GenTable genClass, List<GenTableColumn> list){
+        // 实现类
+        loadEDbControllerUrlAndControllerPackageName(controllerProjectUrl,controllerPackageName,genClass);
+        String controllerUrl = genClass.getControllerProjectUrl();
+        int lastIdx = controllerUrl.lastIndexOf("java");
+        String webUrl = controllerUrl.substring(0,lastIdx) +"resources" + controllerProjectUrl.substring(lastIdx+4,controllerUrl.length());
+
+        StringBuilder outJavaFile =    new StringBuilder()
+                // .append(System.getProperty("user.dir"))
+                .append(webUrl)
+                .append(File.separator )
+                .append("views")
+                .append(File.separator)
+                .append(genClass.getControllerHttpUrl())
+                .append(File.separator)
+                // 小驼峰
+                .append(genClass.getSmallClassName()+StringUtils.capitalize(htmlPre)+".html");
+
+        File file = new File(outJavaFile.toString());
+
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(file.exists()){
+            System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
+
+        EngineUtil engineUtil = new EngineUtil();
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        // 生成相关的html
+        engineUtil.render(baseUrl.getPath(),
+                "/edb-template/web/html/"+htmlPre+"html.tpl",
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
+                        .set("nowdatetime", DateUtil.now())
+                ,
+                outJavaFile
+        );
+    }
+
+    /**
+     * 生成JS
+     * @param htmlPre
+     * @param controllerProjectUrl
+     * @param controllerPackageName
+     * @param genClass
+     * @param list
+     */
+    public static void generatorEDbJs(String htmlPre,String controllerProjectUrl,String controllerPackageName,GenTable genClass, List<GenTableColumn> list){
+        // 实现类
+        loadEDbControllerUrlAndControllerPackageName(controllerProjectUrl,controllerPackageName,genClass);
+        String controllerUrl = genClass.getControllerProjectUrl();
+        int lastIdx = controllerUrl.lastIndexOf("java");
+        String webUrl = controllerUrl.substring(0,lastIdx) +"resources" + controllerProjectUrl.substring(lastIdx+4,controllerUrl.length());
+
+        StringBuilder outJavaFile = new StringBuilder()
+                // .append(System.getProperty("user.dir"))
+                .append(webUrl)
+                .append(File.separator )
+                .append("static")
+                .append(File.separator)
+                .append("js")
+                .append(File.separator)
+                .append(genClass.getControllerHttpUrl())
+                .append(File.separator)
+                // 小驼峰
+                .append(genClass.getSmallClassName()+StringUtils.capitalize(htmlPre)+".js");
+
+        File file = new File(outJavaFile.toString());
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(file.exists()){
+            System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
+
+        EngineUtil engineUtil = new EngineUtil();
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        // 生成相关的js
+        engineUtil.render(baseUrl.getPath(),
+                "/edb-template/web/js/"+htmlPre+"js.tpl",
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
+                        .set("nowdatetime", DateUtil.now())
+                ,
+                outJavaFile
         );
     }
 
 
 
     /**
-     * 扩展的JPA对象实体方法
-     * @param projectUrl
-     * @param packageName
-     * @param genTable
-     * @param genTableColumns
+     * 生成HTML和JS
+     * @param htmlPre
+     * @param controllerProjectUrl
+     * @param controllerPackageName
+     * @param genClass
+     * @param list
      */
-    public static void generatorJpaBean(String projectUrl,String packageName,GenTable genTable, List<GenTableColumn> genTableColumns){
-
-        loadObjUrlAndObjPackageName("jpa",projectUrl,packageName,genTable);
-
-        // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
-
-        // 生成的java文件名
-        String javaFileName = genTable.getClassName()+".java" ;
-
-        StringBuilder outJavaFile = new StringBuilder()
-                // .append(System.getProperty("user.dir"))
-                // 实体对象的目录
-                .append(genTable.getJpaProjectUrl() )
-                // 大驼峰
-                .append(javaFileName);
-        File file = new File(outJavaFile.toString());
-
-        if( !file.exists() ){
-            // 指向目录
-            EngineUtil.render(baseUrl.getPath(),
-                    // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
-                    "/edb-template/java/jpa.tpl",
-                    Kv.by("genClass", genTable)
-                            .set("fields",genTableColumns)
-                            .set("nowdatetime", DateUtil.now())
-                    ,outJavaFile
-            );
-        }
-    }
-
-    /**
-     *生成接口
-     * @param projectUrl
-     * @param packageName
-     * @param genTable
-     * @param genTableColumns
-     */
-    public static void generatorService(String projectUrl,String packageName,GenTable genTable, List<GenTableColumn> genTableColumns){
-        loadObjUrlAndObjPackageName("iservice",projectUrl,packageName,genTable);
-        // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
-
-        // 生成的java文件名
-        String javaFileName = genTable.getClassName()+"Service.java" ;
-
-        StringBuilder outJavaFile = new StringBuilder()
-                // .append(System.getProperty("user.dir"))
-                // 实体对象的目录
-                .append(genTable.getIserviceProjectUrl() )
-                // 大驼峰
-                .append(javaFileName);
-        File file = new File(outJavaFile.toString());
-
-        if( !file.exists() ){
-            // 指向目录
-            EngineUtil.render(baseUrl.getPath(),
-                    // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
-                    "/edb-template/java/iservice.tpl",
-                    Kv.by("genClass", genTable)
-                            .set("fields",genTableColumns)
-                            .set("nowdatetime", DateUtil.now())
-                    ,outJavaFile
-            );
-        }
+    public static void generatorEDbHtmlAndjs(String htmlPre,String controllerProjectUrl,String controllerPackageName,GenTable genClass, List<GenTableColumn> list){
+        // 生成HTML
+        generatorEDbHtml(htmlPre,controllerProjectUrl,controllerPackageName,genClass,list);
+        // 生成JS
+        generatorEDbJs(htmlPre,controllerProjectUrl,controllerPackageName,genClass,list);
     }
 
 
     /**
-     * service实现类生成位置
-     * @param projectUrl
-     * @param packageName
-     * @param genTable
-     * @param genTableColumns
+     * 生成controller层页面和视图页面
+     * @param controllerProjectUrl
+     * @param controllerPackageName
+     * @param genClass
+     * @param list
      */
-    public static void generatorServiceImpl(String projectUrl,String packageName,GenTable genTable, List<GenTableColumn> genTableColumns){
-        loadObjUrlAndObjPackageName("service",projectUrl,packageName,genTable);
-        // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
-
-        // 生成的java文件名
-        String javaFileName = genTable.getClassName()+"ServiceImpl.java" ; ;
-
-        StringBuilder outJavaFile = new StringBuilder()
-                // .append(System.getProperty("user.dir"))
-                // service对象的目录
-                .append(genTable.getServiceProjectUrl() )
-                // 大驼峰
-                .append(javaFileName);
-        File file = new File(outJavaFile.toString());
-
-        if( !file.exists() ){
-            // 指向目录
-            EngineUtil.render(baseUrl.getPath(),
-                    // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
-                    "/edb-template/java/service.tpl",
-                    Kv.by("genClass", genTable)
-                            .set("fields",genTableColumns)
-                            .set("nowdatetime", DateUtil.now())
-                    ,outJavaFile
-            );
-        }
-    }
+    public final static void generatorEDbControllerAndView(String controllerProjectUrl,String controllerPackageName,GenTable genClass, List<GenTableColumn> list){
+        // 生成controller层
+        generatorEDbController(controllerProjectUrl,controllerPackageName,genClass,list);
+        // 生成前端页面
+        // 生成列表
+        generatorEDbHtmlAndjs("list",controllerProjectUrl,controllerPackageName,genClass,list);
+        // 生成from表单
+        generatorEDbHtmlAndjs("form",controllerProjectUrl,controllerPackageName,genClass,list);
 
 
-    /**
-     * controller实现类生成位置
-     * @param projectUrl
-     * @param packageName
-     * @param genTable
-     * @param genTableColumns
-     */
-    public static void generatorController(String projectUrl,String packageName,GenTable genTable, List<GenTableColumn> genTableColumns){
-        loadObjUrlAndObjPackageName("controller",projectUrl,packageName,genTable);
-        // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
-
-        // 生成的java文件名
-        String javaFileName = genTable.getClassName()+"Controller.java" ; ;
-
-        StringBuilder outJavaFile = new StringBuilder()
-                // .append(System.getProperty("user.dir"))
-                // web对象的目录
-                .append(genTable.getControllerProjectUrl() )
-                // 大驼峰
-                .append(javaFileName);
-        File file = new File(outJavaFile.toString());
-
-        if( !file.exists() ){
-            // 指向目录
-            EngineUtil.render(baseUrl.getPath(),
-                    // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
-                    "/edb-template/java/controller.tpl",
-                    Kv.by("genClass", genTable)
-                            .set("fields",genTableColumns)
-                            .set("nowdatetime", DateUtil.now())
-                    ,outJavaFile
-            );
-        }
     }
 
 
@@ -530,42 +665,5 @@ public class EDbGenCode {
 
 
 
-
-
-
-
-
-
-
-
-    /**
-     * 获取基础路径
-     * @param copyWindowsPath
-     * @return
-     */
-    public static String getBaseUrl(String copyWindowsPath){
-        // 由于 \ 字符串转义不好处理，所以需要先转 - 最后再转 \
-        String currentProject = System.getProperty("user.dir");
-        currentProject = currentProject.replaceAll("\\\\","-");
-        copyWindowsPath = copyWindowsPath.replaceAll("\\\\","-");
-        copyWindowsPath = copyWindowsPath.replaceAll(currentProject,"");
-        return  copyWindowsPath.replaceAll("-","\\\\");
-    }
-
-    /**
-     * 将基础路径转换成包名
-     * @param copyWindowsPath
-     * @return
-     */
-    public static String getBasePackageName(String copyWindowsPath){
-        // 由于 \ 字符串转义不好处理，所以需要先转 - 最后再转 \
-        String currentProject = System.getProperty("user.dir");
-        currentProject = currentProject.replaceAll("\\\\","-");
-        copyWindowsPath = copyWindowsPath.replaceAll("\\\\","-");
-        String replaceSrcStr = "-src-main-java-";
-        int idx = copyWindowsPath.indexOf(replaceSrcStr) + replaceSrcStr.length();
-        copyWindowsPath = copyWindowsPath.substring(idx,copyWindowsPath.length());
-        return  copyWindowsPath.replaceAll("-","\\.");
-    }
 
 }

@@ -13,8 +13,12 @@ public class GenTable {
     private  String tableName ;
     // 主键名称
     private String priKeyClassName;
+    // 首字母大写
+    private String priKeyBigClassName;
+    // 主键java类型
+    private String priKeyJavaType;
     // 项目名称
-    private String projectName = "xzw-vescort-platform";
+    private String projectName = "edb-platform";
     // model - 模块
     private String modelName;
 
@@ -64,10 +68,10 @@ public class GenTable {
 
     // 包路径
     private String entityPackageUrl;
-    // xls 包路径
-    private String xlsPackageUrl;
     // jpa包路径
     private String jpaPackageUrl;
+    // xls 包路径
+    private String xlsPackageUrl;
     // 接口包名地址
     private String iservicePackageUrl;
     // 实现类包名地址

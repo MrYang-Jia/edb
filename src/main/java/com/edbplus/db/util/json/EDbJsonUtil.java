@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.JSONPObject;
-import org.springframework.util.StringUtils;
+import com.jfinal.kit.StrKit;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -83,7 +83,7 @@ public class EDbJsonUtil {
      * @return
      */
     public static  <T> T fromJson(String jsonString, Class<T> clazz) {
-        if (StringUtils.isEmpty(jsonString)) {
+        if (StrKit.isBlank(jsonString)) {
             throw  new RuntimeException("格式JSON不能为空");
         }
 
@@ -102,7 +102,7 @@ public class EDbJsonUtil {
      * @return
      */
     public static  <T> T fromJson(String jsonString, JavaType javaType) {
-        if (StringUtils.isEmpty(jsonString)) {
+        if (StrKit.isBlank(jsonString)) {
             throw  new RuntimeException("格式JSON不能为空");
         }
         try {
