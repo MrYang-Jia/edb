@@ -1,11 +1,13 @@
 package com.edbplus.db.proxy;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.dto.FieldAndView;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
+import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 import lombok.Setter;
@@ -88,10 +90,9 @@ public class EDbViewProxy implements MethodInterceptor {
                     continue;
                 }
                 // 将当前对象的所有属性转换成入参对象
-                Map<String,Object> map = new HashMap<>();
-                // 原来只转一层map的时候，bean对象无法使用  map[field] 的语法  //BeanUtil.beanToMap(oriJpa);
+                Map<String,Object> map = EDbBeanUtil.beanToMap(oriJpa);
                 // 将对象先转成json字符串，再转map对象，这样子对象里的对象，就都是map，否则enjoy解析器，基于bean的内部解析时，无法使用类似 map[field] 的语法
-                map = JSONUtil.toBean(JSONUtil.toJsonStr(oriJpa),map.getClass());
+//                map = JSONUtil.toBean(JSONUtil.toJsonStr(oriJpa),map.getClass());
                 //
                 SqlPara sqlPara = eDbPro.getSqlPara(fieldAndView.getEDbView().name(), map);
                 if(sqlPara==null){
