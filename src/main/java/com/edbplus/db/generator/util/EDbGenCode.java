@@ -5,6 +5,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.CaseInsensitiveMap;
 import cn.hutool.core.util.StrUtil;
+import com.edbplus.db.EDb;
+import com.edbplus.db.EDbPro;
 import com.edbplus.db.generator.entity.GenTable;
 import com.edbplus.db.generator.entity.GenTableColumn;
 import com.edbplus.db.generator.jdbc.GenJdbc;
@@ -30,6 +32,16 @@ import java.util.Map;
  */
 public class EDbGenCode {
 
+    public static EDbPro edbPro;
+    
+    public static EDbPro getEDbPro(){
+        if(edbPro==null){
+            // 返回EDb默认数据源
+            edbPro = EDb.use();
+            return edbPro;
+        }
+        return edbPro;
+    }
 
     /**
      * 表数据初始化
@@ -42,7 +54,7 @@ public class EDbGenCode {
         String tableName = table.getTableName().trim();
 
         // 先获取表对象属性
-        Record tableRecord = Db.findFirst(GenMysql.getTableInfoSql(tableName));
+        Record tableRecord = getEDbPro().findFirst(GenMysql.getTableInfoSql(tableName));
         if(tableRecord==null){
             throw new  RuntimeException(" 数据库不存在该表： "+tableName);
         }
@@ -58,11 +70,15 @@ public class EDbGenCode {
         }else{
             genTable.setCreater(GenJdbc.creater);
         }
+        // 回填项目名称
+        if(table.getProjectName() != null ){
+            genTable.setProjectName(table.getProjectName());
+        }
         // 必须使用赋值的方式，否则对象传递无法发挥作用，对象内存变化无法指定
         BeanUtil.copyProperties(genTable,table);
 
 
-        List<Record> columns = Db.find(GenMysql.getTableColumnsSql(tableName));
+        List<Record> columns = getEDbPro().find(GenMysql.getTableColumnsSql(tableName));
 
         GenTableColumn genTableColumn ;
         String[] nums ;
