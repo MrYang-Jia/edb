@@ -6,8 +6,6 @@ import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import sun.applet.Main;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -891,7 +889,7 @@ public class EDb extends Db{
      * @return
      */
     public static  <T> T getRel(T t){
-        return MAIN.getRel(t);
+        return MAIN.rel(t);
     }
 
     /**
@@ -914,7 +912,7 @@ public class EDb extends Db{
      * @return
      */
     public static  <T> T getRel(T t,Integer limit,Integer offset){
-        return MAIN.getRel(t,limit,offset);
+        return MAIN.rel(t,limit,offset);
     }
 
     /**
@@ -927,7 +925,7 @@ public class EDb extends Db{
      * @return
      */
     public static <T> T getRel(T t,String fields,Integer limit,Integer offset){
-        return MAIN.getRel(t,fields,limit,offset);
+        return MAIN.rel(t,fields,limit,offset);
     }
 
 
@@ -1003,8 +1001,8 @@ public class EDb extends Db{
      * @param <T>
      * @return
      */
-    public static <T> T getView(T t){
-        return MAIN.getView(t);
+    public static <T> T view(T t){
+        return MAIN.view(t);
     }
 
     /**
@@ -1015,8 +1013,8 @@ public class EDb extends Db{
      * @param <T>
      * @return
      */
-    public static <T> T getViewForPage(T t,int pageNo,int pageSize){
-        return MAIN.getViewForPage(t,pageNo,pageSize);
+    public static <T> T view(T t,int pageNo,int pageSize){
+        return MAIN.view(t,pageNo,pageSize);
     }
 
     /**

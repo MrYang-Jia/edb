@@ -2054,8 +2054,8 @@ public class EDbPro extends DbPro {
      * @param <T>
      * @return
      */
-    public <T> T getRel(T t){
-        return getRel(t,null,null,null);
+    public <T> T rel(T t){
+        return rel(t,null,null,null);
     }
 
     /**
@@ -2066,8 +2066,8 @@ public class EDbPro extends DbPro {
      * @param <T> -- 这类方法一般返回的是list对象，不排除多个里取一个结果集
      * @return
      */
-    public <T> T getRel(T t,Integer limit,Integer offset){
-        return getRel(t,null,limit,offset);
+    public <T> T rel(T t,Integer limit,Integer offset){
+        return rel(t,null,limit,offset);
     }
 
 
@@ -2081,7 +2081,7 @@ public class EDbPro extends DbPro {
      * @param <T>
      * @return
      */
-    public <T> T getRel(T t,String fields,Integer limit,Integer offset){
+    public <T> T rel(T t,String fields,Integer limit,Integer offset){
         if(t == null){
             throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
         }
@@ -2173,7 +2173,7 @@ public class EDbPro extends DbPro {
      * @param <T>
      * @return
      */
-    public <T> T getView(T t){
+    public <T> T view(T t){
         if(t == null){
             throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
         }
@@ -2195,7 +2195,7 @@ public class EDbPro extends DbPro {
      * @param <T>
      * @return
      */
-    public <T> T getViewForPage(T t,int pageNo,int pageSize){
+    public <T> T view(T t,int pageNo,int pageSize){
         if(t == null){
             throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
         }

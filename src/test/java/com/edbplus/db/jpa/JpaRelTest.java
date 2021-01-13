@@ -58,7 +58,7 @@ public class JpaRelTest extends BaseTest {
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         start = System.currentTimeMillis();
         // 通过已查询到的对象，关联查询子对象 CrVehicleTypeModeRels
-        List<CrVehicleTypeModeRel> crVehicleTypeModeRels = eDbPro.getRel(crVehicleType).getCrVehicleTypeModesRel();
+        List<CrVehicleTypeModeRel> crVehicleTypeModeRels = eDbPro.rel(crVehicleType).getCrVehicleTypeModesRel();
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         start = System.currentTimeMillis();
         System.out.println("==>查询到的关联子对象集: " + crVehicleTypeModeRels.size());
@@ -70,18 +70,18 @@ public class JpaRelTest extends BaseTest {
         System.out.println("==>当前子对象:"+crVehicleTypeModeRels.get(0).getCrVehicleTypeMode());
         start = System.currentTimeMillis();
         // 同时，也可单独对子对象做业务对象的扩展关联获取，这种模式适合在后台独立模块独立操作时使用，节省内存节省开销，逐渐释放不需要的资源，比较轻量
-        System.out.println("==>关联获取子对象:"+eDbPro.getRel(crVehicleTypeModeRels.get(0)).getCrVehicleTypeMode());
+        System.out.println("==>关联获取子对象:"+eDbPro.rel(crVehicleTypeModeRels.get(0)).getCrVehicleTypeMode());
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         start = System.currentTimeMillis();
         // 通过方法标记获取已删除标记的数据
-        System.out.println("指向删除数据：" + eDbPro.getRel(crVehicleTypeModeRels.get(0)).getDelCrVehicleType());
+        System.out.println("指向删除数据：" + eDbPro.rel(crVehicleTypeModeRels.get(0)).getDelCrVehicleType());
         // 如果用这种方式获取已删除的对象，会出现错误的返回结果
         System.out.println("指向@EDbRel的key:"+eDbPro.getRelKey(crVehicleTypeModeRels.get(0),CrVehicleTypeModeRel.noDel));
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         start = System.currentTimeMillis();
 
         System.out.println("=== 不触发查询 ===");
-        System.out.println(eDbPro.getRel(crVehicleTypeModeRels.get(0)).getIsDel());
+        System.out.println(eDbPro.rel(crVehicleTypeModeRels.get(0)).getIsDel());
 
     }
 

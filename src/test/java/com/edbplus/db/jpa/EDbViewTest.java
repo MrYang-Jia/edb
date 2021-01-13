@@ -30,14 +30,14 @@ public class EDbViewTest extends BaseTest {
 //        vehicleView.setCrVehicleTypeMode(crVehicleTypeMode);
         log.info("========================================");
         // 返回查询的对象      ;
-        System.out.println(EDb.getView(vehicleView).getCrVehicleTypeView());
+        System.out.println(EDb.view(vehicleView).getCrVehicleTypeView());
         // 返回查询列表
-        System.out.println(EDb.getView(vehicleView).getCrVehicleTypesView());
+        System.out.println(EDb.view(vehicleView).getCrVehicleTypesView());
         // 返回查询page列表 -- 已兼容springData page返回结果页，便于适配
-        System.out.println(EDb.getViewForPage(vehicleView,1,10).getCrVehicleTypePageView().getList());
+        System.out.println(EDb.view(vehicleView,1,10).getCrVehicleTypePageView().getList());
 
         // 返回查询page列表 -- 已兼容springData page返回结果页，便于适配
-        System.out.println(EDb.getViewForPage(vehicleView,1,10).getCrVehicleTypeSpringPageView().getContent());
+        System.out.println(EDb.view(vehicleView,1,10).getCrVehicleTypeSpringPageView().getContent());
     }
 
 }
