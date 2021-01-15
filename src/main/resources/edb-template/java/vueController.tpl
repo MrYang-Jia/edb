@@ -3,6 +3,7 @@ package #(genClass.controllerPackageName);
 
 import com.edbplus.db.web.api.ApiResult;
 import com.edbplus.db.web.api.DataTablePageResult;
+import com.edbplus.db.web.api.ApiReturnCode;
 import com.edbplus.db.web.util.WebUtil;
 import com.edbplus.db.web.util.ShiroWebUtil;
 import #(genClass.entityPackageName).#(genClass.className);
@@ -61,40 +62,14 @@ public class #(genClass.className)Controller {
     )
     @ResponseBody
     public DataTablePageResult<#(genClass.className)> paginate(@RequestParam(required = false) Map whereMap,ModelMap map, HttpServletRequest request) {
-        // 去除空指针对象
-        EDbFilterKit.removeNullValue(whereMap);
-        // 如果没有默认排序字段，则赋予主键字段进行排序
-        if(!whereMap.containsKey(WebUtil.field)){
-            whereMap.put(WebUtil.field,"#(genClass.priKeyClassName)");
-        }
-        int pageCt = 1;
-        // 判断是否有分页对象
-        if(whereMap.containsKey(WebUtil.page)){
-            pageCt = Integer.valueOf((String) whereMap.get(WebUtil.page));
-        }
-        int limitCt = 10;
-        // 判断是否有返回条数设置
-        if(whereMap.containsKey(WebUtil.limit)) {
-            limitCt = Integer.valueOf((String) whereMap.get(WebUtil.limit));
-        }
-        // 如果超过最大等级，则直接返回5条信息。
-        if(pageCt > WebUtil.maxLimitLv_1){
-            limitCt = 5;
-        }
-        // 设置只查询未删除的部分
-        whereMap.put(WebUtil.sEqRemoveFlag,"N");
+        // 过滤查询条件，去除空值和设置分页信息
+        WebUtil.filterWhereMap(#(genClass.className).class,"#(genClass.priKeyClassName)",WebUtil.defaultOrerStr,whereMap);
         // 组合查询条件
         EDbQuery eDbQuery = EDbFilterKit.getQueryForFilter(#(genClass.className).class,whereMap);
         // 查询所有对象时的方法
-        Page<#(genClass.className)> page =  #(genClass.smallClassName)Service.findByQueryParams(#(genClass.className).class,PageRequest.of(pageCt,limitCt),eDbQuery);
+        Page<#(genClass.className)> page =  #(genClass.smallClassName)Service.findByQueryParams(#(genClass.className).class,PageRequest.of((int)whereMap.get(WebUtil.page),(int)whereMap.get(WebUtil.limit)),eDbQuery);
         // 数据对象封装 -- 适配LayUI
-        DataTablePageResult<#(genClass.className)> dataTablePageResult = new DataTablePageResult<>();
-        // 设置返回的数据对象
-        dataTablePageResult.setData(page.getList());
-        // 设置成功的返回码 -- 适配LayUI
-        dataTablePageResult.setCode(ApiReturnCode.SUCCESS.getCode());
-        // 设置返回总条数
-        dataTablePageResult.setCount(page.getTotalRow());
+        DataTablePageResult<#(genClass.className)> dataTablePageResult = WebUtil.loadDataTablePageResult(page);
         return dataTablePageResult;
     }
 
