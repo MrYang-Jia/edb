@@ -5,6 +5,7 @@ import com.edbplus.db.annotation.EDbRel;
 import javax.persistence.*;
 
 import com.edbplus.db.jpa.model.base.BaseCrVehicleTypeModeRel;
+import com.jfinal.plugin.activerecord.Page;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,11 +43,21 @@ public class CrVehicleTypeModeRel extends BaseCrVehicleTypeModeRel {
 
     @Setter
     @Getter
+    // #(vehicleTypeModeId) 代表获取当前对象立的 vehicleTypeModeId 字段,驼峰式写法
     @EDbRel(appendSql = " and VEHICLE_TYPE_MODE_ID = #(vehicleTypeModeId) and IS_DEL = 0  ")
     private CrVehicleTypeMode crVehicleTypeMode;
 
+    @Setter
+    @Getter
+    // 关联两个键值 ，并且指定是 IS_DEL = 1 的部分，已删除的数据
+    @EDbRel(relKey= isDel , relColumn = {"VEHICLE_TYPE_ID"},appendSql = " and IS_DEL = 0 ")
+    private Page<CrVehicleType> crVehicleTypePage;
 
-
+    @Setter
+    @Getter
+    // 关联两个键值 ，并且指定是 IS_DEL = 1 的部分，已删除的数据
+    @EDbRel(relKey= isDel , relColumn = {"VEHICLE_TYPE_ID"},appendSql = " and IS_DEL = 0 ")
+    private org.springframework.data.domain.Page<CrVehicleType> crVehicleTypeSpringPage;
 
     // A to B ==》 获取 A 赋予 B
 //    edb.gerRel(dto.getRelObj,dto);

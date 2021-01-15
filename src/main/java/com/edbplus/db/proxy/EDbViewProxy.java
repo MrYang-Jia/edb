@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.dto.FieldAndView;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
+import com.edbplus.db.util.EDbPageUtil;
 import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
@@ -101,24 +102,25 @@ public class EDbViewProxy implements MethodInterceptor {
                 if(returnType instanceof ParameterizedType){
                     // 默认 jfinal page
                     entityClass = (Class<?>)((ParameterizedType) returnType).getActualTypeArguments()[0];
+                    // 包装类 -- 目前只支持 List jfinal-page spring-page 三种包装类型
+                    Type packingType = ((ParameterizedType) returnType).getRawType();
                     // com.jfinal.plugin.activerecord.Page -- 分页对象的情况
-                    if(((ParameterizedType) returnType).getRawType() == Page.class){
+                    if(packingType == Page.class){
                         object = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
                     }
                     // 适配spring分页
-                    else if(((ParameterizedType) returnType).getRawType() == org.springframework.data.domain.Page.class){
+                    else if(packingType == org.springframework.data.domain.Page.class){
                         Page jfinalPage = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
-                        // spring 分页从0开始，所以默认-1
-                        Pageable pageable = PageRequest.of(pageNo-1,pageSize);
-                        //
-                        org.springframework.data.domain.Page page = new org.springframework.data.domain.PageImpl(jfinalPage.getList(),pageable,jfinalPage.getTotalRow());
                         // 返回对象
-                        object = page;
+                        object = EDbPageUtil.returnSpringPage(jfinalPage);
                     }
                     // 其他类型统一直接当作list返回
-                    else{
+                    else if (packingType == List.class){
                         //
                         object = eDbPro.find(entityClass,sqlPara);
+                    }else{
+                        // 抛错
+                        throw new RuntimeException(" view视图只支持单对象或 List 、jfinal-page、spring-data-page 三种数组类型的组合 ");
                     }
 //                    //
 //                    object = eDbPro.find(entityClass,sqlPara);
@@ -135,7 +137,9 @@ public class EDbViewProxy implements MethodInterceptor {
 
         // 如果不是rel对象，则返回原属性方法值
         if(object == null){
-            object = proxy.invokeSuper(obj, args);
+//            object = proxy.invokeSuper(obj, args);
+            // 触发原对象方法的返回结果
+            object = method.invoke(oriJpa,args);
         }
         return object;
     }

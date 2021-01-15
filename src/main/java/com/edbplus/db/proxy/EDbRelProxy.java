@@ -29,10 +29,10 @@ public class EDbRelProxy implements MethodInterceptor {
     private String fields;
 
     @Setter
-    private Integer limit;
+    private Integer pageNo=1;
 
     @Setter
-    private Integer offset;
+    private Integer pageSize=10;
 
     // 数据对象
     private EDbPro eDbPro;
@@ -70,13 +70,15 @@ public class EDbRelProxy implements MethodInterceptor {
         // 如果返回类型有值，才进行关系扩展
         if(returnType!= null ){
             // 同步的方式，获取指定对象
-            object = JpaRelUtil.getRelObject(null,fields,limit,offset,eDbPro,oriJpa,returnType.getTypeName(),method,true,false);
+            object = JpaRelUtil.getRelObject(null,fields,pageNo,pageSize,eDbPro,oriJpa,returnType.getTypeName(),method,true,false);
         }
 
 //        returnType.getTypeName()
         // 如果不是rel对象，则返回原属性方法值
         if(object == null){
-            object = proxy.invokeSuper(obj, args);
+//            object = proxy.invokeSuper(obj, args);
+            // 触发原对象方法的返回结果
+            object = method.invoke(oriJpa,args);
         }
         return object;
     }

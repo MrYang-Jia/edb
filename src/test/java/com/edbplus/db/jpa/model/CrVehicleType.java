@@ -23,7 +23,7 @@ public class CrVehicleType extends BaseCrVehicleType{
     @Setter
     @Getter
     // 可以设置最多返回20个数据，默认最多返回10个，一般是够用了，但是可以根据实际需求来调整哦
-    @EDbRel(relColumn = {"VEHICLE_TYPE_ID"} , limit = 20 ,offset = 0)
+    @EDbRel(relColumn = {"VEHICLE_TYPE_ID"} )
     private List<CrVehicleTypeModeRel> crVehicleTypeModesRel;
 
 }

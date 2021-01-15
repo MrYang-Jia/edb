@@ -2,6 +2,8 @@ package com.edbplus.db.jpa.task;
 
 import cn.hutool.core.util.ReflectUtil;
 import com.edbplus.db.EDbPro;
+import com.edbplus.db.util.EDbPageUtil;
+import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 
 import java.lang.reflect.Field;
@@ -14,29 +16,49 @@ public class JpaRelTask implements Callable<Object> {
     private EDbPro eDbPro;
     private Object oriJpa;
     private Field field;
-    private boolean isList = false;
+    private Integer pageNo;
+    private Integer pageSize;
 
-    public JpaRelTask(Object oriJpa,Field oriJpaField,Class<?> jpaClass, SqlPara sqlPara, EDbPro eDbPro,boolean isList){
+    // 0 - 单体对象，1 - List ,2 - jfinal_page,3 - spring_page
+    private int arrayType = 0;
+
+    /**
+     *
+     * @param oriJpa
+     * @param oriJpaField
+     * @param jpaClass
+     * @param sqlPara
+     * @param eDbPro
+     * @param arrayType 0 - 单体对象，1 - List ,2 - jfinal_page,3 - spring_page
+     * @param pageNo
+     * @param pageSize
+     */
+    public JpaRelTask(Object oriJpa,Field oriJpaField,Class<?> jpaClass, SqlPara sqlPara, EDbPro eDbPro,int arrayType,Integer pageNo,Integer pageSize){
         this.jpaClass = jpaClass;
         this.sqlPara = sqlPara;
         this.eDbPro = eDbPro;
         this.oriJpa =oriJpa;
         this.field = oriJpaField;
-        this.isList = isList;
+        this.arrayType = arrayType;
+        this.pageNo = pageNo;
+        this.pageSize = pageSize;
     }
 
     @Override
     public Object call() throws Exception {
         Object object = null;
-        if(isList){
+        if(arrayType == 1){
             object = eDbPro.find(jpaClass, sqlPara);
-        }else{
+        }else  if(arrayType == 0){
             object = eDbPro.findFirst(jpaClass, sqlPara);
+        }else  if(arrayType == 2){
+            object = eDbPro.paginate(jpaClass,pageNo,pageSize, sqlPara);
+        }else  if(arrayType == 3){
+            Page jfinalPage = eDbPro.paginate(jpaClass,pageNo,pageSize, sqlPara);
+            object = EDbPageUtil.returnSpringPage(jfinalPage);
         }
-        System.out.println("===运行===");
         // 字段赋值 -- 反射赋值会比较消耗毫秒数
         ReflectUtil.setFieldValue(oriJpa, field, object);
-
         return object;
     }
 

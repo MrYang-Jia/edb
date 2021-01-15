@@ -2055,19 +2055,19 @@ public class EDbPro extends DbPro {
      * @return
      */
     public <T> T rel(T t){
-        return rel(t,null,null,null);
+        return rel(t,null,1,10);
     }
 
     /**
      * 获取关系对象，并可控制对象的其实和结束节点，以便控制返回更多的结果
      * @param t
-     * @param limit
-     * @param offset
+     * @param pageNo
+     * @param pageSize
      * @param <T> -- 这类方法一般返回的是list对象，不排除多个里取一个结果集
      * @return
      */
-    public <T> T rel(T t,Integer limit,Integer offset){
-        return rel(t,null,limit,offset);
+    public <T> T rel(T t,Integer pageNo,Integer pageSize){
+        return rel(t,null,pageNo,pageSize);
     }
 
 
@@ -2076,12 +2076,12 @@ public class EDbPro extends DbPro {
      *
      * @param t
      * @param fields
-     * @param limit
-     * @param offset
+     * @param pageNo
+     * @param pageSize
      * @param <T>
      * @return
      */
-    public <T> T rel(T t,String fields,Integer limit,Integer offset){
+    public <T> T rel(T t,String fields,Integer pageNo,Integer pageSize){
         if(t == null){
             throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
         }
@@ -2092,8 +2092,8 @@ public class EDbPro extends DbPro {
         }
         EDbRelProxy eDbRelProxy = new EDbRelProxy();
         eDbRelProxy.setFields(fields);
-        eDbRelProxy.setLimit(limit);
-        eDbRelProxy.setOffset(offset);
+        eDbRelProxy.setPageNo(pageNo);
+        eDbRelProxy.setPageSize(pageSize);
         return eDbRelProxy.createProcy(t,this);
     }
 
@@ -2124,12 +2124,12 @@ public class EDbPro extends DbPro {
      * 异步获取对象
      * @param t
      * @param relKey
-     * @param limit
-     * @param offset
+     * @param pageNo
+     * @param pageSize
      * @return
      */
-    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey,Integer limit,Integer offset){
-        return getRelKeyForFutrue(t,relKey,null,limit,offset);
+    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey,Integer pageNo,Integer pageSize){
+        return getRelKeyForFutrue(t,relKey,null,pageNo,pageSize);
     }
 
 
@@ -2140,12 +2140,12 @@ public class EDbPro extends DbPro {
      * @param t
      * @param relKey
      * @param fields
-     * @param limit
-     * @param offset
+     * @param pageNo
+     * @param pageSize
      * @return
      */
-    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey,String fields,Integer limit,Integer offset){
-        return (List<Future<Object>>) JpaRelUtil.getRelObject(relKey,fields,limit,offset,this,t,null,null,true,true);
+    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey,String fields,Integer pageNo,Integer pageSize){
+        return (List<Future<Object>>) JpaRelUtil.getRelObject(relKey,fields,pageNo,pageSize,this,t,null,null,true,true);
     }
 
 

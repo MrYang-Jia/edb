@@ -162,5 +162,16 @@ public class JpaRelTest extends BaseTest {
     }
 
 
+    @Test
+    public void testGetRelPage(){
+        System.out.println("================= 分割线1 ====================");
+        CrVehicleTypeModeRel crVehicleTypeModeRel = eDbPro.findById(CrVehicleTypeModeRel.class,1);
+        System.out.println("================= 分割线2 -jfinalPage ====================");
+        System.out.println(eDbPro.rel(crVehicleTypeModeRel).getCrVehicleTypePage());
+        System.out.println("================= 分割线3 -springPage ====================");
+        System.out.println(eDbPro.rel(crVehicleTypeModeRel).getCrVehicleTypeSpringPage());
+
+    }
+
 
 }

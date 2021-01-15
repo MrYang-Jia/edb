@@ -919,13 +919,13 @@ public class EDb extends Db{
      * 获取关系对象，控制返回条数和返回的字段
      * @param t
      * @param fields -- 返回的字段字符串
-     * @param limit -- 最多返回多少记录 ,null 时，取 @EDbRel里的limit默认值
-     * @param offset -- 从第几条记录开始，起始为 0
+     * @param pageNo -- 从第几页开始，起始为1
+     * @param pageSize -- 最多返回多少记录 ,null 时，取 @EDbRel里的limit默认值
      * @param <T>
      * @return
      */
-    public static <T> T getRel(T t,String fields,Integer limit,Integer offset){
-        return MAIN.rel(t,fields,limit,offset);
+    public static <T> T getRel(T t,String fields,Integer pageNo,Integer pageSize){
+        return MAIN.rel(t,fields,pageNo,pageSize);
     }
 
 
@@ -944,12 +944,12 @@ public class EDb extends Db{
      * 异步获取对象
      * @param t
      * @param relKey -- 指定relKey对象
-     * @param limit -- 返回的条数
-     * @param offset -- 起始位置
+     * @param pageNo -- 起始页
+     * @param pageSize -- 返回页数
      * @return
      */
-    public static List<Future<Object>> getRelForFutrue(Object t,String relKey,Integer limit,Integer offset){
-        return MAIN.getRelKeyForFutrue(t,relKey,limit,offset);
+    public static List<Future<Object>> getRelForFutrue(Object t,String relKey,Integer pageNo,Integer pageSize){
+        return MAIN.getRelKeyForFutrue(t,relKey,pageNo,pageSize);
     }
 
 
@@ -958,12 +958,12 @@ public class EDb extends Db{
      * @param t
      * @param relKey
      * @param fields
-     * @param limit
-     * @param offset
+     * @param pageNo
+     * @param pageSize
      * @return
      */
-    public static List<Future<Object>> getRelForFutrue(Object t,String relKey,String fields,Integer limit,Integer offset){
-        return MAIN.getRelKeyForFutrue(t,relKey,fields,limit,offset);
+    public static List<Future<Object>> getRelForFutrue(Object t,String relKey,String fields,Integer pageNo,Integer pageSize){
+        return MAIN.getRelKeyForFutrue(t,relKey,fields,pageNo,pageSize);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.edbplus.db.jpa.util;
 
+import cn.hutool.core.util.PageUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.edbplus.db.EDb;
@@ -11,7 +12,9 @@ import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.jpa.pip.JpaRelPip;
 import com.edbplus.db.proxy.EDbRelProxy;
 import com.edbplus.db.jpa.task.JpaRelTask;
+import com.edbplus.db.util.EDbPageUtil;
 import com.jfinal.kit.StrKit;
+import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 
 import javax.persistence.Table;
@@ -38,11 +41,11 @@ public class JpaRelUtil {
 
 
     /**
-     * 获取关系对象返回的结果 或 返回的 sqlPara 对象 (这个设计起始挺不好的，会存在两种可能性的返回值)
+     * 获取关系对象返回的结果 或 返回的 sqlPara 对象 (这个设计其实挺不好的，会存在3种可能性的返回值) ，后续有空再做单方法体拆分，避免不容易阅读
      * @param relKey -- 如果存在多个同一对象，用key做区分，否则无法正确赋予对象
      * @param fields -- 字段
-     * @param limit -- 最多返回多少条记录
-     * @param offset -- 从第几条记录开始返回，起始值为0
+     * @param pageNo -- 从第几页开始
+     * @param pageSize -- 分页最大条数
      * @param eDbPro -- 数据源
      * @param oriJpa -- 原始jpa对象
      * @param typeName -- class 的全名称 ，便于加载生成 class 对象 或 做类比较
@@ -52,14 +55,27 @@ public class JpaRelUtil {
      */
     public static Object getRelObject(String relKey,
                                String fields,
-                               Integer limit,
-                               Integer offset,
+                               Integer pageNo,
+                               Integer pageSize,
                                EDbPro eDbPro,
                                Object oriJpa,
                                String typeName,
                                Method method,
                                boolean isReturnResutl,
                                boolean isFutrue){
+        // 起始和结束页
+        int[] startEnd = null;
+        Integer offset =  null;
+        Integer limit = null;
+        if(pageNo!=null && pageSize!=null){
+            // jfinal 分页默认从1开始，hutool默认从0开始，所以默认减1
+            startEnd = PageUtil.transToStartEnd(pageNo - 1, pageSize);
+            // 从什么位置开始
+            offset = startEnd[0];
+            // 每页页数
+            limit = pageSize;
+        }
+
         // 获取所有字段 -- 包含
         List<FieldAndRel> fieldRels = JpaAnnotationUtil.getFieldRels(oriJpa.getClass());
 
@@ -133,21 +149,46 @@ public class JpaRelUtil {
                     if(fieldType instanceof ParameterizedType){
                         // List
                         entityClass = (Class<?>)((ParameterizedType) fieldType).getActualTypeArguments()[0];
-                        // 按默认配置来取条数
-                        sqlPara = getSqlPara(fields,limit,offset,eDbPro,fieldAndColValues,entityClass,eDbRel,tableData);
+                        // 包装类 -- 目前只支持 List jfinal-page spring-page 三种包装类型
+                        Type packingType = ((ParameterizedType) fieldType).getRawType();
+                        // 如果是List类型
+                        if (packingType == List.class){
+                            // 按默认配置来取条数
+                            sqlPara = getSqlPara(fields,limit,offset,eDbPro,fieldAndColValues,entityClass,eDbRel,tableData);
+                        } else if(packingType == org.springframework.data.domain.Page.class){
+                            sqlPara = getSqlPara(fields,null,null,eDbPro,fieldAndColValues,entityClass,eDbRel,tableData);
+                        }else if(packingType == Page.class){
+                            sqlPara = getSqlPara(fields,null,null,eDbPro,fieldAndColValues,entityClass,eDbRel,tableData);
+                        }else{
+                            // 抛错
+                            throw new RuntimeException(" view视图只支持单对象或 List 、jfinal-page、spring-data-page 三种数组类型的组合 ");
+                        }
+
                         // 是否返回结果集
                         if(isReturnResutl){
                             if(isFutrue){
-                                jpaRelTask = new JpaRelTask(oriJpa,fieldAndRel.getField(),entityClass,sqlPara,eDbPro,true);
+                                if (packingType == List.class) {
+                                    jpaRelTask = new JpaRelTask(oriJpa, fieldAndRel.getField(), entityClass, sqlPara, eDbPro, 1, null, null);
+                                }else if(packingType == Page.class){
+                                    jpaRelTask = new JpaRelTask(oriJpa, fieldAndRel.getField(), entityClass, sqlPara, eDbPro, 2, pageNo, pageSize);
+                                }
+                                else if(packingType == org.springframework.data.domain.Page.class){
+                                    jpaRelTask = new JpaRelTask(oriJpa, fieldAndRel.getField(), entityClass, sqlPara, eDbPro, 3, pageNo, pageSize);
+                                }
                                 //  执行
                                 futureRate = EDb.edbFutruePools.get(eDbPro.getConfig().getName()).submit(jpaRelTask);
                                 resultFutrues.add(futureRate);
                             }else{
-                                object = eDbPro.find(entityClass,sqlPara);
+                                if (packingType == List.class) {
+                                    object = eDbPro.find(entityClass, sqlPara);
+                                }else if(packingType == Page.class){
+                                    object = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                                }else if(packingType == org.springframework.data.domain.Page.class){
+                                    Page jfinalPage = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                                    object = EDbPageUtil.returnSpringPage(jfinalPage);
+                                }
                                 // 字段赋值 -- 反射赋值会比较消耗毫秒数
                                 ReflectUtil.setFieldValue(oriJpa,fieldAndRel.getField(),object);
-
-
                             }
 
                             if( relKey !=null || typeName != null){
@@ -178,7 +219,7 @@ public class JpaRelUtil {
                         sqlPara = getSqlPara(fields,1,0,eDbPro,fieldAndColValues,entityClass,eDbRel,tableData);
                         if(isReturnResutl) {
                             if(isFutrue){
-                                jpaRelTask = new JpaRelTask(oriJpa,fieldAndRel.getField(),entityClass,sqlPara,eDbPro,false);
+                                jpaRelTask = new JpaRelTask(oriJpa,fieldAndRel.getField(),entityClass,sqlPara,eDbPro,0,null,null);
                                 //  执行
                                 futureRate = EDb.edbFutruePools.get(eDbPro.getConfig().getName()).submit(jpaRelTask);
                                 resultFutrues.add(futureRate);
@@ -294,21 +335,18 @@ public class JpaRelUtil {
 
         // 是否有传入每次返回的最大条数
         if(limit == null){
-            // 返回的数量
-            tableData.put(JpaRelPip.limit,eDbRel.limit());
+
         }else{
             tableData.put(JpaRelPip.limit,limit);
         }
 
         // 是否有传入自定义查询起始位
         if(offset == null){
-            // 读取数据的位置
-            tableData.put(JpaRelPip.offset,eDbRel.offset());
+
         }else{
             // 读取数据的位置
             tableData.put(JpaRelPip.offset,offset);
         }
-
         // sql对象 -- 因为还要指定模板加载，对于构建组件来说步骤太麻烦，所以去除
         sqlPara.setSql(eDbPro.getSqlPara(EDbRelProxy.jpaEdbRelKey,tableData).getSql());
         return sqlPara;
@@ -390,16 +428,14 @@ public class JpaRelUtil {
         sqlBuf.append(appendSql);
         // 是否有传入每次返回的最大条数
         if(limit == null){
-            // 返回的数量
-            sqlBuf.append(" limit ").append(eDbRel.limit());
+
         }else{
             sqlBuf.append(" limit ").append(limit);
         }
 
         // 是否有传入自定义查询起始位
         if(offset == null){
-            // 读取数据的位置
-            sqlBuf.append(" offset ").append(eDbRel.offset());
+
         }else{
             // 读取数据的位置
             sqlBuf.append(" offset ").append(offset);
