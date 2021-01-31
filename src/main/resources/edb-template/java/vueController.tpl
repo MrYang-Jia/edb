@@ -36,7 +36,7 @@ import org.springframework.ui.Model;
 
 /**
  * @program: #(genClass.projectName)
- * @description:  #(genClass.className) Controller 层
+ * @description:  #(genClass.className) Controller 层,数据对象 #(genClass.tableComment) 的相关操作
  * @author: #(genClass.creater)
  * @create: #(nowdatetime)
  **/
@@ -62,7 +62,7 @@ public class #(genClass.className)Controller {
     )
     @ResponseBody
     public DataTablePageResult<#(genClass.className)> paginate(@RequestParam(required = false) Map whereMap,ModelMap map, HttpServletRequest request) {
-        // 过滤查询条件，去除空值和设置分页信息
+        // 过滤查询条件，去除空值和设置分页信息（同时过滤最大分页数量）、设置排序条件等
         WebUtil.filterWhereMap(#(genClass.className).class,"#(genClass.priKeyClassName)",WebUtil.defaultOrerStr,whereMap);
         // 组合查询条件
         EDbQuery eDbQuery = EDbFilterKit.getQueryForFilter(#(genClass.className).class,whereMap);
@@ -75,7 +75,7 @@ public class #(genClass.className)Controller {
 
 
     /**
-     * 保存车辆信息
+     * 保存信息
      * @param saveObj
      */
     @PostMapping("save")
@@ -147,18 +147,15 @@ public class #(genClass.className)Controller {
     @RequestMapping("export")
     public void export( @RequestParam(required = false) Map whereMap,ModelMap map, HttpServletRequest request,
                                       HttpServletResponse response) {
-        // 去除空指针对象
-        EDbFilterKit.removeNullValue(whereMap);
-        // 设置页码，可根据需要进行调整
-        int pageCt = 1;
-        // 设置最大返回条数 2000 条
-        int limitCt = WebUtil.maxLimitLv_5;
-        // 设置只查询未删除的部分
-        whereMap.put(WebUtil.sEqRemoveFlag,"N");
+        // 过滤查询条件，去除空值和设置分页信息（同时过滤最大分页数量）、设置排序条件等
+        WebUtil.filterWhereMap(#(genClass.className).class,"#(genClass.priKeyClassName)",WebUtil.defaultOrerStr,whereMap);
         // 设置查询条件 -- 这里需要指定jpa对象的类型
         EDbQuery eDbQuery = EDbFilterKit.getQueryForFilter(#(genClass.className).class,whereMap);
         // 查询所有对象时的方法 -- 这里指定带有 @Table 注解的对象类型，要与jpa的 @Table 注解一致
-        Page<#(genClass.className)Xls> page =  #(genClass.smallClassName)Service.findByQueryParams(#(genClass.className)Xls.class,PageRequest.of(pageCt,limitCt),eDbQuery);
+        Page<#(genClass.className)Xls> page =  #(genClass.smallClassName)Service.findByQueryParams(#(genClass.className)Xls.class,
+            // 这里设置每次的最大导出数量
+            PageRequest.of((int)whereMap.get(WebUtil.page),WebUtil.maxLimitLv_5)
+            ,eDbQuery);
         //  设置表格标题、sheet名称、文件类型
         ExportParams params = new ExportParams("#(genClass.tableComment)", "#(genClass.tableComment)", ExcelType.XSSF);
         // 固定头两列

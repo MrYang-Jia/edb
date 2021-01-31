@@ -241,6 +241,19 @@ public class EDbGenCode {
         // 模板的位置
         URL baseUrl = EDbGenCode.class.getResource("/edb-template");
         EngineUtil engineUtil = new EngineUtil();
+        StringBuilder outBaseJavaFile = new StringBuilder()
+                // .append(System.getProperty("user.dir"))
+                .append(genClass.getEntityProjectUrl() + genClass.getEntityPackageUrl() + File.separator + "base"+ File.separator )
+                //.append(File.separator)
+                // 大驼峰
+                .append("Base"+genClass.getClassName()+".java");
+
+        File baseFile = new File(outBaseJavaFile.toString());
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(baseFile.exists()){
+            System.out.println("===" + baseFile.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
         // 先渲染baseJpa
         engineUtil.render(baseUrl.getPath(),
                 // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
@@ -249,12 +262,7 @@ public class EDbGenCode {
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
                 ,
-                new StringBuilder()
-                        // .append(System.getProperty("user.dir"))
-                        .append(genClass.getEntityProjectUrl() + genClass.getEntityPackageUrl() + File.separator + "base"+ File.separator )
-                        //.append(File.separator)
-                        // 大驼峰
-                        .append("Base"+genClass.getClassName()+".java")
+                outBaseJavaFile
         );
 
         StringBuilder outJavaFile = new StringBuilder()

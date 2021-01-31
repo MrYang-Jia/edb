@@ -65,16 +65,16 @@ public class WebUtil {
     /**
      * 统一过滤查询条件，避免有非法的查询的信息带入
      * @param className
-     * @param idName
+     * @param orderFieldName
      * @param orderStr
      * @param whereMap
      */
-    public static void filterWhereMap(Class className,Object idName,String orderStr, Map<String,Object> whereMap){
+    public static void filterWhereMap(Class className,Object orderFieldName,String orderStr, Map<String,Object> whereMap){
         // 去除空指针对象 -- 前端传递到后台的，默认都会携带空指针，导致查询数据的时候会携带该信息，所以统一去除
         EDbFilterKit.removeNullValue(whereMap);
         // 如果没有默认排序字段，则赋予主键字段进行排序
         if(!whereMap.containsKey(WebUtil.field)){
-            whereMap.put(WebUtil.field,idName);
+            whereMap.put(WebUtil.field,orderFieldName);
         }
         // 排序方式
         if(orderStr!=null){
