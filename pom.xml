@@ -6,7 +6,8 @@
 
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
-    <version>1.1</version>
+    <!-- 每次deploy后必须调整版本号 , RELEASE -->
+    <version>1.5.RELEASE</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -24,7 +25,6 @@
         <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
         <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
         <spring-web.version>5.2.6.RELEASE</spring-web.version>
-
         <!--<aliyun-spring-boot.version>1.0.0</aliyun-spring-boot.version>-->
         <!--<spring-cloud-alibaba.version>2.2.2.RELEASE</spring-cloud-alibaba.version>-->
     </properties>
@@ -73,22 +73,22 @@
 
         <!--&lt;!&ndash; === 必须依赖的jar包 === &ndash;&gt;-->
         <!--<dependency>-->
-            <!--<groupId>com.jfinal</groupId>-->
-            <!--<artifactId>jfinal</artifactId>-->
-            <!--<version>${jfinal.version}</version>-->
+        <!--<groupId>com.jfinal</groupId>-->
+        <!--<artifactId>jfinal</artifactId>-->
+        <!--<version>${jfinal.version}</version>-->
         <!--</dependency>-->
         <!-- jfinal-db操作工具包 -->
         <!--<dependency>-->
-            <!--<groupId>com.jfinal</groupId>-->
-            <!--<artifactId>activerecord</artifactId>-->
-            <!--<version>${jfinal.version}</version>-->
+        <!--<groupId>com.jfinal</groupId>-->
+        <!--<artifactId>activerecord</artifactId>-->
+        <!--<version>${jfinal.version}</version>-->
         <!--</dependency>-->
 
         <!--&lt;!&ndash; jfinal-视图、sql、文件内容解析工具包 &ndash;&gt;-->
         <!--<dependency>-->
-            <!--<groupId>com.jfinal</groupId>-->
-            <!--<artifactId>enjoy</artifactId>-->
-            <!--<version>${jfinal.version}</version>-->
+        <!--<groupId>com.jfinal</groupId>-->
+        <!--<artifactId>enjoy</artifactId>-->
+        <!--<version>${jfinal.version}</version>-->
         <!--</dependency>-->
         <!-- jpa注解规范工具类 -->
         <dependency>
@@ -144,6 +144,15 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- jpa 校验 -->
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <!-- 只有在本项目包里 -->
+            <scope>provided</scope>
+            <version>6.1.5.Final</version>
+        </dependency>
+
 
 
 
@@ -156,7 +165,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- springJdbc 常用工具类 -->
+        <!-- springJdbc 常用工具类,通过内部的spring-jdbc事务管理对象进行事务管理 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jdbc</artifactId>

@@ -45,7 +45,7 @@
 <dependency>
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
-    <version>1.0</version>
+    <version>1.5.RELEASE</version>
 </dependency>
 ```
 
