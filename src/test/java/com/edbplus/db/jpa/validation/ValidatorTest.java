@@ -1,8 +1,11 @@
 package com.edbplus.db.jpa.validation;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.edbplus.db.annotation.EDbUpdate;
+import com.edbplus.db.jpa.model.CrVehicleType;
+import com.edbplus.db.jpa.model.CrVehicleTypeModeRel;
 import com.edbplus.db.jpa.util.EDbValidatorUtils;
 import org.springframework.validation.FieldError;
 import org.testng.annotations.Test;
@@ -62,6 +65,15 @@ public class ValidatorTest {
 //        list2.addAll(list);
 //        list2 = list.stream().collect(Collectors.toList());
 
+    }
+
+    @Test
+    public void testCopyBean(){
+        CrVehicleTypeModeRel crVehicleTypeModeRel = new CrVehicleTypeModeRel();
+        crVehicleTypeModeRel.setCreator("主角");
+        CrVehicleType crVehicleType = new CrVehicleType();
+        crVehicleType.setVehicleTypeName("类型");
+        crVehicleTypeModeRel.setCrVehicleType(crVehicleType);
     }
 
 }

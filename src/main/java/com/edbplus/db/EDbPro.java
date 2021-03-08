@@ -443,6 +443,25 @@ public class EDbPro extends DbPro {
         return valueSize;
     }
 
+    /**
+     * 返回数据库字段
+     * @param m
+     * @param ignoreNullValue - true -屏蔽 null , false - 包含null
+     * @param <M>
+     * @return
+     */
+    public <M> Map<String,Object> getColumnsMap(M m,boolean ignoreNullValue){
+        if(m instanceof String){
+            throw new RuntimeException(" 直接执行sql请使用 EDb.update(sql) ");
+        }
+        Class<M> mClass = getRealJpaClass(m);
+        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        if(table==null){
+            // 以后再给成英文 -- 中文国际通用 ^_^
+            throw new RuntimeException("非数据库对象无法转换");
+        }
+        return JpaAnnotationUtil.getJpaMap(m,!ignoreNullValue);
+    }
 
     /**
      * 获取真实的jpa对象实例 -- 如果没有直接指定申明 jpa 对象class 类型，则必须调用该方法，保证类型的准确性
@@ -464,8 +483,8 @@ public class EDbPro extends DbPro {
 
     /**
      * 更新对象 -- 包含null值的变更情况
-     * @param mClass
-     * @param updateData
+     * @param mClass -- 数据库表对象
+     * @param updateData  -- 数据库表字段(非驼峰对象)
      * @param <M>
      * @return
      */

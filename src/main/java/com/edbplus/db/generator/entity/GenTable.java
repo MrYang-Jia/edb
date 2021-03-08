@@ -66,6 +66,9 @@ public class GenTable {
     // controller层Html存放相对路径
     private String controllerHttpUrl;
 
+    // controller requestAction 访问路径前缀
+    private String actionUrl;
+
 
 
     // 包名称

@@ -16,11 +16,14 @@
 package com.edbplus.db;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.query.EDbQuery;
 import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+
+import javax.persistence.Table;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -148,6 +151,18 @@ public class EDb extends Db{
 
 
     /**
+     * 返回数据库字段
+     * @param m
+     * @param ignoreNullValue  - true -屏蔽 null , false - 包含null
+     * @param <M>
+     * @return
+     */
+    public static <M> Map<String,Object> getColumnsMap(M m,boolean ignoreNullValue){
+        return MAIN.getColumnsMap(m,ignoreNullValue);
+    }
+
+
+    /**
      * 根据主键找对象
      * @param mClass
      * @param idValue
@@ -231,7 +246,7 @@ public class EDb extends Db{
     /**
      * 更新对象 -- 包含null值的变更情况
      * @param mClass
-     * @param updateData
+     * @param updateData -- 数据库表字段(非驼峰对象)
      * @param <M>
      * @return
      */

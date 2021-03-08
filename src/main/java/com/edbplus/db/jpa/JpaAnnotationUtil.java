@@ -466,11 +466,11 @@ public class JpaAnnotationUtil {
     /**
      * 将对象转换成map
      * @param t
-     * @param ignoreNullValue
+     * @param containsNullValue
      * @param <T>
      * @return
      */
-    public static <T> Map<String,Object> getJpaMap(T t,boolean ignoreNullValue){
+    public static <T> Map<String,Object> getJpaMap(T t,boolean containsNullValue){
         //
         Map<String,Object> dataMap = new HashMap<>();
         // 获取对象类上的所有字段
@@ -478,7 +478,7 @@ public class JpaAnnotationUtil {
         //
         for(FieldAndColValue fieldAndColValue : fields){
             // 不包含null的情况
-            if(!ignoreNullValue){
+            if(!containsNullValue){
                 if(fieldAndColValue.getFieldValue() != null){
                     // 赋予对象数值
                     dataMap.put(fieldAndColValue.getColumn().name().toLowerCase(),fieldAndColValue.getFieldValue());
