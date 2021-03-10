@@ -64,9 +64,9 @@ public class EDbFilterKit implements Serializable {
     // like 需要自己补充 % 的位置
     public static final String like = "like";
 //    // like 'xxx%'
-//    public static final String llk = "llk";
+    public static final String llk = "llk";
 //    // like '%xxx'
-//    public static final String rlk = "rlk";
+    public static final String rlk = "rlk";
 //    // 正则表达式 REGEXP -- 情景比较复杂，暂放弃
 //    public String reg = "reg";
     // =============================================================================
@@ -170,7 +170,8 @@ public class EDbFilterKit implements Serializable {
      * @param jpaDbColumns
      */
     public static void loadEDbQueryForAnd(EDbBaseQuery baseQuery,String filterEc,String fieldName,Object value,Map<String,String> jpaDbColumns ){
-        if(value!=null){
+        // 键值和字段都不为null的情况
+        if(value!=null && jpaDbColumns.get(fieldName)!=null){
             switch(filterEc){
                 // 相等
                 case EDbFilterKit.eq :
@@ -228,6 +229,13 @@ public class EDbFilterKit implements Serializable {
                 case EDbFilterKit.like :
                     baseQuery.and(new EDbFilter(jpaDbColumns.get(fieldName), EDbFilter.Operator.like,value));
                     break;
+                case EDbFilterKit.rlk :
+                    baseQuery.and(new EDbFilter(jpaDbColumns.get(fieldName), EDbFilter.Operator.rlk,value));
+                    break;
+                case EDbFilterKit.llk :
+                    baseQuery.and(new EDbFilter(jpaDbColumns.get(fieldName), EDbFilter.Operator.llk,value));
+                    break;
+
                 default :
                     //其他规则
             }

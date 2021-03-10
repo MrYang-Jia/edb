@@ -52,8 +52,14 @@ public class EDbFilter implements Serializable {
         /** 小于等于 */
         le(" <= "),
 
-        /** 类似 */
+        /** 全匹配 */
         like(" like "),
+
+        /** 右匹配 */
+        rlk(" rlk "),
+
+        // 左匹配
+        llk(" llk "),
 
         /** 包含 */
         in(" in "),

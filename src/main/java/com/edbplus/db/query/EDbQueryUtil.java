@@ -83,8 +83,19 @@ public class EDbQueryUtil {
         // 模糊匹配
         if(eDbFilter.getOperator() == EDbFilter.Operator.like  ){
             andSqlStr.append(" like ? ");
-            paramsList.add(eDbFilter.getValue());
+            paramsList.add("%"+eDbFilter.getValue()+"%");
+        }
 
+        if(eDbFilter.getOperator() == EDbFilter.Operator.rlk  ){
+            andSqlStr.append(" like ? ");
+            // 右匹配 ，左侧加 %
+            paramsList.add("%"+eDbFilter.getValue());
+        }
+
+        if(eDbFilter.getOperator() == EDbFilter.Operator.llk  ){
+            andSqlStr.append(" like ? ");
+            // 左匹配 ，右侧加 %
+            paramsList.add(eDbFilter.getValue()+"%");
         }
 
         // in

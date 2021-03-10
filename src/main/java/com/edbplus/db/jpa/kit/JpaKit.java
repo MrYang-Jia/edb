@@ -15,6 +15,7 @@
  */
 package com.edbplus.db.jpa.kit;
 
+import cn.hutool.core.map.CaseInsensitiveMap;
 import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
 
@@ -76,7 +77,8 @@ public class JpaKit {
     public static Map<String,String> getJpaDbColumns(Class<?> mClass){
         // 获取对象所有字段的列表信息
         List<FieldAndColumn> fieldAndColumns =  JpaAnnotationUtil.getCoumns(mClass);
-        Map<String,String> result =  new HashMap<>();
+        // 定义成key忽略大小写的对象，避免无法匹配到对应的key值
+        Map<String,String> result =  new CaseInsensitiveMap<>();
         // 重置为数据库字段对象
         for(FieldAndColumn fieldAndColumn : fieldAndColumns){
             // key = 驼峰字段 ，value = 数据库字段
