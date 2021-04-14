@@ -28,9 +28,7 @@ import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.generator.jdbc.GenMysql;
 import com.jfinal.kit.Kv;
 import com.jfinal.kit.StrKit;
-import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
-import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -142,7 +140,8 @@ public class EDbGenCode {
                 table.setPriKeyBigClassName(StrUtil.upperFirst(column.getColumnCode()));
                 // 主键类型
                 table.setPriKeyJavaType(column.getColumnType());
-
+                // 数据库主键字段名回填
+                table.setPriKeyColumnName(column.getColumnName());
 
                 break;
             }
@@ -264,11 +263,11 @@ public class EDbGenCode {
                 .append("Base"+genClass.getClassName()+".java");
 
         File baseFile = new File(outBaseJavaFile.toString());
-        // 已存在则不做任何处理 -- 必须删除后重新创建
-        if(baseFile.exists()){
-            System.out.println("===" + baseFile.getName() + "已存在，重新生成，需要删除后重建");
-            return;
-        }
+//        // 已存在则不做任何处理 -- 必须删除后重新创建
+//        if(baseFile.exists()){
+//            System.out.println("===" + baseFile.getName() + "已存在，重新生成，需要删除后重建");
+//            return;
+//        }
         // 先渲染baseJpa
         engineUtil.render(baseUrl.getPath(),
                 // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
@@ -472,8 +471,9 @@ public class EDbGenCode {
         String preTableName = table.getTableName().substring(0,firstSp);
         // 获取表名第一个下划线之后的所有字符串
         String lastTableName = table.getTableName().substring(firstSp+1,table.getTableName().length());
+        //
         String preUrl = preTableName.toLowerCase();
-        // 小驼峰
+        // 首字母小谢
         String lastUrl = StringUtils.uncapitalize(lastTableName);
 
         if(!StrKit.isBlank(table.getModelName())){
@@ -481,11 +481,11 @@ public class EDbGenCode {
             preUrl = table.getModelName().trim().toLowerCase();
         }
         // 小写 + 小驼峰
-        String webUrl = preUrl + "/" + lastUrl;
+        String webUrl = preUrl + "/" + StrUtil.toCamelCase(lastUrl);
         // 小写 + 全小写的小驼峰
-        String webHtmlUrl = preUrl + "/" + lastUrl.toLowerCase();
+        String webHtmlUrl = preUrl + "/" + lastUrl.toLowerCase().replaceAll("_","");
         table.setControllerWebUrl(webUrl);
-        table.setControllerHttpUrl(webHtmlUrl);
+        table.setControllerHtmlUrl(webHtmlUrl);
 
     }
 
@@ -518,7 +518,7 @@ public class EDbGenCode {
             return;
         }
         engineUtil.render(baseUrl.getPath(),
-                "/edb-template/java/controller.tpl",
+                "/edb-template/java/web-controller.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -586,7 +586,7 @@ public class EDbGenCode {
                 .append(File.separator )
                 .append("views")
                 .append(File.separator)
-                .append(genClass.getControllerHttpUrl())
+                .append(genClass.getControllerHtmlUrl())
                 .append(File.separator)
                 // 小驼峰
                 .append(genClass.getSmallClassName()+StringUtils.capitalize(htmlPre)+".html");
@@ -613,6 +613,43 @@ public class EDbGenCode {
         );
     }
 
+
+    public static void generalEDbWeb(String fileTplUrl,String fileProjectUrl,String fileName,GenTable genClass, List<GenTableColumn> list){
+        // 设置js的项目路径
+        genClass.setJsProjectUrl(fileProjectUrl);
+
+        // 定义要加载的模板文件 jsTplUrl /edb-template/web/js/formjs.tpl
+        // 定义js文件生成时保存到哪里 jsProjectUrl
+        // 定时action的访问路径 pxxt/demo/sysUserAction actionUrl
+        // 定义模块名称 modelName
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        //
+        EngineUtil engineUtil = new EngineUtil();
+        //
+        StringBuilder outJavaFile =   new StringBuilder()
+                .append(fileProjectUrl)
+                // 大驼峰
+                .append(fileName);
+        //
+        File file = new File(outJavaFile.toString());
+
+        // 已存在则不做任何处理 -- 必须删除后重新创建
+        if(file.exists()){
+            System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+            return;
+        }
+        engineUtil.render(baseUrl.getPath(),
+                // web模板的位置
+                fileTplUrl,
+                Kv.by("genClass", genClass)
+                        .set("fields",list)
+                        .set("nowdatetime", DateUtil.now())
+                ,
+                outJavaFile
+        );
+    }
+
     /**
      * 生成JS
      * @param htmlPre
@@ -622,6 +659,11 @@ public class EDbGenCode {
      * @param list
      */
     public static void generatorEDbJs(String htmlPre,String controllerProjectUrl,String controllerPackageName,GenTable genClass, List<GenTableColumn> list){
+
+
+
+
+
         // 实现类
         loadEDbControllerUrlAndControllerPackageName(controllerProjectUrl,controllerPackageName,genClass);
         String controllerUrl = genClass.getControllerProjectUrl();
@@ -636,7 +678,7 @@ public class EDbGenCode {
                 .append(File.separator)
                 .append("js")
                 .append(File.separator)
-                .append(genClass.getControllerHttpUrl())
+                .append(genClass.getControllerHtmlUrl())
                 .append(File.separator)
                 // 小驼峰
                 .append(genClass.getSmallClassName()+StringUtils.capitalize(htmlPre)+".js");

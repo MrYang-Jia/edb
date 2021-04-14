@@ -208,7 +208,6 @@ public class Config {
                 // 通过spring获取连接对象
                 conn = DataSourceUtils.getConnection(this.getDataSource());
             }
-
         }
         return  conn;
     }

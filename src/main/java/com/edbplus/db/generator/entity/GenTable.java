@@ -26,6 +26,8 @@ import java.util.Date;
 public class GenTable {
     // 表名称
     private  String tableName ;
+    // 表主键的数据库名
+    private String priKeyColumnName;
     // 主键名称
     private String priKeyClassName;
     // 首字母大写
@@ -59,12 +61,14 @@ public class GenTable {
     private String htmlProjectUrl;
     // js
     private String jsProjectUrl;
+    // js的web访问路径
+    private String jsWebUrl;
 
 
     // controller层Url
     private String controllerWebUrl;
     // controller层Html存放相对路径
-    private String controllerHttpUrl;
+    private String controllerHtmlUrl;
 
     // controller requestAction 访问路径前缀
     private String actionUrl;
@@ -106,4 +110,13 @@ public class GenTable {
     // 创建人
     private String creater;
 
+
+    /**
+     * 将带有小数点的包名转换成 webUrl 路径的访问模式
+     * @param packageName
+     * @return
+     */
+    public static String webUrlFormat(String packageName){
+        return packageName.replaceAll("\\.","/");
+    }
 }

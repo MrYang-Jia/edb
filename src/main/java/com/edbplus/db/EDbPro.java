@@ -2306,7 +2306,7 @@ public class EDbPro extends DbPro {
      * 覆盖原jfinal tx 事务方法，便于在独立事务里兼容 spring的事务管理
      * Execute transaction.
      * @param config the Config object
-     * @param transactionLevel the transaction level
+     * @param transactionLevel the transaction level -- 这里有个问题，就是事务等级会与spring的不一致！
      * @param atom the atom operation
      * @return true if transaction executing succeed otherwise false
      */
@@ -2315,8 +2315,11 @@ public class EDbPro extends DbPro {
         Connection conn = config.getThreadLocalConnection();
         if (conn != null) {	// Nested transaction support
             try {
+                //
                 if (conn.getTransactionIsolation() < transactionLevel)
+                    // 设置事务级别
                     conn.setTransactionIsolation(transactionLevel);
+                // 执行内部事务的方法
                 boolean result = atom.run();
                 if (result)
                     return true;
@@ -2344,13 +2347,14 @@ public class EDbPro extends DbPro {
             conHolder.setSynchronizedWithTransaction(true);
             // 绑定事务对象
             TransactionSynchronizationManager.bindResource(this.config.getDataSource(), conHolder);
-
             // 保留jfinal事务体系
             conn.setTransactionIsolation(transactionLevel);
-            //
+            // 设置成事务模式 -- 便于控制接下来的相关逻辑代码
             conn.setAutoCommit(false);
-            // 执行内部方法
+
+            // 执行内部方法 -- jfinal 事务内部执行的方法嵌套 ( db.tx( 内部的run方法执行相关事务逻辑控制 ) )
             boolean result = atom.run();
+            // 这时候结果由 jfinal 自己控制
             if (result)
                 conn.commit();
             else{
