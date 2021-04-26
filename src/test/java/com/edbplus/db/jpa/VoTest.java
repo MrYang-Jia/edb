@@ -20,6 +20,9 @@ public class VoTest extends BaseTest {
        Page page = EDb.paginate(CrVehicleTypeVo.class,1,2,"select * from cr_vehicle_type ");
        System.out.println(page.getList());
 
+       System.out.println(EDb.findFirst("select * from cr_vehicle_type where creator='xj' "));
+
+
         //CrVehicleTypeVo
     }
 

@@ -43,7 +43,7 @@ public class JpaEDbQueryTest extends BaseTest {
         eDbQuery.fields(" VEHICLE_TYPE_ID,CREATOR ");
         // select * from xxx where 1 = 1 --> and 拼接1
         // 包含 VEHICLE_TYPE_ID 100 、 200 的数据
-        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.in, manyIds));
+        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.like, manyIds));
         // 定义id列表
         manyIds = new ArrayList<>();
         manyIds.add(100);

@@ -8,11 +8,13 @@ import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.jpa.VehicleType;
 import com.edbplus.db.util.log.EDbLogUtil;
 import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @ClassName BaseTest
@@ -81,10 +83,10 @@ public class BaseTest {
 
             Executors.newFixedThreadPool(50);
 
-
-//    @Test
+    private final AtomicInteger atomicI = new AtomicInteger(0);
+    @Test
     public void testSource(){
-        String sql = "select count(1) from tra_goods_source where release_time>='2020-11-10 00:00:00'";
+        String sql = "select count(1) from tra_goods_source where release_time>='2021-04-14 00:00:00'";
         for(int i=0;i<50;i++){
             fixedThreadPool.submit(new Runnable() {
                 @Override
@@ -92,7 +94,7 @@ public class BaseTest {
                     long start = System.currentTimeMillis();
                     System.out.println(EDb.use("xzw").findFirst(sql));
                     System.out.println("耗时："+ ( System.currentTimeMillis() -start ));
-
+                    System.out.println("累计:"+atomicI.getAndIncrement());
                 }
             });
         }

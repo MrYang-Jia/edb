@@ -1,6 +1,5 @@
 package com.edbplus.db.generator;
 
-import com.edbplus.db.EDb;
 import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.generator.entity.GenTable;
@@ -8,7 +7,6 @@ import com.edbplus.db.generator.entity.GenTableColumn;
 import com.edbplus.db.generator.util.EDbGenCode;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.util.*;
 
 
@@ -16,7 +14,7 @@ public class GeneralTest extends BaseTest {
 
     //注意最后留小数点
 //    String srcPre = "com.edbplus.db.jpa.";
-    String srcPre = "com.edbplus.db.generator.test.";
+    String srcPre = "com.edbplus.test.";
     // api项目的名称 - 对应 artifactId
     String apiName = "com-edbplus-db-api";
     // -- 指定需要生成的表对象
@@ -59,7 +57,7 @@ public class GeneralTest extends BaseTest {
 
 
         // 子项目包路径名称
-        projectModel = "test";
+        projectModel = "mode";
 
         // 去掉表前缀
         GenJdbc.tablePreRemove = "cr_";
@@ -100,23 +98,82 @@ public class GeneralTest extends BaseTest {
         //
 //        // 生成EDb jpa实体
         EDbGenCode.generatorEDbEntity(entityProjectUrl,entityPackageName,table,columnList);
-//        // 生成导出实体
-        EDbGenCode.generatorEDbXlsBean(entityProjectUrl,xlsPackageName,table,columnList);
-//        // 生成serviceApi
+////        // 生成导出实体
+//        EDbGenCode.generatorEDbXlsBean(entityProjectUrl,xlsPackageName,table,columnList);
+////        // 生成serviceApi
         EDbGenCode.generatorEDbServiceApi(iserviceProjectUrl,iservicePackageName,table,columnList);
-//        // 生成service实现类服务
+////        // 生成service实现类服务
         EDbGenCode.generatorEDbService(serviceProjectUrl,servicePackageName,table,columnList);
-        // 生成 controller控制层对象无视图
-        EDbGenCode.generatorEDbVueController(controllerProjectUrl,controllerPackageName,table,columnList);
-        // 生成 controller控制层对象 和 视图层对象
+//        // 生成 controller控制层对象无视图
+//        EDbGenCode.generatorEDbVueController(controllerProjectUrl,controllerPackageName,table,columnList);
+//        // 生成 controller控制层对象 和 视图层对象
 //        EDbGenCode.generatorEDbControllerAndView(controllerProjectUrl,controllerPackageName,table,columnList);
+          // 生成js文件
+
+        String filePreSrc = GenTable.webUrlFormat(projectModel)+"/"+table.getSmallClassName();
+        // weburl + 对象小写驼峰 + Action 设置webController层访问路径
+        table.setControllerWebUrl(filePreSrc+"Action");
+        String webUrl = System.getProperty("user.dir") + "\\src\\main\\resources";
+        String webJsProjectUrl = webUrl + "/static/js/"+filePreSrc+"/";
+        // 生成 form JS
+        EDbGenCode.generalEDbWeb("edb-template/web/js/form-js.tpl",
+                webJsProjectUrl,
+                table.getSmallClassName()+"Form.js",
+                  table,
+                  columnList);
+
+        // 生成 list JS
+        EDbGenCode.generalEDbWeb("edb-template/web/js/list-js.tpl",
+                webJsProjectUrl,
+                table.getSmallClassName()+"List.js",
+                table,
+                columnList);
+
+        // 设置js的访问路径
+        table.setJsWebUrl("/js/"+filePreSrc);
+        String webHtmlProjectUrl = webUrl + "/view/"+filePreSrc+"/";
+        // 输出html
+        EDbGenCode.generalEDbWeb("edb-template/web/html/form-html.tpl",
+                webHtmlProjectUrl,
+                table.getSmallClassName()+"Form.html",
+                table,
+                columnList);
+        // 输出html
+        EDbGenCode.generalEDbWeb("edb-template/web/html/list-html.tpl",
+                webHtmlProjectUrl,
+                table.getSmallClassName()+"List.html",
+                table,
+                columnList);
+        // html文件存放路径
+        table.setControllerHtmlUrl(filePreSrc);
+        // controller
+        String controllerProjectUrl = System.getProperty("user.dir") +"\\src\\main\\java\\" +GenTable.webUrlFormat(srcPre)+"/"+projectModel+"/";
+        table.setControllerPackageName(srcPre+projectModel);
+//        // 输出Controller
+        EDbGenCode.generalEDbWeb("edb-template/java/web-controller.tpl",
+                controllerProjectUrl,
+                table.getClassName()+"Controller.java",
+                table,
+                columnList);
+
+
     }
+
+    @Test
+    public void webUrlFormat(){
+        String srcUrl = "pom.pp";
+        System.out.println(srcUrl.replaceAll("\\.","/"));
+    }
+
+
+
 
     /**
      * 加载当前项目路径
      */
     public void loadCurrentUrl(){
-        String srcFile = "test";
+//        String srcFile = "test";
+        String srcFile = "main";
         String currentProjectParent =  System.getProperty("user.dir");
 
         projectUrl = currentProjectParent;

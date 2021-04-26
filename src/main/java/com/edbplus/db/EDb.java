@@ -54,12 +54,15 @@ public class EDb extends Db{
      * 初始化 dbPro 对象
      */
     public static void init(){
-        EDbPro EDbPro = new EDbPro();
-        // 加载主对象
-        dbMap.put(DbKit.MAIN_CONFIG_NAME,EDbPro);
-        // 加载主体对象
-        MAIN = EDbPro;
-        initPool(DbKit.MAIN_CONFIG_NAME,EDbPro);
+        if(MAIN == null){
+            EDbPro eDbPro = new EDbPro();
+            // 加载主对象
+            dbMap.put(DbKit.MAIN_CONFIG_NAME,eDbPro);
+            // 加载主体对象
+            MAIN = eDbPro;
+            initPool(DbKit.MAIN_CONFIG_NAME,eDbPro);
+        }
+
     }
 
     /**

@@ -25,8 +25,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * druid - sql日志打印过滤器
@@ -35,10 +38,47 @@ import java.util.Map;
 public class EDbDruidSqlLogFilter extends FilterEventAdapter {
 
 
+    // 线程对象
+    public static Map<Long, Integer> connectionMap = new ConcurrentHashMap();
+
+    // 线程最大计数
+    public static Map<Long, Integer> connectionCtMap = new ConcurrentHashMap();
+
+
     // 只打印real-sql
     @Setter
     @Getter
     private boolean onlyRealsql = false;
+
+
+    /**
+     * 事务操作累计 -- 便于统计可能未提交的事务数有多少
+     * @param statement
+     */
+    public void addCt(StatementProxy statement){
+        try {
+            Integer connection = connectionMap.get(Thread.currentThread().getId());
+            System.out.println("sid:"+statement.getConnection().hashCode());
+            // 如果是同一个connect
+            if(connection !=null &&  statement.getConnection().hashCode() == connection){
+                // 同一个线程通道，这里主要计算累计未提交的事务数量
+                Integer ct = connectionCtMap.get(Thread.currentThread().getId());
+                ct++;
+                if(ct>3){
+                    System.out.println("=== 事务数:"+ct+" ===");
+                }
+                // 累计+1
+                connectionCtMap.put(Thread.currentThread().getId(),ct);
+            }else{
+                connectionMap.put(Thread.currentThread().getId(),statement.getConnection().hashCode());
+                connectionCtMap.put(Thread.currentThread().getId(),1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 
@@ -64,6 +104,8 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try {
             // 更新执行完成后触发
             addLastlLog();
+            // 记录事务累计数
+            addCt(statement);
         }catch (Throwable e){
             // 报送错误日志
             sendErrLog(e);
@@ -95,6 +137,8 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try{
             // 执行查询完成后触发
             addLastlLog();
+            // 记录事务累计数
+            addCt(statement);
         }catch (Throwable e){
             // 报送错误日志
             sendErrLog(e);
@@ -126,6 +170,8 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try {
             // 执行更新指令之后触发
             addLastlLog();
+            // 记录事务累计数
+            addCt(statement);
         }catch (Throwable e)
         {
             // 报送错误日志
@@ -155,6 +201,8 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try {
             // 执行批量命令之后
             addLastlLog();
+            // 记录事务累计数
+            addCt(statement);
         }catch (Throwable e)
         {
             // 报送错误日志
@@ -228,8 +276,12 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                     if(lO == null){
 //                        continue;
                     }else{
-                        // 添加单引号
-                        lS = "'" + lS +"'";
+                        if(lO instanceof Number){
+                            // 不需要任何处理
+                        }else{
+                            // 添加单引号
+                            lS = "'" + lS +"'";
+                        }
                     }
 
                     // 直接使用 lSql.replaceFirst("\\?",lS) 碰到转义符会报错 或者 $6 的字符串也会报错
@@ -258,7 +310,17 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
      * 添加最后的日志信息
      */
     public void addLastlLog(){
+        long start = System.currentTimeMillis();
+        StackTraceElement[] stackTraceElements =  (new Throwable()).getStackTrace();
+//        StackTraceElement[] stackTraceElements =   Thread.currentThread().getStackTrace();
+        // 定义堆栈对象字符串
+        String steStr = "";
+        for (StackTraceElement steF : stackTraceElements) {
+            steStr = steF.toString();
 
+            System.out.println("-->"+steStr);
+        }
+        System.out.println("pt-->"+(System.currentTimeMillis()-start));
     }
 
 

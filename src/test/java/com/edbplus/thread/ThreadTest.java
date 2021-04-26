@@ -1,11 +1,19 @@
 package com.edbplus.thread;
 
+import cn.hutool.core.date.DateUtil;
 import org.testng.annotations.Test;
 
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ThreadTest {
+
+
+    @Test
+    public void test1(){
+        System.out.println(DateUtil.format(new Date(),"mm"));
+    }
 
     public static ExecutorService fixedThreadPool =
 //            new ThreadPoolExecutor(
