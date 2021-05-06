@@ -54,7 +54,8 @@ public class BaseTest {
         // 只打印真实日志 -- 因为有入参，建议还是开启
         //eDbDruidSqlLogFilter.setOnlyRealsql(true);
         List<Filter> filterList = new ArrayList<>();
-        filterList.add(eDbDruidSqlLogFilter);
+
+//        filterList.add(eDbDruidSqlLogFilter);
 
         // 初始化
         GenJdbc.initForEnjoy(null,jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList,filterList);
@@ -84,7 +85,11 @@ public class BaseTest {
             Executors.newFixedThreadPool(50);
 
     private final AtomicInteger atomicI = new AtomicInteger(0);
-    @Test
+
+    /**
+     * 正常情况注释掉
+     */
+//    @Test
     public void testSource(){
         String sql = "select count(1) from tra_goods_source where release_time>='2021-04-14 00:00:00'";
         for(int i=0;i<50;i++){
@@ -158,7 +163,7 @@ public class BaseTest {
         EDb.use().txInNewThread(Connection.TRANSACTION_SERIALIZABLE, () -> {
             // 数据对象
             vehicleType.setVehicleTypeName("原:小汽车");
-            vehicleType.setCreator("小陈陈");
+            vehicleType.setCreatorName("小陈陈");
             // 如果有多个数据库，可以用 EDb.use("数据库标识1") 指定
             EDb.save(vehicleType);
             System.out.println("对象1:"+JSONUtil.toJsonStr(EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId())));

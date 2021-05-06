@@ -26,7 +26,7 @@ public class JpaUpdate  extends BaseTest {
         // 数据对象
         VehicleType vehicleType = new VehicleType();
         vehicleType.setVehicleTypeName("原:小汽车");
-        vehicleType.setCreator("小陈陈");
+        vehicleType.setCreatorName("小陈陈");
         EDb.save(vehicleType);
         // 改
         vehicleType.setVehicleTypeName("改:小汽车");
@@ -50,7 +50,7 @@ public class JpaUpdate  extends BaseTest {
         // 数据对象
         VehicleType vehicleType = new VehicleType();
         vehicleType.setVehicleTypeName("原:小汽车");
-        vehicleType.setCreator("小陈陈");
+        vehicleType.setCreatorName("小陈陈");
         EDb.save(vehicleType);
 
         // 定义一个新的变量
@@ -60,7 +60,7 @@ public class JpaUpdate  extends BaseTest {
 
         // 执行相关记录的更新变更
         // 这里由于用了对比更新，所以对象是可以重置为 null 的
-        vehicleType.setCreator(null);
+        vehicleType.setCreatorName(null);
         vehicleType.setModifyTime(new Date());
         // 注意：这里需要将原来的对象赋予
         EDb.updateCompare(oldVehicleType,vehicleType);
@@ -97,7 +97,7 @@ public class JpaUpdate  extends BaseTest {
 
         // 批量修改
         for(int i=0;i<result.size();i++){
-            result.get(i).setCreator("创建人-"+i);
+            result.get(i).setCreatorName("创建人-"+i);
             // jpa对象的逐一更新
             //   EDb.use().update(result.get(i));
         }

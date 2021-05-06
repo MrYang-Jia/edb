@@ -17,6 +17,7 @@ package com.edbplus.db.jpa;
 
 import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.map.CaseInsensitiveMap;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.edbplus.db.dto.FieldAndColValue;
@@ -96,8 +97,8 @@ public class JpaBuilder  {
         while (rs.next()) {
             // 对象实例化
             Object ar = beanClass.newInstance();
-            //
-            attrs = new HashMap<>();
+            // 使用不区分大小写的对象赋值
+            attrs = new CaseInsensitiveMap();
             for (int i=1; i<=columnCount; i++) {
                 if (types[i] < Types.BLOB) {
                     // 待扩展，接收其他类型的数据，例如 point 二维地理位置数据的解析等,需要通过typeName去处理，因为 types 返回的类型，有一些组合是同一个数据类型，导致解析存在难度，具体可参考MysqlType对象
@@ -115,7 +116,9 @@ public class JpaBuilder  {
                 }
                 // 这里需要判断是否有column字段匹配上，有则用column对应的字段填充，适配特殊字段实现的模式
                 columns = JpaAnnotationUtil.getCoumns(beanClass);
-                if(columns!=null){
+
+                // column 里的字段
+                if(columns != null){
                     // 匹配 jpa @Column 指定的数据库字段名，便于将对象的字段别名区分开来
                     for(FieldAndColumn fieldAndColumn : columns){
                         // 如果是匹配上 column 上的字段，则用file的name作为key值
@@ -123,16 +126,18 @@ public class JpaBuilder  {
                             // 用对象字段的字段值作为key值，便于快速转换
                             attrs.put( fieldAndColumn.getField().getName(), value);
                             // 跳出本次循环
-                            continue;
+                            break;
                         }
                     }
                 }
-
                 // 这里需要转换成驼峰写法，便于copyBean ，先转小写的目的是因为有些db的标准是大写，正常默认应该是统一小写，但为了适应所以统一转小写再驼峰
+                // 如果column的字段和驼峰的字段重叠了，也没关系，可以复合到对象上
                 attrs.put( StrUtil.toCamelCase(labelNames[i].toLowerCase()), value);
             }
             // 填充bean对象 -- 忽略对象大小写，可以填充aGe age 等语法
-            BeanUtil.fillBeanWithMapIgnoreCase(attrs, ar, false);
+//            BeanUtil.fillBeanWithMapIgnoreCase(attrs, ar, false);
+            // 兼容枚举回填的类型
+            JpaAnnotationUtil.fillBeanWithMap(attrs, ar);
             //
             Table table = null;
             //
@@ -144,7 +149,7 @@ public class JpaBuilder  {
                 // 如果不是jpa对象，则会抛出异常
             }
 
-            // 由于 cglib 动态代理太消耗内存，所以放弃使用，代码与保留
+            // 由于 cglib 动态代理太消耗内存，所以放弃使用，代码保留
 //            if(table!=null && keys!=null){
 //                // 实现jpa代理，查询出来的对象重新赋值时，更新到数据库的字段为变更的对象值
 //                jpaProxy = JpaProxy.load(ar);

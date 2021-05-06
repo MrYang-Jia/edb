@@ -83,7 +83,7 @@ public class EDbTest extends BaseTest {
         vehicleType.setVehicleTypeId(100);
 //        vehicleType.setVehicleTypeName("罐车");
 //        vehicleType.setCreator("小陈");
-        vehicleType.setCreator(null);
+        vehicleType.setCreatorName(null);
         EDb.use().update(vehicleType);
     }
 
@@ -98,7 +98,7 @@ public class EDbTest extends BaseTest {
 
         // 批量修改
         for(int i=0;i<result.size();i++){
-            result.get(i).setCreator("创建人-"+i);
+            result.get(i).setCreatorName("创建人-"+i);
             // jpa对象的逐一更新
          //   EDb.use().update(result.get(i));
         }
@@ -343,7 +343,7 @@ public class EDbTest extends BaseTest {
     public void test(){
         VehicleType vehicleType = EDb.findFirst(VehicleType.class,"select * from  cr_vehicle_type ");
         System.out.println(RamUsageEstimator.sizeOf(vehicleType));
-        vehicleType.setCreator("改成了原对象");
+        vehicleType.setCreatorName("改成了原对象");
         Page page = EDb.paginate(VehicleType.class,1,10," select * from  cr_vehicle_type");
         System.out.println(RamUsageEstimator.sizeOf(page));
     }
@@ -356,7 +356,7 @@ public class EDbTest extends BaseTest {
 
 
         vehicleType.setModifier("修改人变更");
-        vehicleType.setCreator(null);
+        vehicleType.setCreatorName(null);
         System.out.println(RamUsageEstimator.sizeOf(vehicleType));
         System.out.println(JSONUtil.toJsonStr(vehicleType));
        // System.out.println(RamUsageEstimator.sizeOf(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid())));

@@ -41,7 +41,7 @@ public class JpaBatchSaveTest extends BaseTest {
                 // 数据对象
                 vehicleType = new VehicleType();
                 vehicleType.setVehicleTypeName("车辆类型-"+i);
-                vehicleType.setCreator("小M-"+i);
+                vehicleType.setCreatorName("小M-"+i);
                 saveList.add(vehicleType);
             }
             // insertValues 无id返回值，建议大量数据插入时，可预分配id给数组对象
@@ -152,7 +152,7 @@ public class JpaBatchSaveTest extends BaseTest {
                 // 数据对象
                 vehicleType = new VehicleType();
                 vehicleType.setVehicleTypeName("车辆类型-"+i);
-                vehicleType.setCreator("小M-"+i);
+                vehicleType.setCreatorName("小M-"+i);
                 saveList.add(vehicleType);
             }
             // insertValues 无id返回值，建议大量数据插入时，可预分配id给数组对象

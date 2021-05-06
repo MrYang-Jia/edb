@@ -82,6 +82,13 @@ public class JpaRelUtil {
         int[] startEnd = null;
         Integer offset =  null;
         Integer limit = null;
+        if(pageNo==null){
+            pageNo = 1;
+        }
+        if(pageSize==null){
+            pageSize = 10;
+        }
+
         if(pageNo!=null && pageSize!=null){
             // jfinal 分页默认从1开始，hutool默认从0开始，所以默认减1
             startEnd = PageUtil.transToStartEnd(pageNo - 1, pageSize);

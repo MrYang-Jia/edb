@@ -30,7 +30,7 @@ public class BaseVehicleType implements Serializable{
    /**字段说明:CREATOR*/
    /**描述说明:创建人*/
    @Column(name="CREATOR")
-   private  String creator;
+   private  String creatorName;
 
    /**字段说明:CREATE_TIME*/
    /**描述说明:创建时间*/

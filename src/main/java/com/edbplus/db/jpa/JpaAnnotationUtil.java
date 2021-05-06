@@ -17,6 +17,7 @@ package com.edbplus.db.jpa;
 
 import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.lang.SimpleCache;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.edbplus.db.annotation.EDbRel;
 import com.edbplus.db.annotation.EDbView;
@@ -25,11 +26,10 @@ import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.dto.FieldAndRel;
 import com.edbplus.db.dto.FieldAndView;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,6 +45,7 @@ public class JpaAnnotationUtil {
 
     // 注解类方法级缓存
     private static final SimpleCache<Class<?>, Map<Class<?>,Method>> METHODS_ANNOTATION_CACHE = new SimpleCache();
+
     // 字段get属性集
     private static final SimpleCache<Class<?>, Map<Field,Method>> FIELD_METHOD_CACHE = new SimpleCache();
 
@@ -117,6 +118,25 @@ public class JpaAnnotationUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * 获取对象的所有columns对象的Map集合
+     * @param mClass
+     * @return
+     */
+    public static Map<String,FieldAndColumn> getCoumnsMap(Class mClass){
+        // 设置返回的column集合
+        Map<String,FieldAndColumn> columnMap = null;
+        // 初始化 columns 对象
+        List<FieldAndColumn> columns = getCoumns(mClass);
+        if(columns!=null && columns.size()>0){
+            columnMap = new HashMap<>();
+            for (FieldAndColumn fieldAndColumn:columns){
+                columnMap.put(fieldAndColumn.getField().getName(),fieldAndColumn);
+            }
+        }
+        return columnMap;
     }
 
 
@@ -234,8 +254,29 @@ public class JpaAnnotationUtil {
         return fieldRels;
     }
 
+
     /**
-     * 获取所有 Column 字段列表和属性值
+     * 获取所有 Column 字段列表和属性值的Map集合
+     * @param t
+     * @param <T>
+     * @return
+     */
+    public static <T> Map<String,FieldAndColValue> getCoumnValuesMap(T t){
+        // 设置返回的column集合
+        Map<String,FieldAndColValue> columnMap = null;
+        // 初始化 columns 对象
+        List<FieldAndColValue> columns = getCoumnValues(t);
+        if(columns!=null && columns.size()>0){
+            columnMap = new HashMap<>();
+            for (FieldAndColValue fieldAndColValue:columns){
+                columnMap.put(fieldAndColValue.getField().getName(),fieldAndColValue);
+            }
+        }
+        return columnMap;
+    }
+
+    /**
+     * 获取所有 Column 字段列表和属性值 (如果是枚举，则会返回对应的枚举值，而非枚举对象!)
      * @param t
      * @param <T>
      * @return
@@ -250,6 +291,9 @@ public class JpaAnnotationUtil {
         FieldAndColValue fieldAndColValue = null;
         // 字段key填充
         HashSet<String> columnsKey = new HashSet();
+        Enum fieldEnum = null;
+        Enumerated enumerated = null;
+        Object value = null;
         for( FieldAndColumn fieldAndColumn : fieldAndColumns ){
             // 获取column对象
             column =  AnnotationUtil.getAnnotation(fieldAndColumn.getField(), Column.class);
@@ -263,8 +307,37 @@ public class JpaAnnotationUtil {
                     fieldAndColValue.setField(fieldAndColumn.getField());
                     // 回填column注解对象
                     fieldAndColValue.setColumn(column);
-                    // 赋予对象值
-                    fieldAndColValue.setFieldValue(ReflectUtil.getFieldValue(t,fieldAndColumn.getField()));
+                    // 赋予字段值
+                    value = ReflectUtil.getFieldValue(t,fieldAndColumn.getField());
+                    // 如果该字段是枚举
+                    if(fieldAndColumn.getField().getType().isEnum() && value!= null){
+                        // 枚举类型赋值
+                        fieldEnum = (Enum) ReflectUtil.getFieldValue(t,fieldAndColumn.getField());
+                        // 获取字段上是否存在 Enumerated 注解，该注解决定获取枚举的定义值是哪一个
+                        enumerated = fieldAndColumn.getField().getAnnotation(Enumerated.class);
+                        // 特殊类型定义转换的 -- org.hibernate.annotations.Type
+//                        Type type = fieldAndColumn.getField().getAnnotation(Type.class);
+                        if( enumerated!=null && enumerated.value() != EnumType.STRING){
+                            // 判断该枚举是否存在 getValue 方法，有则走 getValue 的方法，赋予字段对象
+                            Method method = ReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
+                            if(method != null){
+                                try{
+                                    // 返回枚举值
+                                    fieldAndColValue.setFieldValue(method.invoke(fieldEnum));
+                                }catch (Exception e){
+                                    throw new RuntimeException(e);
+                                }
+                            }else{
+                                fieldAndColValue.setFieldValue(fieldEnum.name());
+                            }
+                        }else{
+                            fieldAndColValue.setFieldValue(fieldEnum.name());
+                        }
+                    }else{
+                        // 非枚举字段赋予对象值
+                        fieldAndColValue.setFieldValue(value);
+                    }
+
                     if(AnnotationUtil.getAnnotation(fieldAndColumn.getField(), Id.class) != null){
                         fieldAndColValue.setIsPriKey(true);
                     }else{
@@ -575,5 +648,82 @@ public class JpaAnnotationUtil {
         FIELD_METHOD_CACHE.put(mClass,fieldMethodMap);
         return getMethod;
     }
+
+
+    /**
+     * 根据数据对象字段，反向填充数据
+     * @param dataMap -- key 对应对象的字段名转小写 && 数据库字段小写后转驼峰 (冗余key，便于覆写对象)
+     * @param t
+     * @param <T>
+     * @return
+     */
+    public static <T> T fillBeanWithMap(Map<String,Object> dataMap,T t){
+        // 获取对象类上的所有字段
+        Field[] fields = ReflectUtil.getFields(t.getClass());
+        Enum fieldEnum = null;
+        Object value = null;
+        Enum[] enums = null;
+        try {
+            //
+            for (Field field:fields){
+                // 字段如果是静态修饰符则跳过
+                if(java.lang.reflect.Modifier.isFinal(field.getModifiers())){
+                    continue;
+                }
+                // 对象值
+                value = dataMap.get(field.getName());
+                // 设置私有对象可以访问
+                field.setAccessible(true);
+                // 判断是否是枚举
+                if(field.getType().isEnum() && value!=null ){
+                    // 枚举类型赋值 -- 这样子可以避免枚举初始化时，碰到null值的情况
+                    fieldEnum = (Enum) field.getType().getEnumConstants()[0];
+                    // 判断该枚举是否存在 getValue 方法，有则走 getValue 的方法，赋予字段对象
+                    Method method = ReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
+                    if(method != null){
+                        try{
+                            // 获取枚举对象集
+                            enums = fieldEnum.getClass().getEnumConstants();
+                            // 遍历枚举对象
+                            for(Enum enumObj :enums){
+                                method = ReflectUtil.getMethod(enumObj.getClass(), "getValue");
+                                // 根据数值返回枚举对象
+                                if(Objects.equals(value,method.invoke(fieldEnum))){
+                                    field.set(t,enumObj);
+                                    break;
+                                }
+                            }
+
+                        }catch (Exception e){
+                            throw new RuntimeException(e);
+                        }
+                    }else{
+                        // 获取枚举对象集
+                        enums = fieldEnum.getClass().getEnumConstants();
+                        // 遍历枚举对象
+                        for(Enum enumObj :enums){
+                            // 根据枚举名称反向赋值
+                            if(Objects.equals(value,enumObj.name())){
+                                field.set(t,enumObj);
+                                // 跳出当前子循环
+                                break;
+                            }
+                        }
+                    }
+
+                }else{
+                    if(value != null){
+                        // 非枚举，直接赋值即可，使用该方式可以避免类型不一致，赋值出现异常情况
+                        ReflectUtil.setFieldValue(t,field,value);
+                    }
+                }
+            }
+
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
+        return t;
+    }
+
 
 }

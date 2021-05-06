@@ -1,5 +1,6 @@
 package com.edbplus.db.jpa;
 
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
@@ -25,7 +26,7 @@ public class JpaEasyTest extends BaseTest {
     @BeforeTest
     public void initBefor(){
 //        eDbPro =  EDb.use();
-        eDbPro =  EDb.use("xzw");
+        eDbPro =  EDb.use();
         // 做一次查询连接，减少起始jdbc首次执行的耗时偏高问题
         eDbPro.findById(VehicleType.class,1);
     }
@@ -46,7 +47,7 @@ public class JpaEasyTest extends BaseTest {
              // 数据对象
              VehicleType vehicleType = new VehicleType();
              vehicleType.setVehicleTypeName("原:小汽车");
-             vehicleType.setCreator("小陈陈");
+             vehicleType.setCreatorName("小陈陈");
              // 如果有多个数据库，可以用 EDb.use("数据库标识1") 指定
             eDbPro.save(vehicleType);
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
@@ -94,12 +95,12 @@ public class JpaEasyTest extends BaseTest {
             vehicleType.setVehicleTypeId(101);
             vehicleType.setModifyTime(new Date());
             // 需要更新的内容
-            vehicleType.setCreator("101忠实的大叔");
+            vehicleType.setCreatorName("101忠实的大叔");
             // 更新
             eDbPro.update(vehicleType);
             VehicleType findNewVehicleType = eDbPro.findById(VehicleType.class, 101);
             //
-            System.out.println(findNewVehicleType.getCreator());
+            System.out.println(findNewVehicleType.getCreatorName());
             System.out.println(JSONUtil.toJsonStr(findNewVehicleType));
             return false;
         });
@@ -118,7 +119,7 @@ public class JpaEasyTest extends BaseTest {
                 // 更新时间变更
                 vehicleType.setModifyTime(new Date());
                 // 需要更新的内容
-                vehicleType.setCreator("101忠实的大叔");
+                vehicleType.setCreatorName("101忠实的大叔");
                 eDbPro.update(vehicleType);
             }
             vehicleTypes = eDbPro.find(VehicleType.class,"select * from cr_vehicle_type limit 5");
@@ -134,7 +135,8 @@ public class JpaEasyTest extends BaseTest {
      */
     @Test
     public void findByIds(){
-        eDbPro.findByIds(VehicleType.class, Arrays.asList(100,101,102));
+
+        System.out.println("==>"+ JSONUtil.toJsonStr(eDbPro.findByIds(VehicleType.class, Arrays.asList(100,101,102)).get(0)));
 
         eDbPro.findByIds(VehicleType.class, "100,101,102",",");
     }
