@@ -106,6 +106,8 @@ public class JpaBuilder  {
             // 使用不区分大小写的对象赋值
             attrs = new CaseInsensitiveMap();
             for (int i=1; i<=columnCount; i++) {
+                // 避免下个数据库字段无对应映射的枚举，再次重新执行赋值，每次都需要手工清空后在执行
+                columns = null;
                 if (types[i] < Types.BLOB) {
                     // 待扩展，接收其他类型的数据，例如 point 二维地理位置数据的解析等,需要通过typeName去处理，因为 types 返回的类型，有一些组合是同一个数据类型，导致解析存在难度，具体可参考MysqlType对象
                     value = rs.getObject(i);
