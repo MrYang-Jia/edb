@@ -121,8 +121,12 @@ public class JpaBuilder  {
                     }
                 }
 
-                // 根据字段名反向获取到对象字段信息
-                columns = coumnNameDataMap.get(labelNames[i].trim());
+                // 如果是vo对象的话，必须判空
+                if(coumnNameDataMap != null){
+                    // 根据字段名反向获取到对象字段信息
+                    columns = coumnNameDataMap.get(labelNames[i].trim());
+                }
+
 
                 // column 里的字段
                 if(columns != null){
