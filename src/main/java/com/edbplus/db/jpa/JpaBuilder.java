@@ -94,6 +94,12 @@ public class JpaBuilder  {
         Field originalField = null;
         String uuid = null;
 
+
+        // 这里需要判断是否有column字段匹配上，有则用column对应的字段填充，适配特殊字段实现的模式
+//        columns = JpaAnnotationUtil.getCoumns(beanClass);
+        // 获取根据 columnName 字段存储的map对象
+        CaseInsensitiveMap<String,List<FieldAndColumn>>  coumnNameDataMap = JpaAnnotationUtil.getCoumnsMapForColumnName(beanClass);
+
         while (rs.next()) {
             // 对象实例化
             Object ar = beanClass.newInstance();
@@ -114,20 +120,21 @@ public class JpaBuilder  {
                         value = rs.getObject(i);
                     }
                 }
-                // 这里需要判断是否有column字段匹配上，有则用column对应的字段填充，适配特殊字段实现的模式
-                columns = JpaAnnotationUtil.getCoumns(beanClass);
+
+                // 根据字段名反向获取到对象字段信息
+                columns = coumnNameDataMap.get(labelNames[i].trim());
 
                 // column 里的字段
                 if(columns != null){
                     // 匹配 jpa @Column 指定的数据库字段名，便于将对象的字段别名区分开来
                     for(FieldAndColumn fieldAndColumn : columns){
                         // 如果是匹配上 column 上的字段，则用file的name作为key值
-                        if(fieldAndColumn.getColumn().name().trim().equalsIgnoreCase(labelNames[i].trim())){
+                        //if(fieldAndColumn.getColumn().name().trim().equalsIgnoreCase(labelNames[i].trim())){
                             // 用对象字段的字段值作为key值，便于快速转换
                             attrs.put( fieldAndColumn.getField().getName(), value);
-                            // 跳出本次循环
-                            break;
-                        }
+                            // 跳出本次循环,存在多个 column 映射同一个字段的可能？
+                            //break;
+                        //}
                     }
                 }
                 // 这里需要转换成驼峰写法，便于copyBean ，先转小写的目的是因为有些db的标准是大写，正常默认应该是统一小写，但为了适应所以统一转小写再驼峰

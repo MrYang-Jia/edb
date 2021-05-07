@@ -28,6 +28,8 @@ import org.testng.annotations.Test;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -82,25 +84,81 @@ public class JpaEnumTest extends BaseTest {
 
     }
 
+    /**
+     * 保存枚举字段测试
+     */
     @Test
     public void saveTest(){
         BaseCrVehicleTypeForEnum baseCrVehicleTypeForEnum = new BaseCrVehicleTypeForEnum();
         // 赋予创建人为小明的信息
-        CreaterEnum createrEnum = CreaterEnum.XiaoMing;
+        CreaterEnum createrEnum = CreaterEnum.ChenHong;
         DeleteEnumValue deleteEnumValue = DeleteEnumValue.UNDELETE;
         baseCrVehicleTypeForEnum.setCreator(createrEnum);
         baseCrVehicleTypeForEnum.setVehicleTypeName("测试枚举类型");
         baseCrVehicleTypeForEnum.setIsDel(deleteEnumValue);
         EDb.use().save(baseCrVehicleTypeForEnum);
+
+        System.out.println(baseCrVehicleTypeForEnum.getCreator().getLabel());
     }
 
+
+
+
+    /**
+     * 枚举值字段回填后结果测试
+     */
     @Test
     public void findTest(){
-        List<BaseCrVehicleTypeForBoolean> list = EDb.use().find(BaseCrVehicleTypeForBoolean.class,"select * from cr_vehicle_type where VEHICLE_TYPE_NAME = '测试枚举类型' ");
+        List<BaseCrVehicleTypeForEnum> list = EDb.use().find(BaseCrVehicleTypeForEnum.class,"select * from cr_vehicle_type where VEHICLE_TYPE_NAME = '测试枚举类型' ");
 
-        for(BaseCrVehicleTypeForBoolean baseCrVehicleTypeForEnum:list){
-            System.out.println("==>"+baseCrVehicleTypeForEnum.getIsDel());
+        for(BaseCrVehicleTypeForEnum baseCrVehicleTypeForEnum:list){
+            if(baseCrVehicleTypeForEnum.getCreator()!=null){
+                System.out.println("==>"+baseCrVehicleTypeForEnum.getCreator().getLabel());
+            }else{
+                System.out.println("枚举回填不存在");
+            }
         }
+
+        BaseCrVehicleTypeForEnum update = list.get(0);
+        CreaterEnum createrEnum = CreaterEnum.XiaoMing;
+        update.setCreator(createrEnum);
+        DeleteEnumValue deleteEnumValue = DeleteEnumValue.UNDELETE;
+        update.setIsDel(deleteEnumValue);
+        EDb.use().update(update);
+        System.out.println(update.getVehicleTypeId());
+
+
+    }
+
+
+    /**
+     * 大数据常用方法 -- insertValues
+     */
+    @Test
+    public void insertValues(){
+        //
+        EDb.tx(Connection.TRANSACTION_SERIALIZABLE, () -> {
+            long start = System.currentTimeMillis();
+            List<BaseCrVehicleTypeForEnum> saveList = new ArrayList<>();
+            BaseCrVehicleTypeForEnum vehicleType =null;
+            DeleteEnumValue deleteEnumValue = DeleteEnumValue.UNDELETE;
+            CreaterEnum createrEnum = CreaterEnum.XiaoMing;
+            // 插入数量自己预设
+            for(int i=0;i<1000;i++){
+                // 数据对象
+                vehicleType = new BaseCrVehicleTypeForEnum();
+                vehicleType.setVehicleTypeName("车辆类型-"+i);
+                vehicleType.setCreator(createrEnum);
+                vehicleType.setIsDel(deleteEnumValue);
+                saveList.add(vehicleType);
+            }
+            // insertValues 无id返回值，建议大量数据插入时，可预分配id给数组对象
+            // 批量插入 -- 以每批次插入100条数据位例子 ，该模式 id 不会回填，所以只返回操作的插入结果
+            int count=EDb.use().insertValues(BaseCrVehicleTypeForEnum.class,saveList,1000);
+            System.out.println(count);
+            System.out.println("耗时:"+(System.currentTimeMillis()-start));
+            return false;
+        });
     }
 
 

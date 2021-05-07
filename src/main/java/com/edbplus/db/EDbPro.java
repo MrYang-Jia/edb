@@ -174,7 +174,7 @@ public class EDbPro extends DbPro {
         // 所有字段重新赋值，可能主键或者自定义键值产生变更（通过 beforeSave 方法调整变更的对象）
         for(FieldAndColumn fieldAndColumn : coumns) {
             // 字段赋值
-            ReflectUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+            JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
         }
 
         return resultStatus;
@@ -207,7 +207,7 @@ public class EDbPro extends DbPro {
             record = new Record();
             for(FieldAndColumn fieldAndColumn : coumns){
                 // 字段赋值 -- 字段全小写
-                record.set(fieldAndColumn.getColumn().name().toLowerCase(), ReflectUtil.getFieldValue(m,fieldAndColumn.getField()));
+                record.set(fieldAndColumn.getColumn().name().toLowerCase(), JpaAnnotationUtil.getFieldValue(m,fieldAndColumn.getField()));
             }
             if(beforeSave == null){
                 // 保存前的方法事件
@@ -261,7 +261,7 @@ public class EDbPro extends DbPro {
             record = records.get(i);
             for(FieldAndColumn fieldAndColumn : coumns) {
                 // 字段赋值 -- 反向赋予主键的键值
-                ReflectUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
             }
         }
 
@@ -294,7 +294,7 @@ public class EDbPro extends DbPro {
             record = new Record();
             for(FieldAndColumn fieldAndColumn : coumns){
                 // 字段赋值 -- 字段全小写
-                record.set(fieldAndColumn.getColumn().name().toLowerCase(), ReflectUtil.getFieldValue(m,fieldAndColumn.getField()));
+                record.set(fieldAndColumn.getColumn().name().toLowerCase(), JpaAnnotationUtil.getFieldValue(m,fieldAndColumn.getField()));
             }
             if(beforeSave == null){
                 // 保存前的方法事件
@@ -324,7 +324,7 @@ public class EDbPro extends DbPro {
             for(int i=0;i<saveList.size();i++){
                 for(FieldAndColumn fieldAndColumn : coumns) {
                     // 字段赋值 -- 反向赋予主键的键值
-                    ReflectUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                    JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
                 }
             }
 
@@ -405,7 +405,7 @@ public class EDbPro extends DbPro {
             // 赋予数据
             for(FieldAndColumn fieldAndColumn:coumns){
                 // 数据项
-                value = ReflectUtil.getFieldValue(t,fieldAndColumn.getField());
+                value = JpaAnnotationUtil.getFieldValue(t,fieldAndColumn.getField());
                 // 只允许对象只有 String Inter Long BigDecimal 这几种常用类型 (便于扩展) ,枚举类型不建议，虽然也能实现，但是存在各种不确定性，请勿玩花样，避免代码太过复杂恶心
                 if(value instanceof String){
                     inserValues.append("'").append(value).append("',");
@@ -593,7 +593,7 @@ public class EDbPro extends DbPro {
         // 反向赋予键值
         for(FieldAndColumn fieldAndColumn : coumns) {
             // 字段赋值 -- 反向赋予主键的键值
-            ReflectUtil.setFieldValue(updateM,fieldAndColumn.getField(),record.getColumns().get(fieldAndColumn.getColumn().name().toLowerCase()));
+            JpaAnnotationUtil.setFieldValue(updateM,fieldAndColumn.getField(),record.getColumns().get(fieldAndColumn.getColumn().name().toLowerCase()));
         }
 
         // 更新对象
@@ -650,7 +650,7 @@ public class EDbPro extends DbPro {
         // 反向赋予键值
         for(FieldAndColumn fieldAndColumn : coumns) {
             // 字段赋值 -- 反向赋予主键的键值
-            ReflectUtil.setFieldValue(m,fieldAndColumn.getField(),record.getColumns().get(fieldAndColumn.getColumn().name().toLowerCase()));
+            JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.getColumns().get(fieldAndColumn.getColumn().name().toLowerCase()));
         }
 
         // 更新对象
@@ -718,7 +718,7 @@ public class EDbPro extends DbPro {
             // 反向赋予键值
             for(FieldAndColumn fieldAndColumn : coumns) {
                 // 字段赋值 -- 反向赋予主键的键值
-                ReflectUtil.setFieldValue(obj,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                JpaAnnotationUtil.setFieldValue(obj,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
             }
 
             records.add(record);
@@ -855,7 +855,7 @@ public class EDbPro extends DbPro {
 
         for(T t:jpaList){
             // 赋予id
-            idList.add(ReflectUtil.getFieldValue(t,idColumnList.get(0).getField()));
+            idList.add(JpaAnnotationUtil.getFieldValue(t,idColumnList.get(0).getField()));
         }
         return deleteByIds(tClass,idList);
     }

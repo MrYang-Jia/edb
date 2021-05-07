@@ -25,7 +25,7 @@ package com.edbplus.db.jpa.model.modelEnum;
 public enum DeleteEnumValue {
 
     ISDELETE(1,"已删除"),
-    UNDELETE(0,"未删除");
+    UNDELETE(3,"未删除");
 
 
     private  String name;

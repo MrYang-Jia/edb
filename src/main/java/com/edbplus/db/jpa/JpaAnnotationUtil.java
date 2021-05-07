@@ -17,6 +17,7 @@ package com.edbplus.db.jpa;
 
 import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.lang.SimpleCache;
+import cn.hutool.core.map.CaseInsensitiveMap;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.edbplus.db.annotation.EDbRel;
@@ -123,7 +124,7 @@ public class JpaAnnotationUtil {
     /**
      * 获取对象的所有columns对象的Map集合
      * @param mClass
-     * @return
+     * @return Map --> key = fieldName,value = FieldAndColumn
      */
     public static Map<String,FieldAndColumn> getCoumnsMap(Class mClass){
         // 设置返回的column集合
@@ -134,6 +135,32 @@ public class JpaAnnotationUtil {
             columnMap = new HashMap<>();
             for (FieldAndColumn fieldAndColumn:columns){
                 columnMap.put(fieldAndColumn.getField().getName(),fieldAndColumn);
+            }
+        }
+        return columnMap;
+    }
+
+    /**
+     * 返回以 column 的字段明为主的字段对象
+     * @param mClass
+     * @return CaseInsensitiveMap --> key = fieldName,value = FieldAndColumn
+     */
+    public static CaseInsensitiveMap<String,List<FieldAndColumn>> getCoumnsMapForColumnName(Class mClass){
+        // 设置返回的column集合
+        CaseInsensitiveMap<String,List<FieldAndColumn>> columnMap = null;
+        // 初始化 columns 对象
+        List<FieldAndColumn> columns = getCoumns(mClass);
+        List<FieldAndColumn> fieldAndColumns = null;
+        if(columns!=null && columns.size()>0){
+            columnMap = new CaseInsensitiveMap<>();
+            for (FieldAndColumn fieldAndColumn:columns){
+                if(columnMap.get(fieldAndColumn.getColumn().name())==null){
+                    fieldAndColumns = new ArrayList<>();
+                    fieldAndColumns.add(fieldAndColumn);
+                    columnMap.put(fieldAndColumn.getColumn().name(),fieldAndColumns);
+                }else{
+                    columnMap.get(fieldAndColumn.getColumn().name()).add(fieldAndColumn);
+                }
             }
         }
         return columnMap;
@@ -301,14 +328,14 @@ public class JpaAnnotationUtil {
             if(column != null){
                 // 如果不存在的字段才添加到返回的字段列表里 -- 存在一个bug，则是相同的字段
                 if(!columnsKey.contains(column.name().toLowerCase())){
+                    // 赋予字段值
+                    value = ReflectUtil.getFieldValue(t,fieldAndColumn.getField());
                     // 初始化字段和注解对象
                     fieldAndColValue = new FieldAndColValue();
                     // 回填字段对象
                     fieldAndColValue.setField(fieldAndColumn.getField());
                     // 回填column注解对象
                     fieldAndColValue.setColumn(column);
-                    // 赋予字段值
-                    value = ReflectUtil.getFieldValue(t,fieldAndColumn.getField());
                     // 如果该字段是枚举
                     if(fieldAndColumn.getField().getType().isEnum() && value!= null){
                         // 枚举类型赋值
@@ -328,6 +355,7 @@ public class JpaAnnotationUtil {
                                     throw new RuntimeException(e);
                                 }
                             }else{
+                                // 如果没有 getValue 方法则返回 对象本身的 name 属性
                                 fieldAndColValue.setFieldValue(fieldEnum.name());
                             }
                         }else{
@@ -557,16 +585,13 @@ public class JpaAnnotationUtil {
                     dataMap.put(fieldAndColValue.getColumn().name().toLowerCase(),fieldAndColValue.getFieldValue());
                 }
             }else{
-                // 赋予对象数值
+                // 赋予对象数值 -- 赋予对象为null的情况
                 dataMap.put(fieldAndColValue.getColumn().name().toLowerCase(),fieldAndColValue.getFieldValue());
             }
 
         }
-
         return dataMap;
-
     }
-
 
     /**
      * 获取对象的所有columns对象
@@ -660,69 +685,104 @@ public class JpaAnnotationUtil {
     public static <T> T fillBeanWithMap(Map<String,Object> dataMap,T t){
         // 获取对象类上的所有字段
         Field[] fields = ReflectUtil.getFields(t.getClass());
-        Enum fieldEnum = null;
         Object value = null;
-        Enum[] enums = null;
-        try {
-            //
-            for (Field field:fields){
-                // 字段如果是静态修饰符则跳过
-                if(java.lang.reflect.Modifier.isFinal(field.getModifiers())){
-                    continue;
-                }
-                // 对象值
-                value = dataMap.get(field.getName());
-                // 设置私有对象可以访问
-                field.setAccessible(true);
-                // 判断是否是枚举
-                if(field.getType().isEnum() && value!=null ){
-                    // 枚举类型赋值 -- 这样子可以避免枚举初始化时，碰到null值的情况
-                    fieldEnum = (Enum) field.getType().getEnumConstants()[0];
-                    // 判断该枚举是否存在 getValue 方法，有则走 getValue 的方法，赋予字段对象
-                    Method method = ReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
-                    if(method != null){
-                        try{
-                            // 获取枚举对象集
-                            enums = fieldEnum.getClass().getEnumConstants();
-                            // 遍历枚举对象
-                            for(Enum enumObj :enums){
-                                method = ReflectUtil.getMethod(enumObj.getClass(), "getValue");
-                                // 根据数值返回枚举对象
-                                if(Objects.equals(value,method.invoke(fieldEnum))){
-                                    field.set(t,enumObj);
-                                    break;
-                                }
-                            }
+        //
+        for (Field field:fields){
+            // 字段如果是静态修饰符则跳过
+            if(java.lang.reflect.Modifier.isFinal(field.getModifiers())){
+                continue;
+            }
+            // 对象值
+            value = dataMap.get(field.getName());
+            // 赋值对象
+            setFieldValue(t,field,value);
+        }
 
-                        }catch (Exception e){
-                            throw new RuntimeException(e);
-                        }
-                    }else{
-                        // 获取枚举对象集
-                        enums = fieldEnum.getClass().getEnumConstants();
+        return t;
+    }
+
+    /**
+     * 赋值jpa对象 -- 可以涵盖枚举字段
+     * @param t
+     * @param field
+     * @param value
+     * @param <T>
+     */
+    public static  <T> void setFieldValue(T t,Field field,Object value){
+        try {
+            // 设置私有对象可以访问
+            field.setAccessible(true);
+            // 判断是否是枚举
+            if(field.getType().isEnum() && value!=null ){
+                // 枚举类型赋值 -- 这样子可以避免枚举初始化时，碰到null值的情况
+                Enum fieldEnum = (Enum) field.getType().getEnumConstants()[0];
+                // 获取枚举对象集
+                Enum[] enums = fieldEnum.getClass().getEnumConstants();
+                // 判断该枚举是否存在 getValue 方法，有则走 getValue 的方法，赋予字段对象
+                Method method = ReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
+                if(method != null){
                         // 遍历枚举对象
                         for(Enum enumObj :enums){
-                            // 根据枚举名称反向赋值
-                            if(Objects.equals(value,enumObj.name())){
+                            method = ReflectUtil.getMethod(enumObj.getClass(), "getValue");
+                            // 根据数值返回枚举对象
+                            if(Objects.equals(value,method.invoke(fieldEnum))){
                                 field.set(t,enumObj);
-                                // 跳出当前子循环
                                 break;
                             }
                         }
-                    }
-
                 }else{
-                    if(value != null){
-                        // 非枚举，直接赋值即可，使用该方式可以避免类型不一致，赋值出现异常情况
-                        ReflectUtil.setFieldValue(t,field,value);
+                    // 遍历枚举对象
+                    for(Enum enumObj :enums){
+                        // 根据枚举名称反向赋值
+                        if(Objects.equals(value,enumObj.name())){
+                            field.set(t,enumObj);
+                            // 跳出当前子循环
+                            break;
+                        }
                     }
                 }
+            }else{
+                if(value != null){
+                    // 非枚举，直接赋值即可，使用该方式可以避免类型不一致，赋值出现异常情况
+                    ReflectUtil.setFieldValue(t,field,value);
+                }
             }
-
         }catch (Exception e){
             throw new RuntimeException(e);
         }
-        return t;
+    }
+
+    /**
+     * 根据对象和字段获取对象值 -> ps:枚举 转 值
+     * @param t
+     * @param field
+     * @param <T>
+     * @return
+     */
+    public static  <T> Object getFieldValue(T t,Field field){
+        try {
+            // 判断是否是枚举
+            if (field.getType().isEnum()) {
+                // 枚举类型赋值 -- 这样子可以避免枚举初始化时，碰到null值的情况
+                Enum fieldEnum = (Enum) ReflectUtil.getFieldValue(t,field);
+                // 如果获取不到枚举对象，则置为null即可
+                if(fieldEnum == null){
+                    return null;
+                }
+                // 判断该枚举是否存在 getValue 方法，有则走 getValue 的方法，赋予字段对象
+                Method method = ReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
+                if (method != null) {
+                    return method.invoke(fieldEnum);
+                } else {
+                    return fieldEnum.name();
+                }
+            } else {
+                // 非枚举，直接返回结果即可
+                return ReflectUtil.getFieldValue(t, field);
+            }
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
 
