@@ -15,10 +15,13 @@
  */
 package com.edbplus.db.druid.filter;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.druid.filter.FilterEventAdapter;
 import com.alibaba.druid.proxy.jdbc.JdbcParameter;
 import com.alibaba.druid.proxy.jdbc.ResultSetProxy;
 import com.alibaba.druid.proxy.jdbc.StatementProxy;
+import com.alibaba.druid.sql.SQLUtils;
+import com.alibaba.fastjson.JSON;
 import com.edbplus.db.util.json.EDbJsonUtil;
 import com.jfinal.kit.StrKit;
 import lombok.Getter;
@@ -27,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,7 +56,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
 
 
     /**
-     * 事务操作累计 -- 便于统计可能未提交的事务数有多少
+     * 事务操作累计 -- 便于统计可能未提交的事务数有多少 -- 生产上不建议这么做，因为线程会复用，导致统计的信息有误，需要从另外一个角度来计算，因为mysql有一个问题，就是无法捕捉到是哪一个程序不断产生事务，导致程序因为数据库无响应而崩溃
      * @param statement
      */
     public void addCt(StatementProxy statement){
@@ -253,7 +257,10 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
             // 参数对象
             Map<Integer, JdbcParameter> lParameters = statement.getParameters();
             // 获取sql
-            String lSql = statement.getBatchSql();
+            String lSql = SQLUtils.formatMySql(statement.getBatchSql());
+            StringBuffer sqlLogStr = new StringBuffer();
+            Object lO = null;
+            String lS = null;
             // 判空
             if(StrKit.notBlank(lSql)){
                 if(!onlyRealsql){
@@ -261,8 +268,9 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                     for (Map.Entry<Integer, JdbcParameter> m : lParameters.entrySet()) {
                         parameters.put(m.getKey(),m.getValue().getValue());
                     }
-                    log.debug("edb-sql-?: "+lSql);
-                    log.debug("edb-sql-params: "+ EDbJsonUtil.toJsonForFormat(parameters));
+//                    log.debug("edb-sql-?: "+lSql);
+//                    log.debug("edb-sql-params: "+ EDbJsonUtil.toJsonForFormat(parameters));
+                    sqlLogStr.append("\r\nsql-?: ").append(lSql).append("\r\nparams: ").append(JSON.toJSONString(lParameters));
                 }
                 // 循环获取
                 for (Map.Entry<Integer,JdbcParameter> lEntry : lParameters.entrySet()){
@@ -270,9 +278,15 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                     if(lValue == null){
                         continue;
                     }
-                    Object lO = lValue.getValue();
+                    lO = lValue.getValue();
+                    //
+                    if(lO instanceof Date){
+                        // 转时间格式
+                        lS = DateUtil.formatDateTime((Date) lO);
+                    }else{
+                        lS = String.valueOf(lO);
+                    }
 
-                    String lS = String.valueOf(lO);
                     if(lO == null){
 //                        continue;
                     }else{
@@ -288,17 +302,22 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                     // 不需要输入转义符去定位sql，避免干扰
                     lSql = replaceFirst(lSql,"?",lS);
                 }
-                log.debug("edb-sql-real: "+lSql);
+//                log.debug("edb-sql-real: "+lSql);
+                sqlLogStr.append("\r\nsql-real: ").append(lSql);
             }else{
                 lSql = statement.getLastExecuteSql();
                 // 如果 lSql 不为空的话
                 if(StrKit.notBlank(lSql)){
-                    log.debug("edb-sql-real: " + lSql);
+//                    log.debug("edb-sql-real: " + lSql);
                 }else{
                     lSql = "批量执行sql，暂不完整打印，避免拖沓";
-                    log.debug("edb-sql-real: " + lSql);
+//                    log.debug("edb-sql-real: " + lSql);
                 }
+                sqlLogStr.append("\r\nsql-real: ").append(lSql);
             }
+
+            log.debug(sqlLogStr.toString());
+            sqlLogStr = null;
 
         }catch (Exception e){
             log.error("---sql日志打印出错---",e);
@@ -311,16 +330,17 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
      */
     public void addLastlLog(){
         long start = System.currentTimeMillis();
+        // 使用该方式较为节省堆积获取的时间
         StackTraceElement[] stackTraceElements =  (new Throwable()).getStackTrace();
 //        StackTraceElement[] stackTraceElements =   Thread.currentThread().getStackTrace();
         // 定义堆栈对象字符串
-        String steStr = "";
-        for (StackTraceElement steF : stackTraceElements) {
-            steStr = steF.toString();
-
-            System.out.println("-->"+steStr);
-        }
-        System.out.println("pt-->"+(System.currentTimeMillis()-start));
+//        String steStr = "";
+//        for (StackTraceElement steF : stackTraceElements) {
+//            steStr = steF.toString();
+//
+//            //System.out.println("-->"+steStr);
+//        }
+        //System.out.println("pt-->"+(System.currentTimeMillis()-start));
     }
 
 

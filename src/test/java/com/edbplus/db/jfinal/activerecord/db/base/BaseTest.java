@@ -55,7 +55,8 @@ public class BaseTest {
         //eDbDruidSqlLogFilter.setOnlyRealsql(true);
         List<Filter> filterList = new ArrayList<>();
 
-//        filterList.add(eDbDruidSqlLogFilter);
+        // 添加sql日志打印信息
+        filterList.add(eDbDruidSqlLogFilter);
 
         // 初始化
         GenJdbc.initForEnjoy(null,jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList,filterList);
