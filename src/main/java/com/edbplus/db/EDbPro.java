@@ -123,11 +123,16 @@ public class EDbPro extends DbPro {
         String keys = JpaAnnotationUtil.getPriKeys(mClass);
         // 获取所有字段列表
         List<FieldAndColValue> coumns  = JpaAnnotationUtil.getCoumnValues(m);
+
         Record record = new Record();
         // 字段赋值
         for(FieldAndColValue fieldAndColumn : coumns){
-            // 字段赋值 -- 对象全字段赋值
-            record.set(fieldAndColumn.getColumn().name().toLowerCase(), fieldAndColumn.getFieldValue());
+            // 不剔除null值的话，会导致部分字段数据库定义了默认值，会无效化
+            // 但是batchEntity 时，就必须指定了，否则字段长度不一致，是无法提交的
+            if(fieldAndColumn.getFieldValue()!= null){
+                // 字段赋值 -- 对象全字段赋值
+                record.set(fieldAndColumn.getColumn().name().toLowerCase(), fieldAndColumn.getFieldValue());
+            }
         }
 
         // 保存前的监听
@@ -600,20 +605,22 @@ public class EDbPro extends DbPro {
         return this.update(table.name(),keys,record);
     }
 
+
     /**
      * 更新对象 -- 剔除null值
      * @param m
+     * @param containsNullValue false-剔除null值，true-保留null值更新
      * @param <M>
      * @return
      */
-    public <M> boolean update(M m){
-        //
+    public <M> boolean update(M m,boolean containsNullValue){
+//
         Class mClass = m.getClass();
         Map<String,Object> dataMap = null;
         // 数据对象
         if(dataMap == null || dataMap.size() ==0 ){
             // 剔除null值
-            dataMap = JpaAnnotationUtil.getJpaMap(m,false);
+            dataMap = JpaAnnotationUtil.getJpaMap(m,containsNullValue);
         }
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
@@ -658,6 +665,18 @@ public class EDbPro extends DbPro {
     }
 
     /**
+     * 更新对象 -- 剔除null值
+     * @param m
+     * @param <M>
+     * @return
+     */
+    public <M> boolean update(M m){
+        // 不允许更新null值的对象
+        return update(m,false);
+    }
+
+
+    /**
      * 批量更新 -- 必须保证每条记录更新的字段数一样多，并且是同样的字段，否则会引发异常
      * @param mClass
      * @param updateList
@@ -666,6 +685,19 @@ public class EDbPro extends DbPro {
      * @return
      */
     public  <M> int[] batchUpdate(Class<M> mClass,List<M> updateList, int batchSize) {
+        return batchUpdate(mClass,updateList,batchSize,false);
+    }
+
+    /**
+     * 批量更新 -- 必须保证每条记录更新的字段数一样多，并且是同样的字段，否则会引发异常
+     * @param mClass
+     * @param updateList
+     * @param batchSize
+     * @param containsNullValue false-剔除null值，true-保留null值更新
+     * @param <M>
+     * @return
+     */
+    public  <M> int[] batchUpdate(Class<M> mClass,List<M> updateList, int batchSize,boolean containsNullValue) {
         if(updateList == null){
             return null;
         }
@@ -688,7 +720,7 @@ public class EDbPro extends DbPro {
             record = new Record();
             dataMap = new HashMap<>();
             // 必须有更新条件，所以不用判断null
-            dataMap = JpaAnnotationUtil.getJpaMap(obj,false);
+            dataMap = JpaAnnotationUtil.getJpaMap(obj,containsNullValue);
             // 设置到对象集
             record.setColumns(dataMap);
             if(beforeUpdate == null){
@@ -1654,6 +1686,21 @@ public class EDbPro extends DbPro {
 //            return sql;
 //        }
         return " select * from (" + sql + ") as edb_findFirst_tb limit 2";
+    }
+
+    /**
+     * 获取1条记录
+     * @param tClass
+     * @param sql
+     * @param paras
+     * @return
+     */
+    public <T> T findFirst(Class<T> tClass,String sql, Object... paras) {
+        // 改写sql语句
+        sql = getFirstSql(sql);
+        // 获取记录集
+        List<T> result = find(tClass,sql,paras);
+        return result.size() > 0 ? result.get(0) : null;
     }
 
     /**

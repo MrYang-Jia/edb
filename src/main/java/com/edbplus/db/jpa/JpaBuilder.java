@@ -149,7 +149,7 @@ public class JpaBuilder  {
             }
             // 填充bean对象 -- 忽略对象大小写，可以填充aGe age 等语法
 //            BeanUtil.fillBeanWithMapIgnoreCase(attrs, ar, false);
-            // 兼容枚举回填的类型
+            // 兼容枚举回填的类型(忽略 静态变量 和 常量 字段)
             JpaAnnotationUtil.fillBeanWithMap(attrs, ar);
             //
             Table table = null;

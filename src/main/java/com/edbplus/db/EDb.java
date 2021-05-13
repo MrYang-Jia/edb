@@ -247,6 +247,18 @@ public class EDb extends Db{
     }
 
     /**
+     * 更新对象
+     * @param m
+     * @param containsNullValue false-剔除null值，true-保留null值更新
+     * @param <M>
+     * @return
+     */
+    public static  <M> boolean update(M m,boolean containsNullValue){
+        return MAIN.update(m,containsNullValue);
+    }
+
+
+    /**
      * 更新对象 -- 包含null值的变更情况
      * @param mClass
      * @param updateData -- 数据库表字段(非驼峰对象)
@@ -279,6 +291,20 @@ public class EDb extends Db{
      */
     public static  <M> int[] batchUpdate(Class<M> mClass,List<M> updateList, int batchSize) {
         return MAIN.batchUpdate(mClass,updateList,batchSize);
+    }
+
+    /**
+     * 批量更新 -- 必须保证每条记录更新的字段数一样多，并且是同样的字段，否则会引发异常
+     * @param mClass
+     * @param updateList
+     * @param batchSize
+     * @param containsNullValue false-剔除null值，true-保留null值更新
+     * @param <M>
+     * @return
+     */
+    public static <M> int[] batchUpdate(Class<M> mClass,List<M> updateList, int batchSize,boolean containsNullValue)
+    {
+        return MAIN.batchUpdate(mClass,updateList,batchSize,containsNullValue);
     }
 
 
@@ -768,6 +794,18 @@ public class EDb extends Db{
         return MAIN.findFirst(tClass,sql);
     }
 
+
+    /**
+     * 获取1条记录
+     * @param tClass
+     * @param sql
+     * @param paras
+     * @param <T>
+     * @return
+     */
+    public static <T> T findFirst(Class<T> tClass,String sql, Object... paras){
+        return MAIN.findFirst(tClass,sql,paras);
+    }
 
     /**
      * 获取首条记录

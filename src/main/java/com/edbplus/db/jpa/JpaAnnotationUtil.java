@@ -567,7 +567,7 @@ public class JpaAnnotationUtil {
     /**
      * 将对象转换成map
      * @param t
-     * @param containsNullValue
+     * @param containsNullValue - true - 包含null , false - 不包含null
      * @param <T>
      * @return
      */
@@ -688,10 +688,16 @@ public class JpaAnnotationUtil {
         Object value = null;
         //
         for (Field field:fields){
-            // 字段如果是静态修饰符则跳过
+
+            // 字段如果是常量修饰符则跳过
             if(java.lang.reflect.Modifier.isFinal(field.getModifiers())){
                 continue;
             }
+            // 字段如果是静态字段则忽略
+            if(java.lang.reflect.Modifier.isStatic(field.getModifiers())){
+                continue;
+            }
+
             // 对象值
             value = dataMap.get(field.getName());
             // 赋值对象
