@@ -85,6 +85,11 @@ public class EDb extends Db{
             init();
             return;
         }
+        // 如果是默认等于main，则初始化默认对象即可
+        if(configName.equals(DbKit.MAIN_CONFIG_NAME)){
+            init();
+            return;
+        }
         EDbPro eDbPro = new EDbPro(configName);
         init(configName,eDbPro);
         log.info("初始化 "+configName+" 的EDbPro数据对象成功");

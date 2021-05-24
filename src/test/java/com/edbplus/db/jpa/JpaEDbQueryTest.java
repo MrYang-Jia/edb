@@ -97,7 +97,7 @@ public class JpaEDbQueryTest extends BaseTest {
 
         eDbQuery = new EDbQuery();
         // 基于时间范围的查询
-        eDbQuery.and(EDbFilter.like("VEHICLE_TYPE_NAME","%车%"));
+        eDbQuery.and(EDbFilter.like("VEHICLE_TYPE_NAME","车"));
         //eDbQuery.and(new EDbFilter("VEHICLE_TYPE_NAME",EDbFilter.Operator.like,"%车%"));
         start = System.currentTimeMillis();
         System.out.println(JSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));

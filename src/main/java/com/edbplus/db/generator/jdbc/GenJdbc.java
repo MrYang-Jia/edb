@@ -19,8 +19,13 @@ import cn.hutool.core.map.CaseInsensitiveMap;
 import com.alibaba.druid.filter.Filter;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.edbplus.db.EDb;
+import com.edbplus.db.EDbPro;
+import com.edbplus.db.EDbProFactory;
+import com.edbplus.db.SpringConfig;
 import com.edbplus.db.jpa.kit.JpaKit;
+import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
+import com.jfinal.plugin.activerecord.DbKit;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 import com.jfinal.plugin.druid.DruidPlugin;
 import com.jfinal.template.Engine;
@@ -167,11 +172,26 @@ public class GenJdbc {
         // 最大活动连接数
         dp.setMaxActive(maxActive);
 
-        if(configName==null){
-            arp = new ActiveRecordPlugin(dp);
-        }else{
-            arp = new ActiveRecordPlugin(configName,dp);
+        // 启动数据库连接池对象
+        dp.start();
+
+
+        if(StrKit.isBlank(configName)){
+            configName = DbKit.MAIN_CONFIG_NAME;
         }
+
+        // 这是改造继承的对象(这里是随意改造基础的对象)
+        SpringConfig activerecordConfig = new SpringConfig(
+                // 默认名称 ，使用 Db.use() 时，可获取到
+                configName
+                // 这里可以替换成 spring体系的datasource
+                ,dp.getDataSource()
+                // 事务级别 ，如果是spring时，可使用spring的事务级别替代，这个是属于数据库事务级别定义的，都一样
+                , DbKit.DEFAULT_TRANSACTION_LEVEL
+        );
+
+        // 替换 config 对象，主要事务方法都在这个对象里实现
+        arp = new ActiveRecordPlugin(activerecordConfig);
 
         // 定于 pg 的解析器
         if(jdbcUrl.contains("postgresql")){
@@ -211,7 +231,11 @@ public class GenJdbc {
         // 提高性能 ，但首次加载的时候会比较慢，并发时能提高性能，应该是做了缓存
         //engine.setFastMode(true);
 
-        dp.start();
+        // 定义db实现工厂 继承了父类实现方法
+        EDbProFactory eDbProFactory = new EDbProFactory();
+        // 设置 edbpro 工厂
+        arp.setDbProFactory(eDbProFactory);
+        // 启动arp实例
         arp.start();
 
         // 添加druid过滤器，需要重启
@@ -221,8 +245,10 @@ public class GenJdbc {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
         // 初始化EDb资源
         EDb.init(configName);
+
 
     }
 

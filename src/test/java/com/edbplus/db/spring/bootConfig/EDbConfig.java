@@ -2,7 +2,10 @@ package com.edbplus.db.spring.bootConfig;
 
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
+import com.edbplus.db.EDbProFactory;
+import com.edbplus.db.SpringConfig;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
+import com.jfinal.plugin.activerecord.DbKit;
 import com.jfinal.template.source.ClassPathSourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +39,21 @@ public class EDbConfig {
     public EDbPro getEDbPro(){
         // 调用本类的bean方法，会自动经过bean的拦截实现，获取到实例化后的bean实体
 
+        // 适配spring数据库连接池 -- 适配事务
+        SpringConfig activerecordConfig = new SpringConfig(
+                // 默认名称 ，使用 Db.use() 时，可获取到
+                DbKit.MAIN_CONFIG_NAME
+                // 这里可以替换成 spring体系的datasource
+                ,dataSource
+                // 事务级别 ，如果是spring时，可使用spring的事务级别替代，这个是属于数据库事务级别定义的，都一样
+                , DbKit.DEFAULT_TRANSACTION_LEVEL
+        );
         // 初始化数据源
-        ActiveRecordPlugin arp = new ActiveRecordPlugin(dataSource);
+        ActiveRecordPlugin arp = new ActiveRecordPlugin(activerecordConfig);
+        // 定义db实现工厂 继承了父类实现方法
+        EDbProFactory eDbProFactory = new EDbProFactory();
+        // 设置 edbpro 工厂
+        arp.setDbProFactory(eDbProFactory);
         arp.getEngine().setSourceFactory(new ClassPathSourceFactory());
         arp.setDevMode(true);
         // 打印sql -- 交予底层统一打印,建议设置成false，自己定义监听器，或者交予 druid 的sql打印信息即可
@@ -71,8 +87,21 @@ public class EDbConfig {
     // 假设有第二个数据源
     @Bean(name = "xzwEDbPro")
     public EDbPro getXzwEDbPro(){
+        // 适配spring数据库连接池 -- 适配事务
+        SpringConfig activerecordConfig = new SpringConfig(
+                // 默认名称 ，使用 Db.use() 时，可获取到
+                "xzw"
+                // 这里可以替换成 spring体系的datasource
+                ,dataSource
+                // 事务级别 ，如果是spring时，可使用spring的事务级别替代，这个是属于数据库事务级别定义的，都一样
+                , DbKit.DEFAULT_TRANSACTION_LEVEL
+        );
         // 初始化数据源
-        ActiveRecordPlugin arp = new ActiveRecordPlugin("xzw",dataSource);
+        ActiveRecordPlugin arp = new ActiveRecordPlugin(activerecordConfig);
+        // 定义db实现工厂 继承了父类实现方法
+        EDbProFactory eDbProFactory = new EDbProFactory();
+        // 设置 edbpro 工厂
+        arp.setDbProFactory(eDbProFactory);
         arp.getEngine().setSourceFactory(new ClassPathSourceFactory());
         arp.setDevMode(true);
         arp.setShowSql(true);

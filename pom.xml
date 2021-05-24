@@ -7,7 +7,8 @@
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
     <!-- 每次deploy后必须调整版本号 , RELEASE -->
-    <version>1.5.RELEASE</version>
+    <!--<version>1.5.RELEASE</version>-->
+    <version>1.7.0-SNAPSHOT</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -16,7 +17,7 @@
 
     <properties>
 
-        <jfinal.version>4.9.02</jfinal.version>
+        <jfinal.version>4.9.11</jfinal.version>
         <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
         <druid.version>1.1.21_1</druid.version>
         <java.version>1.8</java.version>
@@ -25,8 +26,6 @@
         <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
         <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
         <spring-web.version>5.2.6.RELEASE</spring-web.version>
-        <!--<aliyun-spring-boot.version>1.0.0</aliyun-spring-boot.version>-->
-        <!--<spring-cloud-alibaba.version>2.2.2.RELEASE</spring-cloud-alibaba.version>-->
     </properties>
 
 
@@ -71,25 +70,7 @@
 
     <dependencies>
 
-        <!--&lt;!&ndash; === 必须依赖的jar包 === &ndash;&gt;-->
-        <!--<dependency>-->
-        <!--<groupId>com.jfinal</groupId>-->
-        <!--<artifactId>jfinal</artifactId>-->
-        <!--<version>${jfinal.version}</version>-->
-        <!--</dependency>-->
-        <!-- jfinal-db操作工具包 -->
-        <!--<dependency>-->
-        <!--<groupId>com.jfinal</groupId>-->
-        <!--<artifactId>activerecord</artifactId>-->
-        <!--<version>${jfinal.version}</version>-->
-        <!--</dependency>-->
 
-        <!--&lt;!&ndash; jfinal-视图、sql、文件内容解析工具包 &ndash;&gt;-->
-        <!--<dependency>-->
-        <!--<groupId>com.jfinal</groupId>-->
-        <!--<artifactId>enjoy</artifactId>-->
-        <!--<version>${jfinal.version}</version>-->
-        <!--</dependency>-->
         <!-- jpa注解规范工具类 -->
         <dependency>
             <groupId>javax.persistence</groupId>
@@ -124,6 +105,8 @@
             <version>8.0.17</version>
             <!-- 依赖时可选 -->
             <optional>true</optional>
+            <!--<optional>true</optional>-->
+            <scope>provided</scope>
         </dependency>
 
 
@@ -132,6 +115,10 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.2.11</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
+            <!--<optional>true</optional>-->
+            <scope>provided</scope>
         </dependency>
 
         <!-- cglib 扩展 CglibProxyFactory extends ProxyFactory -->
@@ -142,15 +129,6 @@
             <!-- 依赖时可选 -->
             <!--<optional>true</optional>-->
             <scope>provided</scope>
-        </dependency>
-
-        <!-- jpa 校验 -->
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <!-- 只有在本项目包里 -->
-            <scope>provided</scope>
-            <version>6.1.5.Final</version>
         </dependency>
 
 
@@ -165,7 +143,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- springJdbc 常用工具类,通过内部的spring-jdbc事务管理对象进行事务管理 -->
+        <!-- springJdbc 常用工具类 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jdbc</artifactId>
@@ -174,14 +152,12 @@
             <optional>true</optional>
         </dependency>
 
-
-        <!-- 主要是为了测试web层工具类生成的代码是否正确，例如 @Post注解的引用 -->
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>${spring-web.version}</version>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
             <!-- 只有在本项目包里 -->
             <scope>provided</scope>
+            <version>6.1.5.Final</version>
         </dependency>
 
 
@@ -192,6 +168,7 @@
             <version>1.18.12</version>
             <!-- 依赖时可选 -->
             <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
 
 
@@ -212,49 +189,13 @@
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
             <version>4.0.0</version>
-            <!--<scope>provided</scope>-->
             <!-- 依赖时可选 -->
             <optional>true</optional>
-        </dependency>
-
-
-
-        <!-- 引入开源jfinal源码，本来引入jar包，但是修改了源文件后，发现一个问题，兼容性无法有效得到解决，会被引入的jfinal包给替换掉类对象，导致加载时，某些环境无法正确执行  -->
-        <!-- jetty-server 仅用于开发，现已被 jfinal-undertow 项目所取代 -->
-        <dependency>
-            <groupId>com.jfinal</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>2019.3</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
-            <scope>provided</scope>
-        </dependency -->
-        <!-- jetty-server 开发时支持 JSP -->
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-jsp</artifactId>
-            <version>9.2.26.v20180806</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- log4j 日志 -->
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
             <scope>provided</scope>
         </dependency>
 
-        <!-- cos 文件上传 -->
-        <dependency>
-            <groupId>com.jfinal</groupId>
-            <artifactId>cos</artifactId>
-            <version>2020.4</version>
-            <scope>provided</scope>
-        </dependency>
+
+
 
 
         <!-- HikariCP 数据源连接池 -->
@@ -289,64 +230,14 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- freemarkder 模板引擎 -->
-        <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>2.3.20</version>
-            <scope>provided</scope>
-        </dependency>
 
 
-        <!-- velocity 模板引擎 -->
-        <dependency>
-            <groupId>org.apache.velocity</groupId>
-            <artifactId>velocity</artifactId>
-            <version>1.7</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.velocity</groupId>
-            <artifactId>velocity-tools</artifactId>
-            <version>2.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- redis 客户端 -->
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.7.2</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>de.ruedigermoeller</groupId>
-            <artifactId>fst</artifactId>
-            <version>2.29</version>
-            <scope>provided</scope>
-
-            <exclusions>
-                <exclusion>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                    <artifactId>jackson-core</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
 
-        <!-- jackson json 转换 -->
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.11.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- cron4j 任务调度 -->
-        <dependency>
-            <groupId>it.sauronsoftware.cron4j</groupId>
-            <artifactId>cron4j</artifactId>
-            <version>2.2.5</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
             <scope>provided</scope>
         </dependency>
 
@@ -358,21 +249,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- cglib 扩展 CglibProxyFactory extends ProxyFactory -->
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib-nodep</artifactId>
-            <version>3.2.5</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- 支持在 spring 之中整合使用 jfinal -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <version>4.3.8.RELEASE</version>
-            <scope>provided</scope>
-        </dependency>
 
 
         <!-- ============ 不需依赖的jar包，只是引入作为脚手架生成时测试使用 ============ -->
@@ -397,6 +273,20 @@
             <version>4.2.0</version>
             <!-- 只有在本项目包里 -->
             <scope>provided</scope>
+        </dependency>
+
+        <!-- 必须引入 -->
+        <dependency>
+            <groupId>com.edbplus</groupId>
+            <artifactId>jfinal-spring-tx</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- jfinal 升级时，单独调整版本号即可 -->
+        <dependency>
+            <groupId>com.jfinal</groupId>
+            <artifactId>activerecord</artifactId>
+            <version>${jfinal.version}</version>
         </dependency>
 
     </dependencies>

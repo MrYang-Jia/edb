@@ -57,7 +57,7 @@ import java.util.concurrent.Future;
  * @Date 2020/10/14
  * @Version V1.0
  **/
-public class EDbPro extends DbPro {
+public class EDbPro extends SpringDbPro {
 
 //    protected final Config config;
     // jpa 监听
@@ -65,12 +65,11 @@ public class EDbPro extends DbPro {
     private EDbListener eDbListener;
 
     public EDbPro(){
-        super.config =  Db.use(DbKit.MAIN_CONFIG_NAME).getConfig();
+        super(DbKit.MAIN_CONFIG_NAME);
     }
 
     public EDbPro(String  configName){
-        Config config =  Db.use(configName).getConfig();
-        super.config  =  config;
+        super(configName);
     }
 
     /**
@@ -2349,97 +2348,5 @@ public class EDbPro extends DbPro {
     }
 
 
-    /**
-     * 覆盖原jfinal tx 事务方法，便于在独立事务里兼容 spring的事务管理
-     * Execute transaction.
-     * @param config the Config object
-     * @param transactionLevel the transaction level -- 这里有个问题，就是事务等级会与spring的不一致！
-     * @param atom the atom operation
-     * @return true if transaction executing succeed otherwise false
-     */
-    @Override
-    protected boolean tx(Config config, int transactionLevel, IAtom atom) {
-        Connection conn = config.getThreadLocalConnection();
-        if (conn != null) {	// Nested transaction support
-            try {
-                //
-                if (conn.getTransactionIsolation() < transactionLevel)
-                    // 设置事务级别
-                    conn.setTransactionIsolation(transactionLevel);
-                // 执行内部事务的方法
-                boolean result = atom.run();
-                if (result)
-                    return true;
-                throw new NestedTransactionHelpException("Notice the outer transaction that the nested transaction return false");	// important:can not return false
-            }
-            catch (SQLException e) {
-                throw new ActiveRecordException(e);
-            }
-        }
-
-        Boolean autoCommit = null;
-        ConnectionHolder conHolder = null;
-        try {
-            //System.out.println("当前线程1-2:"+Thread.currentThread().getId());
-            conn = config.getConnection();
-            autoCommit = conn.getAutoCommit();
-            // 设置当前线程的连接对象
-            config.setThreadLocalConnection(conn);
-
-            // ======== 定义spring的事务管理对象，在spring多线程组里才能获取到同一个事务对象，否则无法正确执行 =========
-            // 建立spring事务关联
-            conHolder = (ConnectionHolder) TransactionSynchronizationManager.getResource(this.config.getDataSource());
-            conHolder = new ConnectionHolder(conn);
-            conHolder.requested();
-            conHolder.setSynchronizedWithTransaction(true);
-            // 绑定事务对象
-            TransactionSynchronizationManager.bindResource(this.config.getDataSource(), conHolder);
-            // 保留jfinal事务体系
-            conn.setTransactionIsolation(transactionLevel);
-            // 设置成事务模式 -- 便于控制接下来的相关逻辑代码
-            conn.setAutoCommit(false);
-
-            // 执行内部方法 -- jfinal 事务内部执行的方法嵌套 ( db.tx( 内部的run方法执行相关事务逻辑控制 ) )
-            boolean result = atom.run();
-            // 这时候结果由 jfinal 自己控制
-            if (result)
-                conn.commit();
-            else{
-                conn.rollback();
-            }
-
-            return result;
-        } catch (NestedTransactionHelpException e) {
-            if (conn != null) try {conn.rollback();} catch (Exception e1) {LogKit.error(e1.getMessage(), e1);}
-            LogKit.logNothing(e);
-            return false;
-        } catch (Throwable t) {
-            if (conn != null) try {conn.rollback();} catch (Exception e1) {LogKit.error(e1.getMessage(), e1);}
-            throw t instanceof RuntimeException ? (RuntimeException)t : new ActiveRecordException(t);
-        } finally {
-            try {
-                if (conn != null) {
-                    // 由 jfinal 事务控制决定当前节点是否提交，如果出现交错性事务，以 jfinal 的事务节点为主，尽量避免交错性事务，导致事务混乱
-                    if (autoCommit != null)
-                        conn.setAutoCommit(autoCommit);
-//					conn.close();
-                    // 设置成false
-                    conHolder.setSynchronizedWithTransaction(false);
-                    // 重置对象本身 -- 不然后续的释放无法正确执行
-                    conHolder.released();
-                    // 释放事务对象
-                    TransactionSynchronizationManager.unbindResource(this.config.getDataSource());
-                    // 释放连接对象
-                    DataSourceUtils.releaseConnection(conn, this.config.getDataSource());
-
-                }
-            } catch (Throwable t) {
-                LogKit.error(t.getMessage(), t);	// can not throw exception here, otherwise the more important exception in previous catch block can not be thrown
-            } finally {
-                // 保留jfinal事务体系
-                config.removeThreadLocalConnection();	// prevent memory leak
-            }
-        }
-    }
 
 }
