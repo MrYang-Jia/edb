@@ -1,4 +1,4 @@
-
+ ![edb](docs/images/edb.png) 
 
 ## 说明
 - 1、整合 springBoot 与 jfinalDb 的数据层操作，兼容 spring 和 jfinal 的事务
@@ -84,5 +84,9 @@ SpringBoot 2.x
 
 ## 帮助文档
 
+ qq群: 192539982
+ 
+ ![qqGroup](docs/images/qq_edb_group.png)
+ 
 
 
