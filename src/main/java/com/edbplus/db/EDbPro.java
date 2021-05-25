@@ -489,10 +489,11 @@ public class EDbPro extends SpringDbPro {
      * 更新对象 -- 包含null值的变更情况
      * @param mClass -- 数据库表对象
      * @param updateData  -- 数据库表字段(非驼峰对象)
-     * @param <M>
+     * @param <M> -- 数据集
+     * @isColumnName 是否是数据库字段名称,true-数据库字段名称,false-驼峰字段名称
      * @return
      */
-    public <M> boolean update(Class<M> mClass,Map<String,Object> updateData){
+    public <M> boolean update(Class<M> mClass,Map<String,Object> updateData,boolean isColumnName){
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值 -- 小写
@@ -500,22 +501,33 @@ public class EDbPro extends SpringDbPro {
         Record record = new Record();
         // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
         Map<String,Object> dataMap = new HashMap<>();
+        // 字段名数据集
+        Map<String,FieldAndColumn> fieldNameMap = null;
+        // 如果是驼峰字段匹配，才取获取字段数据集
+        if(!isColumnName){
+            fieldNameMap = JpaAnnotationUtil.getCoumnsMap(mClass);
+        }
         // 必须有更新条件，所以不用判断null
         if(updateData.size() > 0){
             for(Map.Entry<String, Object> entry : updateData.entrySet()){
-                // 由于使用工具类取出来的数据库字段命名是小写，所以统一转小写 ，这点是因为你永远无法知道用户到底是小写还是大写的命名规则决定的
-                dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
+                if(isColumnName){
+                    // 由于使用工具类取出来的数据库字段命名是小写，所以统一转小写 ，这点是因为你永远无法知道用户到底是小写还是大写的命名规则决定的
+                    dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
+                }else{
+                    // 驼峰字段赋值
+                    if(fieldNameMap.get(entry.getKey())!=null && fieldNameMap.get(entry.getKey()).getColumn() != null){
+                        dataMap.put(fieldNameMap.get(entry.getKey()).getColumn().name().toLowerCase(),entry.getValue());
+                    }
+                }
             }
         }
+
         // 初始化对象
         record.setColumns(dataMap);
         // 获取所有字段列表
         List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(mClass);
-
         // 更新前的方法事件
         Method beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbUpdate.class);
-
-
         Map<String,Object> updateDataMap = null;
         // 保存前的监听
         if(eDbListener!=null){
@@ -544,6 +556,17 @@ public class EDbPro extends SpringDbPro {
 
         // 更新对象
         return this.update(table.name(),keys,record);
+    }
+
+    /**
+     * 更新对象 -- 包含null值的变更情况
+     * @param mClass -- 数据库表对象
+     * @param updateData  -- 数据库表字段(非驼峰对象)
+     * @param <M>
+     * @return
+     */
+    public <M> boolean update(Class<M> mClass,Map<String,Object> updateData){
+        return update(mClass,updateData,true);
     }
 
 
