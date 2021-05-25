@@ -8,7 +8,7 @@
     <artifactId>spring-jf-edb</artifactId>
     <!-- 每次deploy后必须调整版本号 , RELEASE -->
     <!--<version>1.5.RELEASE</version>-->
-    <version>1.7.0-SNAPSHOT</version>
+    <version>1.7.0</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>

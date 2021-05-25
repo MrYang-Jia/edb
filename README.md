@@ -45,7 +45,8 @@
 <dependency>
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
-    <version>1.5.RELEASE</version>
+    <!-- 1.7 第一个最为成熟的版本，待后续补充完整的文档，估计2.0左右能闭环 -->
+    <version>1.7</version>
 </dependency>
 ```
 
