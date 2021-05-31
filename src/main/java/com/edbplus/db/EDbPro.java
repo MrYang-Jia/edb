@@ -23,6 +23,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.json.JSONUtil;
 import com.edbplus.db.annotation.EDbSave;
 import com.edbplus.db.annotation.EDbUpdate;
+import com.edbplus.db.druid.EDbSelectUtil;
 import com.edbplus.db.dto.EDBListenerResult;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
@@ -290,8 +291,11 @@ public class EDbPro extends SpringDbPro {
         // 主键键值
         List<FieldAndColumn> priCoumns  = JpaAnnotationUtil.getIdFieldAndColumns(mClass);
         Record record = null;
+        // 记录集合
         List<Record> records = new ArrayList<>();
+        // 开始保存前
         Method beforeSave = null;
+        // 对象集合
         Map<String,Object> dataMap = null;
         //
         for(M m:saveList){
@@ -440,7 +444,6 @@ public class EDbPro extends SpringDbPro {
             inserValues.deleteCharAt(inserValues.length() - 1);
             // 执行语句
             valueSize += this.update(tableHead.toString() + inserValues.toString());
-//            System.out.println(tableHead.toString() + inserValues.toString());
             // 主动清空insert对象
             inserValues.delete( 0, inserValues.length() );
         }
@@ -1704,10 +1707,8 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public String getFirstSql(String sql){
-//        if(sql.toLowerCase().indexOf(" limit ") > 0){
-//            return sql;
-//        }
-        return " select * from (" + sql + ") as edb_findFirst_tb limit 2";
+        // 获取返回limit 2 sql的语句
+        return EDbSelectUtil.returnLimitSql(sql,2);
     }
 
     /**

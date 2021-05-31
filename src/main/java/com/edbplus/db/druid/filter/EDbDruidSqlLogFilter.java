@@ -16,12 +16,14 @@
 package com.edbplus.db.druid.filter;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.filter.FilterEventAdapter;
 import com.alibaba.druid.proxy.jdbc.JdbcParameter;
 import com.alibaba.druid.proxy.jdbc.ResultSetProxy;
 import com.alibaba.druid.proxy.jdbc.StatementProxy;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.edbplus.db.util.json.EDbJsonUtil;
 import com.jfinal.kit.StrKit;
 import lombok.Getter;
@@ -270,7 +272,8 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                     }
 //                    log.debug("edb-sql-?: "+lSql);
 //                    log.debug("edb-sql-params: "+ EDbJsonUtil.toJsonForFormat(parameters));
-                    sqlLogStr.append("\r\nsql-?: ").append(lSql).append("\r\nparams: ").append(JSON.toJSONString(lParameters));
+                    sqlLogStr.append("\r\nsql-?: ").append(lSql).append("\r\nparams: ").append(JSON.toJSONStringWithDateFormat(parameters,"yyyy-MM-dd HH:mm:ss", SerializerFeature.WriteMapNullValue,SerializerFeature.DisableCircularReferenceDetect,
+                            SerializerFeature.WriteDateUseDateFormat));
                 }
                 // 循环获取
                 for (Map.Entry<Integer,JdbcParameter> lEntry : lParameters.entrySet()){

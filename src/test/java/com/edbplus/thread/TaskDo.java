@@ -15,6 +15,17 @@
  */
 package com.edbplus.thread;
 
+import cn.hutool.core.convert.Convert;
+import com.edbplus.db.EDb;
+import com.edbplus.db.jpa.VehicleType;
+import com.edbplus.db.util.list.EDbListUtil;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 任务测试类
  */
@@ -28,5 +39,24 @@ public class TaskDo {
         }
         // 打印数字
         System.out.println(finalI);
+    }
+
+    @Test
+    public void test(){
+        List<Object> result = new ArrayList<>();
+        VehicleType vehicleType = new VehicleType();
+        vehicleType.setVehicleTypeId(1);
+        result.add(vehicleType);
+        //
+        List<Integer> integerList = EDbListUtil.toConvertList(Integer.class,result,"vehicleTypeId",null);
+        // 打印转换的参数对象集
+        System.out.println(integerList);
+        Map<String,Object> dataMap = new HashMap<>();
+        dataMap.put("idStr","世界是java的");
+        result.add(dataMap);
+        // 提取 idStr 字段
+        List<String> strings = EDbListUtil.toConvertList(String.class,result,"idStr","");
+        System.out.println(strings);
+
     }
 }

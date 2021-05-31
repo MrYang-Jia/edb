@@ -41,13 +41,44 @@
 **maven 依赖**
 
 ```xml
-<!-- spring事务 + jfinalDb + enjoy -->
-<dependency>
-    <groupId>com.edbplus</groupId>
-    <artifactId>spring-jf-edb</artifactId>
-    <!-- 1.7.0 第一个最为成熟的版本，待后续补充完整的文档，估计2.0左右能闭环 -->
-    <version>1.7.0</version>
-</dependency>
+    <!-- spring事务 + jfinalDb + enjoy -->
+    <dependency>
+        <groupId>com.edbplus</groupId>
+        <artifactId>spring-jf-edb</artifactId>
+        <!-- 1.7.0 第一个最为成熟的版本，待后续补充完整的文档，估计2.0左右能闭环 -->
+        <version>1.7.0</version>
+    </dependency>
+    
+    
+
+    <!-- 项目的其他依赖包(一般情况下，国内大部分springBoot项目都会引入，避免有意外，还是单独罗列下) -->
+    <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid</artifactId>
+        <!-- 可根据自己项目里的依赖来进行选择 -->
+        <druid.version>1.1.21</druid.version>
+    </dependency>
+  
+    <!-- java 常用工具包，一些核心组件的封装，依赖于该组件完成 -->
+    <dependency>
+        <groupId>cn.hutool</groupId>
+        <artifactId>hutool-all</artifactId>
+        <version>5.4.4</version>
+    </dependency>    
+    
+    <!-- 本项目依赖的是 jdbc 的工具包，springBoot项目可参考该引入方式，也可单独引入spring的事务管理包 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jdbc</artifactId>
+    </dependency>
+    
+    <!-- hibernate 验证工具包，基本上只是引用了jpa注解类，不想造轮子，所以直接引用，未来，可以引入注解类来替代 -->
+    <dependency>
+        <groupId>org.hibernate.validator</groupId>
+        <artifactId>hibernate-validator</artifactId>
+        <version>6.1.5.Final</version>
+    </dependency>
+     
 ```
 
 ### JPA使用指南 javax.persistence 的注解配置讲解

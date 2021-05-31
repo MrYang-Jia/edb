@@ -1,6 +1,7 @@
 package com.edbplus.db.jfinal.activerecord.db;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
@@ -118,6 +119,7 @@ public class EDbTest extends BaseTest {
         SqlPara sqlPara = EDb.use().getSqlPara("test.findForLimit", 2);
         System.out.println(sqlPara.getSql());
         System.out.println(JSONUtil.toJsonStr(EDb.use().find(VehicleType.class,sqlPara)));
+
     }
 
 

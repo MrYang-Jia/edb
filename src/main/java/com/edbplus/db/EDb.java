@@ -276,6 +276,18 @@ public class EDb extends Db{
 
     /**
      * 更新对象 -- 包含null值的变更情况
+     * @param mClass -- 数据库表对象
+     * @param updateData  -- 数据库表字段(非驼峰对象)
+     * @param <M> -- 数据集
+     * @isColumnName 是否是数据库字段名称,true-数据库字段名称,false-驼峰字段名称
+     * @return
+     */
+    public static <M> boolean update(Class<M> mClass,Map<String,Object> updateData,boolean isColumnName){
+        return MAIN.update(mClass,updateData,isColumnName);
+    }
+
+    /**
+     * 更新对象 -- 包含null值的变更情况
      * 建议前端传递变化前和变化后的数据对象给后端，保存的结果页更贴近实际真实变化
      * @param oldM -- 原始数据对象
      * @param updateM -- 基于原始数据变更后的数据对象

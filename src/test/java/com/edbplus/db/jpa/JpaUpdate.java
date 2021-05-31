@@ -83,6 +83,17 @@ public class JpaUpdate  extends BaseTest {
         updateMap.put("CREATOR",null);
         updateMap.put("MODIFY_TIME",new Date());
         EDb.update(VehicleType.class,updateMap);
+
+
+        // 重新定义驼峰对象命名(或对象字段命名)赋值
+        updateMap = new HashMap<>();
+        // 必须指定数据库的主键
+        updateMap.put("vehicleTypeId",1);
+        // 需要更新的字段 ，可以允许为null或其他对象类型
+        updateMap.put("creatorName","TF创建人");
+        updateMap.put("modifyTime",new Date());
+        // 使用驼峰字段更新
+        EDb.update(VehicleType.class,updateMap,false);
     }
 
 
