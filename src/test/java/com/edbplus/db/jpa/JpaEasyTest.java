@@ -164,6 +164,11 @@ public class JpaEasyTest extends BaseTest {
         );
     }
 
+    @Test
+    public void testFindByPara(){
+        eDbPro.find(VehicleType.class,"select * from cr_vehicle_type where VEHICLE_TYPE_ID= ? ",1);
+    }
+
 //
 //    /**
 //     * PG 的简单案例

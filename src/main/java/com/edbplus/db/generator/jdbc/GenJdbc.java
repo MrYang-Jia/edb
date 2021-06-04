@@ -171,7 +171,12 @@ public class GenJdbc {
         dp.setMinIdle(minIdle);
         // 最大活动连接数
         dp.setMaxActive(maxActive);
-
+        //
+        dp.setTimeBetweenConnectErrorMillis(60 * 1000);
+        dp.setValidationQuery("select 1");
+        dp.setTestOnBorrow(false);
+        dp.setTestOnReturn(false);
+        dp.setTestWhileIdle(true);
         // 启动数据库连接池对象
         dp.start();
 

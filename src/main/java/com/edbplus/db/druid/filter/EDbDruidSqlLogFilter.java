@@ -22,6 +22,7 @@ import com.alibaba.druid.proxy.jdbc.JdbcParameter;
 import com.alibaba.druid.proxy.jdbc.ResultSetProxy;
 import com.alibaba.druid.proxy.jdbc.StatementProxy;
 import com.alibaba.druid.sql.SQLUtils;
+import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.edbplus.db.util.json.EDbJsonUtil;
@@ -44,11 +45,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EDbDruidSqlLogFilter extends FilterEventAdapter {
 
 
-    // 线程对象
-    public static Map<Long, Integer> connectionMap = new ConcurrentHashMap();
+    /**
+     * 数据库类型 1-mysql,2-pg,3-gp,4-tidb
+     */
+    @Setter
+    private int dbType = 1;
 
-    // 线程最大计数
-    public static Map<Long, Integer> connectionCtMap = new ConcurrentHashMap();
+
 
 
     // 只打印real-sql
@@ -56,34 +59,6 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
     @Getter
     private boolean onlyRealsql = false;
 
-
-    /**
-     * 事务操作累计 -- 便于统计可能未提交的事务数有多少 -- 生产上不建议这么做，因为线程会复用，导致统计的信息有误，需要从另外一个角度来计算，因为mysql有一个问题，就是无法捕捉到是哪一个程序不断产生事务，导致程序因为数据库无响应而崩溃
-     * @param statement
-     */
-    public void addCt(StatementProxy statement){
-        try {
-            Integer connection = connectionMap.get(Thread.currentThread().getId());
-            System.out.println("sid:"+statement.getConnection().hashCode());
-            // 如果是同一个connect
-            if(connection !=null &&  statement.getConnection().hashCode() == connection){
-                // 同一个线程通道，这里主要计算累计未提交的事务数量
-                Integer ct = connectionCtMap.get(Thread.currentThread().getId());
-                ct++;
-                if(ct>3){
-                    System.out.println("=== 事务数:"+ct+" ===");
-                }
-                // 累计+1
-                connectionCtMap.put(Thread.currentThread().getId(),ct);
-            }else{
-                connectionMap.put(Thread.currentThread().getId(),statement.getConnection().hashCode());
-                connectionCtMap.put(Thread.currentThread().getId(),1);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
 
 
@@ -110,8 +85,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try {
             // 更新执行完成后触发
             addLastlLog();
-            // 记录事务累计数
-            addCt(statement);
+
         }catch (Throwable e){
             // 报送错误日志
             sendErrLog(e);
@@ -143,8 +117,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try{
             // 执行查询完成后触发
             addLastlLog();
-            // 记录事务累计数
-            addCt(statement);
+
         }catch (Throwable e){
             // 报送错误日志
             sendErrLog(e);
@@ -176,8 +149,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try {
             // 执行更新指令之后触发
             addLastlLog();
-            // 记录事务累计数
-            addCt(statement);
+
         }catch (Throwable e)
         {
             // 报送错误日志
@@ -207,8 +179,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try {
             // 执行批量命令之后
             addLastlLog();
-            // 记录事务累计数
-            addCt(statement);
+
         }catch (Throwable e)
         {
             // 报送错误日志
@@ -259,7 +230,12 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
             // 参数对象
             Map<Integer, JdbcParameter> lParameters = statement.getParameters();
             // 获取sql
-            String lSql = SQLUtils.formatMySql(statement.getBatchSql());
+            String lSql = null;
+            if(dbType==1){
+                lSql = SQLUtils.formatMySql(statement.getBatchSql());
+            }else{
+                lSql = SQLUtils.format(statement.getBatchSql(), JdbcConstants.POSTGRESQL);
+            }
             StringBuffer sqlLogStr = new StringBuffer();
             Object lO = null;
             String lS = null;
@@ -332,9 +308,9 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
      * 添加最后的日志信息
      */
     public void addLastlLog(){
-        long start = System.currentTimeMillis();
+//        long start = System.currentTimeMillis();
         // 使用该方式较为节省堆积获取的时间
-        StackTraceElement[] stackTraceElements =  (new Throwable()).getStackTrace();
+//        StackTraceElement[] stackTraceElements =  (new Throwable()).getStackTrace();
 //        StackTraceElement[] stackTraceElements =   Thread.currentThread().getStackTrace();
         // 定义堆栈对象字符串
 //        String steStr = "";

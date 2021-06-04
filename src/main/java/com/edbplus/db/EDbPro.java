@@ -18,7 +18,9 @@ package com.edbplus.db;
 import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.CaseInsensitiveMap;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.json.JSONUtil;
 import com.edbplus.db.annotation.EDbSave;
@@ -1610,25 +1612,111 @@ public class EDbPro extends SpringDbPro {
      * @throws SQLException
      */
     protected <M> Page<M> doPaginateByFullSql(Class<M> mClass,Config config, Connection conn, int pageNumber, int pageSize, Boolean isGroupBySql, String totalRowSql, StringBuilder findSql, Object... paras) throws SQLException {
+
         if (pageNumber >= 1 && pageSize >= 1) {
-            // 返回结果列表 -- 返回总数的结果列表
-            List result = this.query(config, conn, totalRowSql, paras);
-            int size = result.size();
+            // 截获 ? 的参数列表
+            List<String> totalParsList =  ReUtil.findAll("\\?",totalRowSql, 0, new ArrayList<String>());
+            // 计算paraSize 总数 (统计语句里的实际 ? 个数)
+            int parasSize = totalParsList.size();
+            // 重新生成统计语句入参个数
+            Object[] totalParas =  null;
+            if(paras.length > 0){
+                totalParas = ArrayUtil.sub(paras,paras.length - parasSize,paras.length);
+            }else{
+                totalParas = new Object[0];
+            }
+            //
+            List pageResult = query(config, conn, totalRowSql, totalParas);
+            // 释放内存
+            totalParas = null;
+            totalParsList = null;
+            // 记录数
+            int size = pageResult.size();
+            // 是否是统计性的语句(如果语句后面出现group , count 时会出现多条)
             if (isGroupBySql == null) {
                 isGroupBySql = size > 1;
             }
-
+            // 总记录数
             long totalRow;
             if (isGroupBySql) {
                 totalRow = (long)size;
             } else {
-                totalRow = size > 0 ? ((Number)result.get(0)).longValue() : 0L;
+                totalRow = size > 0 ? ((Number)pageResult.get(0)).longValue() : 0L;
             }
             // 根据传入的总记录数实现固定分页逻辑
             return doPaginateByFullSql(mClass,config,conn,pageNumber,pageSize,isGroupBySql,totalRow,findSql,paras);
         } else {
             throw new ActiveRecordException("pageNumber and pageSize must more than 0");
         }
+    }
+
+
+    /**
+     * 继承改写sql -- 修正了头部可以携带 ？ 参数
+     * @param config
+     * @param conn
+     * @param pageNumber
+     * @param pageSize
+     * @param isGroupBySql
+     * @param totalRowSql
+     * @param findSql
+     * @param paras
+     * @return
+     * @throws SQLException
+     */
+    @Override
+    protected Page<Record> doPaginateByFullSql(Config config, Connection conn, int pageNumber, int pageSize, Boolean isGroupBySql, String totalRowSql, StringBuilder findSql, Object... paras) throws SQLException {
+        if (pageNumber < 1 || pageSize < 1) {
+            throw new ActiveRecordException("pageNumber and pageSize must more than 0");
+        }
+        if (super.config.getDialect().isTakeOverDbPaginate()) {
+            return super.config.getDialect().takeOverDbPaginate(conn, pageNumber, pageSize, isGroupBySql, totalRowSql, findSql, paras);
+        }
+        // 截获 sql语句里 ？ 参有几个 -- 剔除 '?' 直接赋值的场景
+        List<String> totalParsList =  ReUtil.findAll("\\?",totalRowSql, 0, new ArrayList<String>());
+        // 计算paraSize 总数 (统计语句里的实际 ? 个数)
+        int parasSize = totalParsList.size();
+        // 改写统计与语句里的入参个数
+        Object[] totalParas =  null;
+        //
+        if(paras.length > 0){
+            totalParas = ArrayUtil.sub(paras,paras.length - parasSize,paras.length);
+        }else{
+            totalParas = new Object[0];
+        }
+        //
+        List result = query(config, conn, totalRowSql, totalParas);
+        // 释放对象内存
+        totalParas = null;
+        totalParsList = null;
+        int size = result.size();
+        if (isGroupBySql == null) {
+            isGroupBySql = size > 1;
+        }
+
+        long totalRow;
+        if (isGroupBySql) {
+            totalRow = size;
+        } else {
+            totalRow = (size > 0) ? ((Number)result.get(0)).longValue() : 0;
+        }
+        if (totalRow == 0) {
+            return new Page<Record>(new ArrayList<Record>(0), pageNumber, pageSize, 0, 0);
+        }
+
+        int totalPage = (int) (totalRow / pageSize);
+        if (totalRow % pageSize != 0) {
+            totalPage++;
+        }
+
+        if (pageNumber > totalPage) {
+            return new Page<Record>(new ArrayList<Record>(0), pageNumber, pageSize, totalPage, (int)totalRow);
+        }
+
+        // --------
+        String sql = super.config.getDialect().forPaginate(pageNumber, pageSize, findSql);
+        List<Record> list = find(config, conn, sql, paras);
+        return new Page<Record>(list, pageNumber, pageSize, totalPage, (int)totalRow);
     }
 
     /**
@@ -1681,7 +1769,7 @@ public class EDbPro extends SpringDbPro {
         try {
             conn = this.config.getConnection();
             StringBuilder findSqlBuf = (new StringBuilder()).append(findSql);
-            var9 = this.doPaginateByFullSql(mClass,this.config, conn, pageNumber, pageSize, isGroupBySql, totalRowSql, findSqlBuf, paras);
+            var9 = this.doPaginateByFullSql(mClass,this.config, conn, pageNumber, pageSize, isGroupBySql, totalRowSql, findSqlBuf,0, paras);
         } catch (Exception var13) {
             throw new ActiveRecordException(var13);
         } finally {

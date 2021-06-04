@@ -116,6 +116,24 @@ public class JpaEDbQueryTest extends BaseTest {
     }
 
 
+    @Test
+    public void testPage(){
+        System.out.println(EDb.paginate(1,10,"select *"," from cr_vehicle_type where 1=1 ").getList().get(0));
+
+        EDb.paginate(1,10,"select *,(select VEHICLE_TYPE_ID from cr_vehicle_type where 1=1 and VEHICLE_TYPE_ID = ? limit 1 ) "," from cr_vehicle_type where 1=1 and VEHICLE_TYPE_ID = ? and VEHICLE_TYPE_ID = ? ",2,100,100);
+
+        String sql  = " select tb1.* from (select *,(select VEHICLE_TYPE_ID from cr_vehicle_type where 1=1 and VEHICLE_TYPE_ID = ? limit 1 )  from cr_vehicle_type where 1=1 and VEHICLE_TYPE_ID = ? and VEHICLE_TYPE_ID = ?) as tb1 ";
+        SqlPara sqlPara = EDb.getSqlParaByString(sql);
+        sqlPara.addPara(2);
+        sqlPara.addPara(100);
+        sqlPara.addPara(100);
+        // 以下这种只支持 #para(0) 的写法，不支持 ? 的写法
+//        SqlPara sqlPara = EDb.getSqlParaByString(sql,2,100,100);
+//        System.out.println("para:"+ JSONUtil.toJsonStr(sqlPara.getPara()));
+
+        EDb.paginate(1,10,sqlPara);
+
+    }
 
 
 

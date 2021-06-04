@@ -83,8 +83,15 @@ public class JpaUpdate  extends BaseTest {
         updateMap.put("CREATOR",null);
         updateMap.put("MODIFY_TIME",new Date());
         EDb.update(VehicleType.class,updateMap);
+    }
 
-
+    /**
+     * 方案3 -- 直接更新数据库字段，以驼峰式的字段名进行填充
+     * 相对来说比较推荐该方式，对照下需要更新的字段，然后进行变更
+     */
+    @Test
+    public void testUpdateFunThreeForFieldName(){
+        Map<String,Object> updateMap = new HashMap<>();
         // 重新定义驼峰对象命名(或对象字段命名)赋值
         updateMap = new HashMap<>();
         // 必须指定数据库的主键
@@ -95,6 +102,7 @@ public class JpaUpdate  extends BaseTest {
         // 使用驼峰字段更新
         EDb.update(VehicleType.class,updateMap,false);
     }
+
 
 
     /**
