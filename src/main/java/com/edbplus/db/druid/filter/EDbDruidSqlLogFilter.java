@@ -16,6 +16,7 @@
 package com.edbplus.db.druid.filter;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.filter.FilterEventAdapter;
 import com.alibaba.druid.proxy.jdbc.JdbcParameter;
@@ -52,15 +53,10 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
     private int dbType = 1;
 
 
-
-
     // 只打印real-sql
     @Setter
     @Getter
     private boolean onlyRealsql = false;
-
-
-
 
 
     /**
@@ -231,11 +227,17 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
             Map<Integer, JdbcParameter> lParameters = statement.getParameters();
             // 获取sql
             String lSql = null;
-            if(dbType==1){
-                lSql = SQLUtils.formatMySql(statement.getBatchSql());
-            }else{
-                lSql = SQLUtils.format(statement.getBatchSql(), JdbcConstants.POSTGRESQL);
+            try {
+                if(dbType==1){
+                    lSql = SQLUtils.formatMySql(statement.getBatchSql());
+                }else{
+                    lSql = SQLUtils.format(statement.getBatchSql(), JdbcConstants.POSTGRESQL);
+                }
+            }finally {
+                // 格式化失败时，直接打印最短sql
+                lSql = StrUtil.removeAllLineBreaks(statement.getBatchSql()) ;
             }
+
             StringBuffer sqlLogStr = new StringBuffer();
             Object lO = null;
             String lS = null;

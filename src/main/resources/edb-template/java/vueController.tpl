@@ -61,9 +61,9 @@ public class #(genClass.className)Controller {
             method = {RequestMethod.POST}
     )
     @ResponseBody
-    public DataTablePageResult<#(genClass.className)> paginate(@RequestParam(required = false) Map whereMap,ModelMap map, HttpServletRequest request) {
+    public DataTablePageResult<#(genClass.entityClassName)> paginate(@RequestParam(required = false) Map whereMap,ModelMap map, HttpServletRequest request) {
         // 过滤查询条件，去除空值和设置分页信息（同时过滤最大分页数量）、设置排序条件等
-        WebUtil.filterWhereMap(#(genClass.className).class,"#(genClass.priKeyClassName)",WebUtil.defaultOrerStr,whereMap);
+        WebUtil.filterWhereMap(#(genClass.entityClassName).class,"#(genClass.priKeyClassName)",WebUtil.defaultOrerStr,whereMap);
         // 组合查询条件
         EDbQuery eDbQuery = EDbFilterKit.getQueryForFilter(#(genClass.className).class,whereMap);
         // 查询所有对象时的方法
@@ -81,7 +81,7 @@ public class #(genClass.className)Controller {
     @PostMapping("save")
     @ResponseBody
     @Transactional(rollbackFor=Throwable.class)
-    public ApiResult<#(genClass.className)> save(@RequestBody #(genClass.className) saveObj){
+    public ApiResult<#(genClass.entityClassName)> save(@RequestBody #(genClass.className) saveObj){
         if(saveObj.get#(genClass.priKeyBigClassName)()!=null){
             #(genClass.smallClassName)Service.update(saveObj, ShiroWebUtil.getShiroUser());
         }else{
@@ -100,7 +100,7 @@ public class #(genClass.className)Controller {
     @RequestMapping(value="delete", method = RequestMethod.POST)
     @ResponseBody
     @Transactional(rollbackFor=Throwable.class)
-    public ApiResult<#(genClass.className)> delete(@RequestParam(value = "keyid",defaultValue = "") #(genClass.priKeyJavaType) keyid){
+    public ApiResult<#(genClass.entityClassName)> delete(@RequestParam(value = "keyid",defaultValue = "") #(genClass.priKeyJavaType) keyid){
         #(genClass.smallClassName)Service.deteteById(keyid, ShiroWebUtil.getShiroUser());
         return ApiResult.successMessage("删除成功!");
     }
@@ -114,7 +114,7 @@ public class #(genClass.className)Controller {
     @RequestMapping(value = "batchdelete", method = RequestMethod.POST)
     @ResponseBody
     @Transactional(rollbackFor=Throwable.class)
-    public ApiResult<#(genClass.className)> batchDelete(@RequestParam(value = "ids") String ids) {
+    public ApiResult<#(genClass.entityClassName)> batchDelete(@RequestParam(value = "ids") String ids) {
         if (StringUtils.isNotEmpty(ids)) {
             String[] idsArrays = ids.split(",");
             #(genClass.smallClassName)Service.deteteByIds(idsArrays, ShiroWebUtil.getShiroUser());
@@ -131,7 +131,7 @@ public class #(genClass.className)Controller {
      */
     @PostMapping("get")
     @ResponseBody
-    public ApiResult<#(genClass.className)> get(@RequestParam("id") #(genClass.priKeyJavaType) id) {
+    public ApiResult<#(genClass.entityClassName)> get(@RequestParam("id") #(genClass.priKeyJavaType) id) {
         return ApiResult.success( #(genClass.smallClassName)Service.findById(id));
     }
 
@@ -148,7 +148,7 @@ public class #(genClass.className)Controller {
     public void export( @RequestParam(required = false) Map whereMap,ModelMap map, HttpServletRequest request,
                                       HttpServletResponse response) {
         // 过滤查询条件，去除空值和设置分页信息（同时过滤最大分页数量）、设置排序条件等
-        WebUtil.filterWhereMap(#(genClass.className).class,"#(genClass.priKeyClassName)",WebUtil.defaultOrerStr,whereMap);
+        WebUtil.filterWhereMap(#(genClass.entityClassName).class,"#(genClass.priKeyClassName)",WebUtil.defaultOrerStr,whereMap);
         // 设置查询条件 -- 这里需要指定jpa对象的类型
         EDbQuery eDbQuery = EDbFilterKit.getQueryForFilter(#(genClass.className).class,whereMap);
         // 查询所有对象时的方法 -- 这里指定带有 @Table 注解的对象类型，要与jpa的 @Table 注解一致

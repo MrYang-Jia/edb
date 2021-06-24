@@ -3,7 +3,7 @@ package #(genClass.entityPackageName);
 import java.io.Serializable;
 import lombok.Data;
 import javax.persistence.*;
-import #(genClass.entityPackageName).base.Base#(genClass.className);
+import #(genClass.entityPackageName).base.Base#(genClass.entityClassName);
 
 /**
  * @program: #(genClass.projectName)
@@ -12,7 +12,7 @@ import #(genClass.entityPackageName).base.Base#(genClass.className);
  * @create:#(nowdatetime)
  **/
 @Table(name = "#(genClass.tableName)")
-public class #(genClass.className) extends Base#(genClass.className){
+public class #(genClass.entityClassName) extends Base#(genClass.entityClassName){
 
     // 实现自定义枚举
 

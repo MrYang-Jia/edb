@@ -1,7 +1,7 @@
 package #(genClass.iservicePackageName);
 
 import com.edbplus.db.web.shiro.ShiroUser;
-import #(genClass.entityPackageName).#(genClass.className);
+import #(genClass.entityPackageName).#(genClass.entityClassName);
 import com.edbplus.db.query.EDbQuery;
 import com.jfinal.plugin.activerecord.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,14 +22,14 @@ public interface #(genClass.className)Service  extends Serializable {
      * @param save
      * @return
      */
-    public boolean save(#(genClass.className) save,ShiroUser shiroUser);
+    public boolean save(#(genClass.entityClassName) save,ShiroUser shiroUser);
 
     /**
      * 更新对象
      * @param update -- key 为数据库字段
      * @return
      */
-    public boolean update(#(genClass.className) update,ShiroUser shiroUser);
+    public boolean update(#(genClass.entityClassName) update,ShiroUser shiroUser);
 
 
     /**
@@ -51,7 +51,7 @@ public interface #(genClass.className)Service  extends Serializable {
      * @param id
      * @return
      */
-    public #(genClass.className) findById(#(genClass.priKeyJavaType) id);
+    public #(genClass.entityClassName) findById(#(genClass.priKeyJavaType) id);
 
     /**
      * 分页查询 -- 返回的是 jfinal 的page对象，与spring不是一个体系，主要是db底层以jfinal为主，这方面的只是体系有点冲突

@@ -13,7 +13,7 @@ import java.math.BigDecimal;
  **/
 @Data
 @Table(name = "#(genClass.tableName)")
-public class Base#(genClass.className) implements Serializable{
+public class Base#(genClass.entityClassName) implements Serializable{
 
 #for(x : fields)
 #if("PRI".equals(x.columnKey))

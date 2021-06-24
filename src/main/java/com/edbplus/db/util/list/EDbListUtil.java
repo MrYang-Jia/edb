@@ -15,9 +15,15 @@
  */
 package com.edbplus.db.util.list;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.lang.tree.Tree;
+import cn.hutool.core.lang.tree.TreeNodeConfig;
+import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.json.JSONUtil;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +38,22 @@ import java.util.stream.Collectors;
  **/
 public class EDbListUtil {
 
+    /**
+     * 拷贝转换对象
+     * @param tClass
+     * @param beanList
+     * @param <T>
+     * @return
+     */
+    public static <T> List<T> copyBean(Class<T> tClass,List<?> beanList){
+        List<T> result = null;
+        if(beanList != null){
+            result = (List<T>) beanList.stream().map(p ->{
+                return JSONUtil.toBean(JSONUtil.toJsonStr(p), tClass);
+            }).collect(Collectors.toList());
+        }
+        return result;
+    }
 
     /**
      * 将对应字段转换成 List<T> 列表
@@ -81,6 +103,30 @@ public class EDbListUtil {
         }
         //
         return integerList;
+    }
+
+    /**
+     * 重新加载权限树
+     * @param treeList
+     * @param config
+     */
+    public static <T> List<T> reloadTreeList(List<T> treeList, TreeNodeConfig config,Object rootId){
+        List<Tree<Object>> build = TreeUtil.build(treeList, rootId, config, (object, tree) -> {
+            // 也可以使用 tree.setId(object.getId());等一些默认值
+            Field[] fields = ReflectUtil.getFieldsDirectly(object.getClass(), true);
+            for (Field field : fields) {
+                String fieldName = field.getName();
+                Object fieldValue = ReflectUtil.getFieldValue(object, field);
+                tree.putExtra(fieldName, fieldValue);
+            }
+        });
+        Class clazz = treeList.get(0).getClass();
+        List<T> resultList = new ArrayList<>();
+        //
+        for(Tree<Object> tree : build){
+            resultList.add( (T)BeanUtil.fillBeanWithMap(tree, ReflectUtil.newInstanceIfPossible(clazz), false) );
+        }
+        return resultList;
     }
 
 

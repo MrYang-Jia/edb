@@ -42,6 +42,9 @@ public class GenTable {
     // java类名称
     private String className;
 
+    // 实体java对象类名称
+    private String entityClassName;
+
     // java类名称
     private String smallClassName;
 
@@ -67,8 +70,12 @@ public class GenTable {
 
     // controller层Url
     private String controllerWebUrl;
+
     // controller层Html存放相对路径
     private String controllerHtmlUrl;
+
+    // controller层Html存放相对路径
+    private String controllerHttpUrl;
 
     // controller requestAction 访问路径前缀
     private String actionUrl;
@@ -77,6 +84,8 @@ public class GenTable {
 
     // 包名称
     private String entityPackageName;
+    // 视图对象包名称
+    private String voPackageName;
     // jpa包路径
     private String jpaPackageName;
     // xls对象的包路径
@@ -109,6 +118,9 @@ public class GenTable {
     private Date createTime ;
     // 创建人
     private String creater;
+
+    // 数据传输对象后缀(默认为空)
+    private String dtoSuffix = "";
 
 
     /**

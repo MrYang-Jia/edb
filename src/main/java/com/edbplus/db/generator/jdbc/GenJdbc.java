@@ -86,7 +86,7 @@ public class GenJdbc {
         filedTypeMap.put("bit","Boolean");
         filedTypeMap.put("boolean","Boolean");
 
-        // 兼容pg的相关数据类型 -- 有必须再添加
+        // 兼容pg的相关数据类型 -- 有需要再添加
         filedTypeMap.put("numeric","BigDecimal");
         filedTypeMap.put("bpchar","String");
         filedTypeMap.put("int2","Integer");
@@ -148,6 +148,33 @@ public class GenJdbc {
 
 
     /**
+     * 返回dp对象
+     * @param jdbcUrl
+     * @param userName
+     * @param pwd
+     * @param driverClass
+     * @return
+     */
+    public static DruidPlugin initDruidPlugin(String jdbcUrl,String userName,String pwd,String driverClass){
+        if(driverClass!=null){
+            dp = new DruidPlugin(jdbcUrl, userName, pwd,driverClass);
+        }else {
+            dp = new DruidPlugin(jdbcUrl, userName, pwd);
+        }
+        // 最小空闲连接数
+        dp.setMinIdle(minIdle);
+        // 最大活动连接数
+        dp.setMaxActive(maxActive);
+        //
+        dp.setTimeBetweenConnectErrorMillis(60 * 1000);
+        dp.setValidationQuery("select 1");
+        dp.setTestOnBorrow(false);
+        dp.setTestOnReturn(false);
+        dp.setTestWhileIdle(true);
+        return dp;
+    }
+
+    /**
      * 初始化基于enjoy的数据库连接
      * @param configName
      * @param jdbcUrl
@@ -160,26 +187,11 @@ public class GenJdbc {
      */
     public static void initForEnjoy(String configName,String jdbcUrl,String userName,String pwd,List<String> sqlTplList,List<String> shareSqlTplList,List<Filter> filterList,String driverClass){
 
+        // db对象初始化
+        dp = initDruidPlugin(jdbcUrl,userName,pwd,driverClass);
 
-        if(driverClass!=null){
-            dp = new DruidPlugin(jdbcUrl, userName, pwd,driverClass);
-        }else {
-            dp = new DruidPlugin(jdbcUrl, userName, pwd);
-        }
-
-        // 最小空闲连接数
-        dp.setMinIdle(minIdle);
-        // 最大活动连接数
-        dp.setMaxActive(maxActive);
-        //
-        dp.setTimeBetweenConnectErrorMillis(60 * 1000);
-        dp.setValidationQuery("select 1");
-        dp.setTestOnBorrow(false);
-        dp.setTestOnReturn(false);
-        dp.setTestWhileIdle(true);
         // 启动数据库连接池对象
         dp.start();
-
 
         if(StrKit.isBlank(configName)){
             configName = DbKit.MAIN_CONFIG_NAME;

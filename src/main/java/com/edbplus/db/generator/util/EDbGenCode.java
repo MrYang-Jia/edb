@@ -47,6 +47,8 @@ public class EDbGenCode {
 
     public static EDbPro edbPro;
     
+    public final static String EDbTplRoot = "/edb-template";
+    
     public static EDbPro getEDbPro(){
         if(edbPro==null){
             // 返回EDb默认数据源
@@ -76,20 +78,13 @@ public class EDbGenCode {
         Map<String,Object> tableInfo = new CaseInsensitiveMap(tableRecord.getColumns() );
 
         // 转换成bean对象
-        GenTable genTable = BeanUtil.mapToBean(tableInfo,GenTable.class,false);
-        if(table.getCreater() != null ){
+        //GenTable genTable = BeanUtil.mapToBean(tableInfo,GenTable.class,false);
+        if(table.getCreater() == null ){
             // 回填创建人信息
-            genTable.setCreater(table.getCreater());
-        }else{
-            genTable.setCreater(GenJdbc.creater);
+            table.setCreater(GenJdbc.creater);
         }
-        // 回填项目名称
-        if(table.getProjectName() != null ){
-            genTable.setProjectName(table.getProjectName());
-        }
-        // 必须使用赋值的方式，否则对象传递无法发挥作用，对象内存变化无法指定
-        BeanUtil.copyProperties(genTable,table);
-
+        // 回填数据对象字段信息
+        BeanUtil.fillBeanWithMap(tableInfo,table,false);
 
         List<Record> columns = getEDbPro().find(GenMysql.getTableColumnsSql(tableName));
 
@@ -160,6 +155,9 @@ public class EDbGenCode {
         String preTableName = "";
         String className = "";
         String tableName = table.getTableName();
+        // 表对象实体后缀名称，首字母大写
+        table.setDtoSuffix(StrUtil.upperFirst(table.getDtoSuffix()));
+
         // 去掉第一个下划线表前缀，避免前端暴露表对象全名称
         //tableName = tableName.substring(tableName.indexOf("_")+1,tableName.length());
         // 非空的时候替换
@@ -182,6 +180,9 @@ public class EDbGenCode {
         }
         // 转小驼峰 - 大驼峰的首字母小写即可
         table.setSmallClassName(StringUtils.uncapitalize(table.getClassName()));
+
+        // 实体名称+实体后缀
+        table.setEntityClassName(table.getClassName() + table.getDtoSuffix());
     }
 
 
@@ -253,25 +254,21 @@ public class EDbGenCode {
         // 加载文件路径
         loadEDbEntityUrlAndPackageName(projectUrl,packageName,genClass);
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         EngineUtil engineUtil = new EngineUtil();
         StringBuilder outBaseJavaFile = new StringBuilder()
                 // .append(System.getProperty("user.dir"))
                 .append(genClass.getEntityProjectUrl() + genClass.getEntityPackageUrl() + File.separator + "base"+ File.separator )
                 //.append(File.separator)
                 // 大驼峰
-                .append("Base"+genClass.getClassName()+".java");
+                .append("Base"+genClass.getEntityClassName() +".java");
 
         File baseFile = new File(outBaseJavaFile.toString());
-//        // 已存在则不做任何处理 -- 必须删除后重新创建
-//        if(baseFile.exists()){
-//            System.out.println("===" + baseFile.getName() + "已存在，重新生成，需要删除后重建");
-//            return;
-//        }
+
         // 先渲染baseJpa
         engineUtil.render(baseUrl.getPath(),
                 // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
-                "/edb-template/java/baseJpa.tpl",
+                EDbTplRoot + "/java/baseJpa.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -284,7 +281,7 @@ public class EDbGenCode {
                 .append(genClass.getEntityProjectUrl() + genClass.getEntityPackageUrl())
                 //.append(File.separator)
                 // 大驼峰
-                .append(genClass.getClassName()+".java");
+                .append(genClass.getEntityClassName() +".java");
         File file = new File(outJavaFile.toString());
 
         // 已存在则不做任何处理 -- 必须删除后重新创建
@@ -296,7 +293,7 @@ public class EDbGenCode {
         // 再渲染Jpa
         engineUtil.render(baseUrl.getPath(),
                 // 单独指定，靠上面的传入值只会获取编译后的包的路径，无法取到正确的路径信息
-                "/edb-template/java/jpa.tpl",
+                EDbTplRoot+"/java/jpa.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -328,7 +325,7 @@ public class EDbGenCode {
         loadEDbServiceApiUrlAndServiceApiPackageName(serviceApiProjectUrl,serviceApiPackageName,genClass);
 
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         EngineUtil engineUtil = new EngineUtil();
 
         StringBuilder outJavaFile =  new StringBuilder()
@@ -346,7 +343,7 @@ public class EDbGenCode {
             return;
         }
         engineUtil.render(baseUrl.getPath(),
-                "/edb-template/java/iservice.tpl",
+                EDbTplRoot+"/java/iservice.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -377,7 +374,7 @@ public class EDbGenCode {
         loadEDbXlsUrlAndPackageName(projectUrl,packageName,genClass);
 
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         EngineUtil engineUtil = new EngineUtil();
 
         StringBuilder outJavaFile =  new StringBuilder()
@@ -395,7 +392,7 @@ public class EDbGenCode {
             return;
         }
         engineUtil.render(baseUrl.getPath(),
-                "/edb-template/java/baseXls.tpl",
+                EDbTplRoot+"/java/baseXls.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -428,7 +425,7 @@ public class EDbGenCode {
         loadEDbServiceUrlAndServicePackageName(serviceProjectUrl,servicePackageName,genClass);
 
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         EngineUtil engineUtil = new EngineUtil();
         StringBuilder outJavaFile =   new StringBuilder()
                 // .append(System.getProperty("user.dir"))
@@ -446,7 +443,7 @@ public class EDbGenCode {
         }
 
         engineUtil.render(baseUrl.getPath(),
-                "/edb-template/java/service.tpl",
+                EDbTplRoot+"/java/service.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -486,7 +483,8 @@ public class EDbGenCode {
         String webHtmlUrl = preUrl + "/" + lastUrl.toLowerCase().replaceAll("_","");
         table.setControllerWebUrl(webUrl);
         table.setControllerHtmlUrl(webHtmlUrl);
-
+        // 兼容旧版写法
+        table.setControllerHttpUrl(webHtmlUrl);
     }
 
 
@@ -502,7 +500,7 @@ public class EDbGenCode {
         loadEDbControllerUrlAndControllerPackageName(controllerProjectUrl,controllerPackageName,genClass);
 
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         EngineUtil engineUtil = new EngineUtil();
         StringBuilder outJavaFile =   new StringBuilder()
                 // .append(System.getProperty("user.dir"))
@@ -518,7 +516,7 @@ public class EDbGenCode {
             return;
         }
         engineUtil.render(baseUrl.getPath(),
-                "/edb-template/java/web-controller.tpl",
+                EDbTplRoot+"/java/web-controller.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -540,7 +538,7 @@ public class EDbGenCode {
         loadEDbControllerUrlAndControllerPackageName(controllerProjectUrl,controllerPackageName,genClass);
 
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         EngineUtil engineUtil = new EngineUtil();
         StringBuilder outJavaFile =   new StringBuilder()
                 // .append(System.getProperty("user.dir"))
@@ -556,7 +554,7 @@ public class EDbGenCode {
             return;
         }
         engineUtil.render(baseUrl.getPath(),
-                "/edb-template/java/vueController.tpl",
+                EDbTplRoot+"/java/vueController.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -601,10 +599,10 @@ public class EDbGenCode {
 
         EngineUtil engineUtil = new EngineUtil();
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         // 生成相关的html
         engineUtil.render(baseUrl.getPath(),
-                "/edb-template/web/html/"+htmlPre+"html.tpl",
+                EDbTplRoot+"/web/html/"+htmlPre+"html.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -623,7 +621,7 @@ public class EDbGenCode {
         // 定时action的访问路径 pxxt/demo/sysUserAction actionUrl
         // 定义模块名称 modelName
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         //
         EngineUtil engineUtil = new EngineUtil();
         //
@@ -659,17 +657,11 @@ public class EDbGenCode {
      * @param list
      */
     public static void generatorEDbJs(String htmlPre,String controllerProjectUrl,String controllerPackageName,GenTable genClass, List<GenTableColumn> list){
-
-
-
-
-
         // 实现类
         loadEDbControllerUrlAndControllerPackageName(controllerProjectUrl,controllerPackageName,genClass);
         String controllerUrl = genClass.getControllerProjectUrl();
         int lastIdx = controllerUrl.lastIndexOf("java");
         String webUrl = controllerUrl.substring(0,lastIdx) +"resources" + controllerProjectUrl.substring(lastIdx+4,controllerUrl.length());
-
         StringBuilder outJavaFile = new StringBuilder()
                 // .append(System.getProperty("user.dir"))
                 .append(webUrl)
@@ -692,10 +684,10 @@ public class EDbGenCode {
 
         EngineUtil engineUtil = new EngineUtil();
         // 模板的位置
-        URL baseUrl = EDbGenCode.class.getResource("/edb-template");
+        URL baseUrl = EDbGenCode.class.getResource(EDbTplRoot);
         // 生成相关的js
         engineUtil.render(baseUrl.getPath(),
-                "/edb-template/web/js/"+htmlPre+"js.tpl",
+                EDbTplRoot+"/web/js/"+htmlPre+"js.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
                         .set("nowdatetime", DateUtil.now())
@@ -704,6 +696,51 @@ public class EDbGenCode {
         );
     }
 
+    /**
+     * 初始化脚本参数
+     * @param genClass
+     * @param list
+     * @return
+     */
+    public static Kv initKv(GenTable genClass, List<GenTableColumn> list){
+        return Kv.by("genClass", genClass)
+                .set("fields",list)
+                .set("nowdatetime", DateUtil.now());
+    }
+
+    /**
+     * 模板文件生成类
+     * @param tplRoot
+     * @param tplFileName
+     * @param outFileName
+     * @param kv
+     * @param isOverWrite
+     */
+    public static void generatorObject(String tplRoot,
+                                       String tplFileName,
+                                       String outFileName,
+                                       Kv kv,
+                                       boolean isOverWrite){
+        // 文件位置
+        File file = new File(outFileName);
+        // 是否覆写
+        if(!isOverWrite){
+            // 已存在则不做任何处理 -- 必须删除后重新创建
+            if(file.exists()){
+                System.out.println("===" + file.getName() + "已存在，重新生成，需要删除后重建");
+                return;
+            }
+        }
+        EngineUtil engineUtil = new EngineUtil();
+        // 模板的位置
+        URL baseUrl = EDbGenCode.class.getResource(tplRoot);
+        // 生成文件
+        engineUtil.render(baseUrl.getPath(),
+                tplFileName, // tplFileName 必须包含 根目录(tplRoot)的路径，否则无法正常解析
+                kv,
+                outFileName
+        );
+    }
 
 
     /**

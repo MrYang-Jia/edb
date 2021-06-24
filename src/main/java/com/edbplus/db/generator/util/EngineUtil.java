@@ -31,6 +31,19 @@ import java.io.*;
 @Slf4j
 public class EngineUtil {
 
+    /**
+     * 根据具体模板生成文件
+     * @param templateFileName  模板文件名称
+     * @param kv                渲染参数
+     * @param filePath          输出目录
+     * @return
+     */
+    public static boolean render(String baseTemplatePath, String templateFileName, Kv kv, String filePath)  {
+        //
+        // baseTemplatePath 暂时无用途
+        // 根据路径生成文件
+        return render(templateFileName,kv,filePath,false);
+    }
 
     /**
      * 根据具体模板生成文件
@@ -53,6 +66,17 @@ public class EngineUtil {
      * @param filePath
      * @return
      */
+    public static boolean render(String templateFileName, Kv kv, String filePath)  {
+        return render(templateFileName,kv,filePath,false);
+    }
+
+    /**
+     * 不追加写入生成文件
+     * @param templateFileName
+     * @param kv
+     * @param filePath
+     * @return
+     */
     public static boolean render(String templateFileName, Kv kv, StringBuilder filePath)  {
         return render(templateFileName,kv,filePath,false);
     }
@@ -64,7 +88,7 @@ public class EngineUtil {
      * @param filePath
      * @return
      */
-    public static boolean render(String templateFileName, Kv kv, StringBuilder filePath, boolean isAppend)  {
+    public static boolean render(String templateFileName, Kv kv, String filePath, boolean isAppend)  {
         BufferedWriter output = null;
         PrintWriter pw = null;
         try {
@@ -114,6 +138,17 @@ public class EngineUtil {
         }finally{
             try { if( output != null ) output.close(); } catch (IOException e) {}
         }
+    }
+
+    /**
+     * 根据路径生成文件
+     * @param templateFileName
+     * @param kv
+     * @param filePath
+     * @return
+     */
+    public static boolean render(String templateFileName, Kv kv, StringBuilder filePath, boolean isAppend)  {
+        return render(templateFileName,kv,filePath.toString(),isAppend);
     }
 
 }

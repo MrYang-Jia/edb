@@ -3,7 +3,7 @@ package #(genClass.servicePackageName);
 import com.edbplus.db.web.shiro.ShiroUser;
 import com.edbplus.db.web.util.OperationUtil;
 import #(genClass.iservicePackageName).#(genClass.className)Service;
-import #(genClass.entityPackageName).#(genClass.className);
+import #(genClass.entityPackageName).#(genClass.entityClassName);
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.edbplus.db.EDbPro;
@@ -35,7 +35,7 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
      * @return
      */
     @Transactional(rollbackFor=Throwable.class)
-    public boolean save(#(genClass.className) saveObj,ShiroUser shiroUser){
+    public boolean save(#(genClass.entityClassName) saveObj,ShiroUser shiroUser){
         // 加载操作人信息
         OperationUtil.loadJpa(saveObj,shiroUser);
         // 保存信息
@@ -47,7 +47,7 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
      * @param id
      * @return
      */
-    public #(genClass.className) findById(#(genClass.priKeyJavaType) id){
+    public #(genClass.entityClassName) findById(#(genClass.priKeyJavaType) id){
         // 根据id查询对象
         return eDbPro.findById(#(genClass.className).class,id);
     }
@@ -59,7 +59,7 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
      * @return
      */
     @Transactional(rollbackFor=Throwable.class)
-    public boolean update(#(genClass.className) update,ShiroUser shiroUser){
+    public boolean update(#(genClass.entityClassName) update,ShiroUser shiroUser){
         // 保存操作人信息
         OperationUtil.loadJpa(update,shiroUser);
         // 更新信息
@@ -82,7 +82,7 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
     #end
     #if(isRemove)
         // 逻辑删除操作
-        #(genClass.className) update = new #(genClass.className)();
+        #(genClass.entityClassName) update = new #(genClass.entityClassName)();
         // 设置唯一主键
         update.set#(genClass.priKeyBigClassName)(id);
         // 将该记录标记为逻辑删除，并记录操作人信息
@@ -91,7 +91,7 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
         return eDbPro.update(update);
     #else
         // 根据id删除一条记录
-        return eDbPro.deleteById(#(genClass.className).class,id);
+        return eDbPro.deleteById(#(genClass.entityClassName).class,id);
     #end
     }
 
@@ -110,10 +110,10 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
         #end
     #end
     #if(isRemove)
-    #(genClass.className) update = new #(genClass.className)();
+    #(genClass.entityClassName) update = new #(genClass.entityClassName)();
     List<#(genClass.className)> list = new ArrayList<>();
     for(String id:idsArray){
-        update = new #(genClass.className)();
+        update = new #(genClass.entityClassName)();
         #if(genClass.priKeyJavaType.equals("String"))
         // 设置唯一主键
         update.set#(genClass.priKeyBigClassName)(id);
@@ -126,9 +126,9 @@ public class #(genClass.className)ServiceImpl  implements #(genClass.className)S
         list.add(update);
     }
     // 执行结果
-    return eDbPro.batchUpdate(#(genClass.className).class,list,1000);
+    return eDbPro.batchUpdate(#(genClass.entityClassName).class,list,1000);
     #else
-        return new int[]{eDbPro.deleteByIds(#(genClass.className).class, Arrays.asList(idsArray))};
+        return new int[]{eDbPro.deleteByIds(#(genClass.entityClassName).class, Arrays.asList(idsArray))};
     #end
     }
 
