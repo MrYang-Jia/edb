@@ -28,8 +28,8 @@ public class BaseTest {
     String jdbcUrl = "jdbc:mysql://192.168.1.106:13306/tra_log?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&useCompression=true";
     String userName = "root";
     String pwd = "dev-whbj@WHBJ";
-
-    String jdbcUrl2 = "jdbc:postgresql://192.168.1.208:15432/xzwpro?currentSchema=public&reWriteBatchedInserts=true";
+    // 测试库
+    String jdbcUrl2 = "jdbc:postgresql://192.168.1.208:15432/tra_log?currentSchema=public&reWriteBatchedInserts=true";
     // 账号
     String userName2 = "postgres";
     String pwd2 = "whbj123456";
