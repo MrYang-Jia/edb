@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.edbplus.db.jpa.column;
+package com.edbplus.db.util.hutool.number;
 
-import com.edbplus.db.dto.FieldAndColumn;
-import com.edbplus.db.jpa.JpaAnnotationUtil;
-import com.edbplus.db.jpa.column.jpa.DemoUser;
-import org.testng.annotations.Test;
-
-import java.util.List;
+import cn.hutool.core.util.NumberUtil;
 
 /**
- * @ClassName ColumnTest
- * @Description: //todo
+ * @ClassName ENumberUtil
+ * @Description: 扩展 hutool NumberUtil对象
  * @Author 杨志佳
- * @Date 2021/4/25
+ * @Date 2021/7/1
  * @Version V1.0
  **/
-public class ColumnTest {
-
-    @Test
-    public void getColumns(){
-        List<FieldAndColumn> columns  = JpaAnnotationUtil.getCoumns(DemoUser.class);
-        System.out.println(columns.get(0).getColumn().name().equalsIgnoreCase("name"));
-    }
+public class ENumberUtil extends NumberUtil {
 }

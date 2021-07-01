@@ -1,13 +1,13 @@
 package com.edbplus.db.jpa;
 
 
-import cn.hutool.core.util.ReUtil;
-import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.jpa.model.CrVehicleType;
 import com.edbplus.db.jpa.model.CrVehicleTypeModeRel;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.edbplus.db.util.hutool.rul.EReUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.template.Engine;
 import com.jfinal.template.Template;
@@ -40,10 +40,10 @@ public class JpaRelTest extends BaseTest {
     @Test
     public void testAllRel(){
         CrVehicleTypeModeRel crVehicleTypeModeRel = eDbPro.findById(CrVehicleTypeModeRel.class,1);
-        System.out.println("当前对象信息:"+JSONUtil.toJsonStr(crVehicleTypeModeRel));
+        System.out.println("当前对象信息:"+ EJSONUtil.toJsonStr(crVehicleTypeModeRel));
         // 查询该对象的所有关联对象信息
         eDbPro.getAllRel(crVehicleTypeModeRel);
-        System.out.println("当前对象信息已扩展关联对象信息:"+JSONUtil.toJsonStr(crVehicleTypeModeRel));
+        System.out.println("当前对象信息已扩展关联对象信息:"+EJSONUtil.toJsonStr(crVehicleTypeModeRel));
     }
 
 
@@ -127,11 +127,11 @@ public class JpaRelTest extends BaseTest {
 
         assert  crVehicleTypeModeRels.size() > 0 : "异步获取数据失败！！！请检查是否是数据库本身没有数据，还是本身逻辑漏洞";
         //
-        System.out.println(JSONUtil.toJsonStr(crVehicleTypeModeRels.get(1).getCrVehicleType()));
-        System.out.println(JSONUtil.toJsonStr(crVehicleTypeModeRels.get(1).getCrVehicleTypeMode()));
+        System.out.println(EJSONUtil.toJsonStr(crVehicleTypeModeRels.get(1).getCrVehicleType()));
+        System.out.println(EJSONUtil.toJsonStr(crVehicleTypeModeRels.get(1).getCrVehicleTypeMode()));
         //
         assert  otherModelRels.size() > 0 : "异步获取数据失败！！！请检查是否是数据库本身没有数据，还是本身逻辑漏洞";
-        System.out.println(JSONUtil.toJsonStr(otherModelRels.get(1).getDelCrVehicleType()));
+        System.out.println(EJSONUtil.toJsonStr(otherModelRels.get(1).getDelCrVehicleType()));
     }
 
     @Test
@@ -140,7 +140,7 @@ public class JpaRelTest extends BaseTest {
         String str = "and VEHICLE_TYPE_MODE_ID = #( VEHICLE_TYPE_MODE_ID ) #测试卡点) \n and VEHICLE_TYPE_ID = #(VEHICLE_TYPE_ID) and IS_DEL = 1 and (1=1) ";
 
 //        List<String> results =  ReUtil.findAll("(#\\(){1}(.*?)(\\){1})",str,0);
-        List<String> results =  ReUtil.findAll("#\\(([^#\\(]*)\\)",str,0);
+        List<String> results =  EReUtil.findAll("#\\(([^#\\(]*)\\)",str,0);
         for(String regStr:results) {
             System.out.println("匹配："+regStr);
 

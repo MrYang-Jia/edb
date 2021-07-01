@@ -1,12 +1,12 @@
 package com.edbplus.db.jfinal.activerecord.db;
 
-import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jpa.VehicleType;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
 import com.edbplus.db.generator.jdbc.GenJdbc;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -53,7 +53,7 @@ public class EDbQueryTest {
         list.add(200);
         EDbQuery eDbQuery = new EDbQuery();
         // 结果集只有200的数据
-        System.out.println(JSONUtil.toJsonStr(EDb.paginate(VehicleType.class,1,10,eDbQuery)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.paginate(VehicleType.class,1,10,eDbQuery)));
 
         // 假如只打印 VEHICLE_TYPE_ID,CREATOR 字段
         eDbQuery.fields(" VEHICLE_TYPE_ID,CREATOR ");
@@ -74,7 +74,7 @@ public class EDbQueryTest {
         SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(VehicleType.class,eDbQuery);
 
         // 结果集只有200的数据
-        System.out.println(JSONUtil.toJsonStr(EDb.find(VehicleType.class,sqlPara)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.find(VehicleType.class,sqlPara)));
 
         // 假设数据库只有1条 创建人-0 的数据，而它的 VEHICLE_TYPE_ID = 100 ，则会重新添加回来
         eDbQuery.orCom().and(new EDbFilter("CREATOR", EDbFilter.Operator.eq, "创建人-0"));
@@ -84,9 +84,9 @@ public class EDbQueryTest {
         sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(VehicleType.class,eDbQuery);
 
 //        System.out.println(sqlPara.getSql());
-//        System.out.println(JSONUtil.toJsonStr(sqlPara.getPara()));
+//        System.out.println(EJSONUtil.toJsonStr(sqlPara.getPara()));
         // 结果会发现都包含了100 和 200 的数据
-        System.out.println(JSONUtil.toJsonStr(EDb.find(VehicleType.class,sqlPara)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.find(VehicleType.class,sqlPara)));
 
 
 

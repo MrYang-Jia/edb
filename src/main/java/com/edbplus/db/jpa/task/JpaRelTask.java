@@ -15,9 +15,9 @@
  */
 package com.edbplus.db.jpa.task;
 
-import cn.hutool.core.util.ReflectUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.util.EDbPageUtil;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 
@@ -73,7 +73,7 @@ public class JpaRelTask implements Callable<Object> {
             object = EDbPageUtil.returnSpringPage(jfinalPage);
         }
         // 字段赋值 -- 反射赋值会比较消耗毫秒数
-        ReflectUtil.setFieldValue(oriJpa, field, object);
+        EReflectUtil.setFieldValue(oriJpa, field, object);
         return object;
     }
 

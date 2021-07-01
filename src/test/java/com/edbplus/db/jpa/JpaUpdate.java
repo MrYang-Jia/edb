@@ -1,8 +1,8 @@
 package com.edbplus.db.jpa;
 
-import cn.hutool.core.bean.BeanUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.util.hutool.bean.EBeanUtil;
 import org.testng.annotations.Test;
 
 import java.util.Date;
@@ -56,7 +56,7 @@ public class JpaUpdate  extends BaseTest {
         // 定义一个新的变量
         VehicleType oldVehicleType = new VehicleType();
         // 记录之前的记录结果集
-        BeanUtil.copyProperties(vehicleType,oldVehicleType);
+        EBeanUtil.copyProperties(vehicleType,oldVehicleType);
 
         // 执行相关记录的更新变更
         // 这里由于用了对比更新，所以对象是可以重置为 null 的

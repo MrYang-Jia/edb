@@ -119,7 +119,7 @@ package com.edbplus.db.jpa.proxy;
 //                        field = ReflectUtil.getField(jpa.getClass(),key);
 //                    }
 //                    // 获取字段上的column注解，便于获取到真是的 数据库字段名称
-//                    Column column =  AnnotationUtil.getAnnotation(field, Column.class);
+//                    Column column =  EAnnotationUtil.getAnnotation(field, Column.class);
 //                    //
 //                    if(column != null){
 //                        // 赋予数据字段变更的map对象

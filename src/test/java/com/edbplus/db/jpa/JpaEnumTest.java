@@ -15,17 +15,14 @@
  */
 package com.edbplus.db.jpa;
 
-import cn.hutool.core.util.ReflectUtil;
-import com.alibaba.fastjson.JSON;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
-import com.edbplus.db.jpa.model.base.BaseCrVehicleTypeForBoolean;
 import com.edbplus.db.jpa.model.base.BaseCrVehicleTypeForEnum;
 import com.edbplus.db.jpa.model.modelEnum.CreaterEnum;
 import com.edbplus.db.jpa.model.modelEnum.DeleteEnumValue;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import org.testng.annotations.Test;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -65,7 +62,7 @@ public class JpaEnumTest extends BaseTest {
         DeleteEnumValue deleteEnumValue = DeleteEnumValue.ISDELETE;
 //        System.out.println(deleteEnumValue.ordinal());
 //        List<Object> types = EnumUtil.getFieldValues(DeleteEnumValue.class, "ISDELETE");
-        Method method = ReflectUtil.getMethod(DeleteEnumValue.class, "getValue");
+        Method method = EReflectUtil.getMethod(DeleteEnumValue.class, "getValue");
         if(method!=null){
             // 执行方法
             try {

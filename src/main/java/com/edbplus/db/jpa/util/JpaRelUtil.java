@@ -15,9 +15,6 @@
  */
 package com.edbplus.db.jpa.util;
 
-import cn.hutool.core.util.PageUtil;
-import cn.hutool.core.util.ReUtil;
-import cn.hutool.core.util.ReflectUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.annotation.EDbRel;
@@ -28,6 +25,9 @@ import com.edbplus.db.jpa.pip.JpaRelPip;
 import com.edbplus.db.proxy.EDbRelProxy;
 import com.edbplus.db.jpa.task.JpaRelTask;
 import com.edbplus.db.util.EDbPageUtil;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
+import com.edbplus.db.util.hutool.rul.EReUtil;
+import com.edbplus.db.util.hutool.web.EPageUtil;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
@@ -91,7 +91,7 @@ public class JpaRelUtil {
 
         if(pageNo!=null && pageSize!=null){
             // jfinal 分页默认从1开始，hutool默认从0开始，所以默认减1
-            startEnd = PageUtil.transToStartEnd(pageNo - 1, pageSize);
+            startEnd = EPageUtil.transToStartEnd(pageNo - 1, pageSize);
             // 从什么位置开始
             offset = startEnd[0];
             // 每页页数
@@ -210,7 +210,7 @@ public class JpaRelUtil {
                                     object = EDbPageUtil.returnSpringPage(jfinalPage);
                                 }
                                 // 字段赋值 -- 反射赋值会比较消耗毫秒数
-                                ReflectUtil.setFieldValue(oriJpa,fieldAndRel.getField(),object);
+                                EReflectUtil.setFieldValue(oriJpa,fieldAndRel.getField(),object);
                             }
 
                             if( relKey !=null || typeName != null){
@@ -248,7 +248,7 @@ public class JpaRelUtil {
                             }else{
                                 object = eDbPro.findFirst(entityClass, sqlPara);
                                 // 字段赋值 -- 反射赋值会比较消耗毫秒数
-                                ReflectUtil.setFieldValue(oriJpa, fieldAndRel.getField(), object);
+                                EReflectUtil.setFieldValue(oriJpa, fieldAndRel.getField(), object);
                             }
                             if( relKey!=null || typeName != null){
                                 // 如果是有异步指定，则必须获得指定结果后再退出循环
@@ -336,7 +336,7 @@ public class JpaRelUtil {
         // 拼接的sql
         String appendSql = eDbRel.appendSql();
         //
-        List<String> results =  ReUtil.findAll("(#\\(){1}(.*?)(\\){1})",appendSql,0);
+        List<String> results =  EReUtil.findAll("(#\\(){1}(.*?)(\\){1})",appendSql,0);
         // 字段名称
         String columnName = "";
         //
@@ -424,7 +424,7 @@ public class JpaRelUtil {
         // 拼接的sql
         String appendSql = eDbRel.appendSql();
         //
-        List<String> results =  ReUtil.findAll("(#\\(){1}(.*?)(\\){1})",appendSql,0);
+        List<String> results =  EReUtil.findAll("(#\\(){1}(.*?)(\\){1})",appendSql,0);
         // 字段名称
         String fieldColumnName = "";
         //

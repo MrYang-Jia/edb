@@ -1,6 +1,6 @@
 package com.edbplus.thread;
 
-import cn.hutool.core.date.DateUtil;
+import com.edbplus.db.util.hutool.date.EDateUtil;
 import org.testng.annotations.Test;
 
 import java.util.Date;
@@ -12,7 +12,7 @@ public class ThreadTest {
 
     @Test
     public void test1(){
-        System.out.println(DateUtil.format(new Date(),"mm"));
+        System.out.println(EDateUtil.format(new Date(),"mm"));
     }
 
     public static ExecutorService fixedThreadPool =

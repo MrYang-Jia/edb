@@ -1,11 +1,11 @@
 package com.edbplus.db.jfinal.activerecord.db.base;
 
-import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.filter.Filter;
 import com.edbplus.db.EDb;
 import com.edbplus.db.druid.filter.EDbDruidSqlLogFilter;
 import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.jpa.VehicleType;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.log.EDbLogUtil;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -168,11 +168,11 @@ public class BaseTest {
             vehicleType.setCreatorName("小陈陈");
             // 如果有多个数据库，可以用 EDb.use("数据库标识1") 指定
             EDb.save(vehicleType);
-            System.out.println("对象1:"+JSONUtil.toJsonStr(EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId())));
+            System.out.println("对象1:"+ EJSONUtil.toJsonStr(EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId())));
             return false;
         });
         //
-       System.out.println("对象2:"+JSONUtil.toJsonStr(EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId())));
+       System.out.println("对象2:"+EJSONUtil.toJsonStr(EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId())));
 
         EDb.use("xzw").txInNewThread(Connection.TRANSACTION_SERIALIZABLE, () -> {
             EDb.use("xzw").find(" select * from app_activity limit 1 ");

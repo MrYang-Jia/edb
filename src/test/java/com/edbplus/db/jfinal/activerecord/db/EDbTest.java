@@ -1,17 +1,14 @@
 package com.edbplus.db.jfinal.activerecord.db;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.jpa.VehicleType;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.jfinal.activerecord.db.vo.VehicleTypeVo;
-import com.jfinal.plugin.activerecord.Db;
+import com.edbplus.db.util.hutool.bean.EBeanUtil;
+import com.edbplus.db.util.hutool.http.EHttpUtil;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.apache.lucene.util.RamUsageEstimator;
@@ -42,7 +39,7 @@ public class EDbTest extends BaseTest {
     public void testJpaForFindById(){
         Long start = System.currentTimeMillis();
         VehicleType vehicleType = EDb.findById(VehicleType.class,100);
-        System.out.println("原数值:" + JSONUtil.toJsonStr(vehicleType));
+        System.out.println("原数值:" + EJSONUtil.toJsonStr(vehicleType));
         System.out.println(System.currentTimeMillis() - start);
     }
 
@@ -53,7 +50,7 @@ public class EDbTest extends BaseTest {
     public void testJpaUpdate(){
         Long start = System.currentTimeMillis();
         VehicleType vehicleType = EDb.findById(VehicleType.class,100);
-        System.out.println("原数值:" + JSONUtil.toJsonStr(vehicleType));
+        System.out.println("原数值:" + EJSONUtil.toJsonStr(vehicleType));
         System.out.println(System.currentTimeMillis() - start);
         String updateStr = "_变更";
         if(vehicleType.getVehicleTypeName().contains(updateStr)){
@@ -69,7 +66,7 @@ public class EDbTest extends BaseTest {
         // 车辆类型
         vehicleType = EDb.use().findById(VehicleType.class,100);
         // 查看更变情况
-        System.out.println("变更值:" +JSONUtil.toJsonStr(vehicleType));
+        System.out.println("变更值:" +EJSONUtil.toJsonStr(vehicleType));
         System.out.println(System.currentTimeMillis() - start);
     }
 
@@ -118,7 +115,7 @@ public class EDbTest extends BaseTest {
         // 获取返回 N 条记录的sql模板 -- 可指定不同的数据库使用不同的数据库模板
         SqlPara sqlPara = EDb.use().getSqlPara("test.findForLimit", 2);
         System.out.println(sqlPara.getSql());
-        System.out.println(JSONUtil.toJsonStr(EDb.use().find(VehicleType.class,sqlPara)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.use().find(VehicleType.class,sqlPara)));
 
     }
 
@@ -134,9 +131,9 @@ public class EDbTest extends BaseTest {
         //
         VehicleTypeVo vehicleTypeVo =new VehicleTypeVo();
         // 对象拷贝赋值
-        BeanUtil.copyProperties(vehicleType,vehicleTypeVo);
+        EBeanUtil.copyProperties(vehicleType,vehicleTypeVo);
         // 打印赋值情况
-        System.out.println(JSONUtil.toJsonStr(vehicleTypeVo));
+        System.out.println(EJSONUtil.toJsonStr(vehicleTypeVo));
         // 更新vo 会报异常，以此检测不会较差感染
 //        EDb.use().update(vehicleTypeVo);
     }
@@ -255,7 +252,7 @@ public class EDbTest extends BaseTest {
         ids.add(100);
         ids.add(200);
         //
-        System.out.println(JSONUtil.toJsonStr(EDb.use().findByIds(VehicleType.class,ids)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.use().findByIds(VehicleType.class,ids)));
 
     }
 
@@ -276,7 +273,7 @@ public class EDbTest extends BaseTest {
 
         // 获取唯一记录抛错记录
         vehicleType = EDb.findOnlyOne(VehicleType.class," select * from  cr_vehicle_type ");
-        System.out.println(JSONUtil.toJsonStr(vehicleType));
+        System.out.println(EJSONUtil.toJsonStr(vehicleType));
     }
 
 
@@ -302,10 +299,10 @@ public class EDbTest extends BaseTest {
 
         long start = System.currentTimeMillis();
         // 根据 query 封装，返回数据
-        System.out.println(JSONUtil.toJsonStr(EDb.find(VehicleType.class,eDbQuery)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.find(VehicleType.class,eDbQuery)));
         System.out.println(System.currentTimeMillis() - start);
         // 根据 query 封装，返回数据
-        System.out.println(JSONUtil.toJsonStr(EDb.paginate(VehicleType.class,1,10,eDbQuery)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.paginate(VehicleType.class,1,10,eDbQuery)));
 
 
 
@@ -360,10 +357,10 @@ public class EDbTest extends BaseTest {
         vehicleType.setModifier("修改人变更");
         vehicleType.setCreatorName(null);
         System.out.println(RamUsageEstimator.sizeOf(vehicleType));
-        System.out.println(JSONUtil.toJsonStr(vehicleType));
+        System.out.println(EJSONUtil.toJsonStr(vehicleType));
        // System.out.println(RamUsageEstimator.sizeOf(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid())));
         // 通过当前线程获取到对象的原始值
-       // System.out.println("当前线程" + JSONUtil.toJsonStr(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid())));
+       // System.out.println("当前线程" + EJSONUtil.toJsonStr(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid())));
 
      //   Map<String,Object> data = JpaBuilder.contrastObjReturnColumnMap(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid()),vehicleType);
 
@@ -376,7 +373,7 @@ public class EDbTest extends BaseTest {
                 // 赋予新的线程
                 //JpaBuilder.threadLocal.get().put(oVehicleType,oVehicleType);
                 // 这个例子是说明静态的线程对象，在新的线程里是不会存在的
-       //         System.out.println("新的线程能否获取到:" + JSONUtil.toJsonStr(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid())));
+       //         System.out.println("新的线程能否获取到:" + EJSONUtil.toJsonStr(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid())));
             }
         });
 
@@ -407,7 +404,7 @@ public class EDbTest extends BaseTest {
                             // 线程查询
                             VehicleType vehicleType = EDb.findFirst(VehicleType.class,"select * from  cr_vehicle_type ");
                             // 这个例子是说明静态的线程对象，在新的线程里是不会存在的
-                        //    System.out.println("新的线程能否获取到:" + JSONUtil.toJsonStr(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid())));
+                        //    System.out.println("新的线程能否获取到:" + EJSONUtil.toJsonStr(JpaBuilder.threadLocal.get().get(vehicleType.getEdb_Uuid())));
 //                            System.out.println("当前线程临时存储的对象个数："+ JpaBuilder.threadLocal.get().size());
                             return true;
                         }
@@ -438,8 +435,8 @@ public class EDbTest extends BaseTest {
                     Map<String, Object> map = new HashMap<>();//存放参数
                     map.put("page", 1);
                     map.put("limit", 20);
-//发送post请求并接收响应数据
-                    String result = HttpUtil.createPost(url).form(map).execute().body();
+                    //发送post请求并接收响应数据
+                    String result = EHttpUtil.createPost(url).form(map).execute().body();
                     System.out.println("耗时:"+(System.currentTimeMillis() - start));
                 }
             });

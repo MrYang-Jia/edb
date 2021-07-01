@@ -15,13 +15,12 @@
  */
 package com.edbplus.db.jpa;
 
-import cn.hutool.core.annotation.AnnotationUtil;
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.CaseInsensitiveMap;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
+import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
+import com.edbplus.db.util.hutool.str.EStrUtil;
 
 import javax.persistence.Column;
 import javax.persistence.Table;
@@ -145,7 +144,7 @@ public class JpaBuilder  {
                 }
                 // 这里需要转换成驼峰写法，便于copyBean ，先转小写的目的是因为有些db的标准是大写，正常默认应该是统一小写，但为了适应所以统一转小写再驼峰
                 // 如果column的字段和驼峰的字段重叠了，也没关系，可以复合到对象上
-                attrs.put( StrUtil.toCamelCase(labelNames[i].toLowerCase()), value);
+                attrs.put( EStrUtil.toCamelCase(labelNames[i].toLowerCase()), value);
             }
             // 填充bean对象 -- 忽略对象大小写，可以填充aGe age 等语法
 //            BeanUtil.fillBeanWithMapIgnoreCase(attrs, ar, false);
@@ -173,7 +172,7 @@ public class JpaBuilder  {
 //                result.add((T)ar);
 //            }
 
-//            Field field = ReflectUtil.getField(beanClass,"oldBean");
+//            Field field = EReflectUtil.getField(beanClass,"oldBean");
 
             // 2020-10-21 沟通需求后，发现实现协助用户记录数据的初始值意义不大
             // 方案2 通过，jpa继承实现一个固定的属性字段来承载旧的数据对象，便于比较 新 旧 对象，而不使用缓存空间的技术栈来完成相应的工作
@@ -188,7 +187,7 @@ public class JpaBuilder  {
 //                    uuid = UUID.randomUUID().toString();
 //                    Object newAr = beanClass.newInstance();
 //                    // 设置原对象的UUID，便于标识
-//                    ReflectUtil.setFieldValue(ar,originalField,uuid);
+//                    EReflectUtil.setFieldValue(ar,originalField,uuid);
 //                    // 拷贝新对象 -- 预留原始值
 //                    BeanUtil.copyProperties(ar,newAr,false);
 //                    // 设置对象初始值
@@ -302,7 +301,7 @@ public class JpaBuilder  {
     public static Map<String,Object> contrastObjReturnColumnMap(Object oldBean, Object newBean) {
         Map<String,Object> updateMap = new HashMap<>();
         // 通过反射获取类的类类型及字段属性
-        Field[] fields = ReflectUtil.getFields(oldBean.getClass());
+        Field[] fields = EReflectUtil.getFields(oldBean.getClass());
         Object o1 ;
         Object o2 ;
         int i = 1;
@@ -312,12 +311,12 @@ public class JpaBuilder  {
             if ("serialVersionUID".equals(field.getName())) {
                 continue;
             }
-            o1 = ReflectUtil.getFieldValue(oldBean,field);
-            o2 = ReflectUtil.getFieldValue(newBean,field);
+            o1 = EReflectUtil.getFieldValue(oldBean,field);
+            o2 = EReflectUtil.getFieldValue(newBean,field);
             //
             if(o1 != o2){
                 //
-                column =  AnnotationUtil.getAnnotation(field, Column.class);
+                column =  EAnnotationUtil.getAnnotation(field, Column.class);
                 if(column != null ){
                     // 赋予新的变更值
                     updateMap.put(column.name().toLowerCase(),o2);

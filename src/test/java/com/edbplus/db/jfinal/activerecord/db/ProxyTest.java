@@ -1,20 +1,14 @@
 package com.edbplus.db.jfinal.activerecord.db;
 
-//import cn.hutool.core.util.ReflectUtil;
-//import com.edb.cloud.jfinal.activerecord.db.jpa.proxy.JpaProxy;
-//import com.edb.cloud.jfinal.activerecord.db.jpa.VehicleType;
-//import org.testng.annotations.Test;
-//
-//import java.lang.reflect.Field;
 
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.jpa.model.CrVehicleType;
 import com.edbplus.db.jpa.model.CrVehicleTypeModeRel;
 import com.edbplus.db.proxy.EDbRelProxy;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -57,7 +51,7 @@ public class ProxyTest extends BaseTest {
 //        System.out.println(jpaVo.getClass());
 //
 //        // CGLIB$$
-//        Field[] fields = ReflectUtil.getFields(jpaVo.getClass());
+//        Field[] fields = EReflectUtil.getFields(jpaVo.getClass());
 //        for(Field field:fields){
 //            System.out.println(field.getName());
 //        }
@@ -91,8 +85,8 @@ public class ProxyTest extends BaseTest {
         System.out.println("==>xxx"+crVehicleTypeModeRelProxy.getClass().getSimpleName().indexOf("$$Enhancer"));
 
 
-        System.out.println("==>"+ JSONUtil.toJsonStr(crVehicleTypeModeRelProxy.getCrVehicleType()));
-        System.out.println("==>"+ JSONUtil.toJsonStr(crVehicleTypeModeRel.getCrVehicleType()));
+        System.out.println("==>"+ EJSONUtil.toJsonStr(crVehicleTypeModeRelProxy.getCrVehicleType()));
+        System.out.println("==>"+ EJSONUtil.toJsonStr(crVehicleTypeModeRel.getCrVehicleType()));
         System.out.println(System.currentTimeMillis() - start);
         start =  System.currentTimeMillis();
 
@@ -101,8 +95,8 @@ public class ProxyTest extends BaseTest {
         EDbRelProxy crEDbRelProxy = new EDbRelProxy();
         CrVehicleType jpaCrVehicleType = crEDbRelProxy.createProcy(crVehicleType,eDbPro);
 
-        System.out.println("==>"+ JSONUtil.toJsonStr(jpaCrVehicleType.getCrVehicleTypeModesRel()));
-        System.out.println("==>"+ JSONUtil.toJsonStr(crVehicleType.getCrVehicleTypeModesRel()));
+        System.out.println("==>"+ EJSONUtil.toJsonStr(jpaCrVehicleType.getCrVehicleTypeModesRel()));
+        System.out.println("==>"+ EJSONUtil.toJsonStr(crVehicleType.getCrVehicleTypeModesRel()));
 
         System.out.println(System.currentTimeMillis() - start);
     }
@@ -156,7 +150,7 @@ public class ProxyTest extends BaseTest {
     @Test
     public void test(){
         CrVehicleType crVehicleType = new CrVehicleType();
-        Field[] fields = ReflectUtil.getFields(crVehicleType.getClass());
+        Field[] fields = EReflectUtil.getFields(crVehicleType.getClass());
         PropertyDescriptor pd = null;
         try {
             pd = new PropertyDescriptor(fields[0].getName(), crVehicleType.getClass());

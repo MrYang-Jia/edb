@@ -4,14 +4,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.json.JSONUtil;
 import com.edbplus.db.annotation.EDbSave;
 import com.edbplus.db.annotation.EDbUpdate;
 import com.edbplus.db.dto.FieldAndColumn;
 
 import javax.persistence.*;
 import com.edbplus.db.jpa.model.base.BaseVehicleType;
+import com.edbplus.db.util.hutool.date.EDateUtil;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
 
 /**
  * @program: dac
@@ -38,7 +38,7 @@ public class VehicleType extends BaseVehicleType{
         if(saveMap.get("MODIFY_tiME")== null){
             saveMap.put("MODIFY_TIME",new Date());
         }
-        System.out.println("执行 @EDbSave 后："+ JSONUtil.toJsonStr(saveMap));
+        System.out.println("执行 @EDbSave 后："+ EJSONUtil.toJsonStr(saveMap));
     }
 
     /**
@@ -54,9 +54,9 @@ public class VehicleType extends BaseVehicleType{
         }else
         {
             // + 5秒
-            updateMap.put("MODIFY_TIME", DateUtil.offsetSecond((Date) updateMap.get("MODIFY_TIME"),5));
+            updateMap.put("MODIFY_TIME", EDateUtil.offsetSecond((Date) updateMap.get("MODIFY_TIME"),5));
         }
-        System.out.println("执行 @EDbUpdate 后："+JSONUtil.toJsonStr(updateMap));
+        System.out.println("执行 @EDbUpdate 后："+EJSONUtil.toJsonStr(updateMap));
     }
 
 

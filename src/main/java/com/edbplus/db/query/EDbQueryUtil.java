@@ -15,7 +15,7 @@
  */
 package com.edbplus.db.query;
 
-import cn.hutool.core.annotation.AnnotationUtil;
+import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
 import com.jfinal.plugin.activerecord.SqlPara;
 
 import javax.persistence.Table;
@@ -262,7 +262,7 @@ public class EDbQueryUtil {
      */
     public static SqlPara getSqlParaForJpaQuery(Class<?> mClass, EDbQuery queryParams){
         // 获取表注解
-        Table table = AnnotationUtil.getAnnotation( mClass , Table.class);
+        Table table = EAnnotationUtil.getAnnotation( mClass , Table.class);
         if(table == null){
             throw new RuntimeException("@Table is not find");
         }

@@ -1,12 +1,11 @@
 package com.edbplus.db.jpa.validation;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.edbplus.db.annotation.EDbUpdate;
 import com.edbplus.db.jpa.model.CrVehicleType;
 import com.edbplus.db.jpa.model.CrVehicleTypeModeRel;
 import com.edbplus.db.jpa.util.EDbValidatorUtils;
+import com.edbplus.db.util.hutool.bean.EBeanUtil;
+import com.edbplus.db.util.hutool.object.EObjectUtil;
 import org.springframework.validation.FieldError;
 import org.testng.annotations.Test;
 
@@ -47,12 +46,12 @@ public class ValidatorTest {
         //
         List<SysUser> list2 = new ArrayList<>();
         // 流拷贝list
-        list2 = ObjectUtil.cloneByStream(list);
+        list2 = EObjectUtil.cloneByStream(list);
         // 流拷贝对象
-//        SysUser sysUser1 = ObjectUtil.cloneByStream(sysUser);
+//        SysUser sysUser1 = EObjectUtil.cloneByStream(sysUser);
         // 历史方式
         SysUser sysUser1 = new SysUser();
-        BeanUtil.copyProperties(sysUser,sysUser1,false);
+        EBeanUtil.copyProperties(sysUser,sysUser1,false);
         sysUser.setUserName("小陈2");
         // 打印的结果是不会变化的
         System.out.println(list2);

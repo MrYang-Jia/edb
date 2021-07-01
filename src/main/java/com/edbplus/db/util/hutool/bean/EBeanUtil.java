@@ -13,27 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.edbplus.db.jpa.column;
+package com.edbplus.db.util.hutool.bean;
 
-import com.edbplus.db.dto.FieldAndColumn;
-import com.edbplus.db.jpa.JpaAnnotationUtil;
-import com.edbplus.db.jpa.column.jpa.DemoUser;
-import org.testng.annotations.Test;
-
-import java.util.List;
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 
 /**
- * @ClassName ColumnTest
- * @Description: //todo
+ * @ClassName EBeanUtil
+ * @Description: BeanUtil 工具类扩展 -- 原因，避免hutool工具升级，影响到正常服务
  * @Author 杨志佳
- * @Date 2021/4/25
+ * @Date 2021/6/28
  * @Version V1.0
  **/
-public class ColumnTest {
+public class EBeanUtil extends BeanUtil {
 
-    @Test
-    public void getColumns(){
-        List<FieldAndColumn> columns  = JpaAnnotationUtil.getCoumns(DemoUser.class);
-        System.out.println(columns.get(0).getColumn().name().equalsIgnoreCase("name"));
+    /**
+     * 拷贝对象属性，忽略转换异常，如果字段不一样，则忽略转换该字段
+     * @param source
+     * @param target
+     */
+    public static void copyProperties(Object source, Object target) {
+        // 忽略转换异常
+        copyProperties(source, target, CopyOptions.create().setIgnoreError(true));
     }
 }

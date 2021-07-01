@@ -1,9 +1,9 @@
 package com.edbplus.db.annotation;
 
 import cn.hutool.core.map.CaseInsensitiveMap;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.json.JSONUtil;
 import com.edbplus.db.jpa.model.base.BaseVehicleType;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Method;
@@ -27,23 +27,23 @@ public class AnnotationTest {
         dataMap.put("MODIFY_TIme",null);
         BaseVehicleType baseVehicleType = new BaseVehicleType();
         // 必须构建对象方法
-        Method[] methods = ReflectUtil.getMethods(baseVehicleType.getClass());
+        Method[] methods = EReflectUtil.getMethods(baseVehicleType.getClass());
         // 方法
         for(Method method : methods){
             EDbSave eDbSave = method.getAnnotation(EDbSave.class);
             if(eDbSave!=null){
                 System.out.println(method.getName());
                 // 事先约定map类型
-                ReflectUtil.invoke(baseVehicleType, method, dataMap);
-                System.out.println("执行后:"+ JSONUtil.toJsonStr(dataMap));
+                EReflectUtil.invoke(baseVehicleType, method, dataMap);
+                System.out.println("执行后:"+ EJSONUtil.toJsonStr(dataMap));
             }
 
             EDbUpdate eDbUpdate = method.getAnnotation(EDbUpdate.class);
             if(eDbUpdate!=null){
                 System.out.println(method.getName());
                 // 事先约定map类型
-                ReflectUtil.invoke(baseVehicleType, method, dataMap);
-                System.out.println("执行后:"+ JSONUtil.toJsonStr(dataMap));
+                EReflectUtil.invoke(baseVehicleType, method, dataMap);
+                System.out.println("执行后:"+ EJSONUtil.toJsonStr(dataMap));
             }
         }
     }

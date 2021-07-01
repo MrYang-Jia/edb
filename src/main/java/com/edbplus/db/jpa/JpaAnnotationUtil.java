@@ -15,17 +15,16 @@
  */
 package com.edbplus.db.jpa;
 
-import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.lang.SimpleCache;
 import cn.hutool.core.map.CaseInsensitiveMap;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.ReflectUtil;
 import com.edbplus.db.annotation.EDbRel;
 import com.edbplus.db.annotation.EDbView;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.dto.FieldAndRel;
 import com.edbplus.db.dto.FieldAndView;
+import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 
 import javax.persistence.*;
 import java.beans.PropertyDescriptor;
@@ -73,7 +72,7 @@ public class JpaAnnotationUtil {
         // 判断返回结果是否有值，如果没有则加入到缓存里，并将获取的结果返回到对象
         if(table == null){
             // spring工具类 AnnotationUtils.findAnnotation，性能没有 hutool 的工具好
-            table = AnnotationUtil.getAnnotation(mClass, Table.class);
+            table = EAnnotationUtil.getAnnotation(mClass, Table.class);
             // 需要做判断，避免非jpa对象传入
             if(table == null){
                 throw new RuntimeException(" 当前对象必须包含注解 javax.persistence.Table ，指定表名称 ");
@@ -101,7 +100,7 @@ public class JpaAnnotationUtil {
             }
         }
         // 本身存在方法级缓存
-        Method[] methods = ReflectUtil.getMethods(mClass);
+        Method[] methods = EReflectUtil.getMethods(mClass);
         //
         for(Method method : methods){
             Object annotation = method.getAnnotation(annotationClass);
@@ -186,7 +185,7 @@ public class JpaAnnotationUtil {
         // 没有获取到结果，则初始化话对象集
         columns = new ArrayList<FieldAndColumn>();
         // 获取对象类上的所有字段
-        Field[] fields = ReflectUtil.getFields(mClass);
+        Field[] fields = EReflectUtil.getFields(mClass);
 
         Column column = null;
         FieldAndColumn fieldAndColumn = null;
@@ -196,7 +195,7 @@ public class JpaAnnotationUtil {
         EDbRel eDbRel = null;
         for( Field field : fields ){
             // 获取column对象
-            column =  AnnotationUtil.getAnnotation(field, Column.class);
+            column =  EAnnotationUtil.getAnnotation(field, Column.class);
             // 如果有column注解才进行填充，否则不填充
             if(column != null){
                 // 如果不存在的字段才添加到返回的字段列表里 -- 存在一个bug，则是相同的字段
@@ -208,7 +207,7 @@ public class JpaAnnotationUtil {
                     // 回填column注解对象
                     fieldAndColumn.setColumn(column);
                     // 判断是否是主键
-                    if(AnnotationUtil.getAnnotation(field, Id.class) != null){
+                    if(EAnnotationUtil.getAnnotation(field, Id.class) != null){
                         fieldAndColumn.setIsPriKey(true);
                     }else{
                         fieldAndColumn.setIsPriKey(false);
@@ -250,7 +249,7 @@ public class JpaAnnotationUtil {
         fieldRels = new ArrayList<FieldAndRel>();
 
         // 获取对象类上的所有字段
-        Field[] fields = ReflectUtil.getFields(mClass);
+        Field[] fields = EReflectUtil.getFields(mClass);
 
         Column column = null;
         FieldAndRel fieldForRel = null;
@@ -260,7 +259,7 @@ public class JpaAnnotationUtil {
         EDbRel eDbRel = null;
         for( Field field : fields ){
             // 获取关联关系的注解对象
-            eDbRel =  AnnotationUtil.getAnnotation(field, EDbRel.class);
+            eDbRel =  EAnnotationUtil.getAnnotation(field, EDbRel.class);
             if(eDbRel != null){
                 // 初始化字段和注解对象
                 fieldForRel = new FieldAndRel();
@@ -310,7 +309,7 @@ public class JpaAnnotationUtil {
      */
     public static <T> List<FieldAndColValue> getCoumnValues(T t){
         // 获取对象类上的所有字段
-//        Field[] fields = ReflectUtil.getFields(t.getClass());
+//        Field[] fields = EReflectUtil.getFields(t.getClass());
         List<FieldAndColumn> fieldAndColumns = getCoumns(t.getClass());
         // 初始化 columns 对象
         List<FieldAndColValue> columns = new ArrayList<FieldAndColValue>();
@@ -323,13 +322,13 @@ public class JpaAnnotationUtil {
         Object value = null;
         for( FieldAndColumn fieldAndColumn : fieldAndColumns ){
             // 获取column对象
-            column =  AnnotationUtil.getAnnotation(fieldAndColumn.getField(), Column.class);
+            column =  EAnnotationUtil.getAnnotation(fieldAndColumn.getField(), Column.class);
             // 如果有column注解才进行填充，否则不填充
             if(column != null){
                 // 如果不存在的字段才添加到返回的字段列表里 -- 存在一个bug，则是相同的字段
                 if(!columnsKey.contains(column.name().toLowerCase())){
                     // 赋予字段值
-                    value = ReflectUtil.getFieldValue(t,fieldAndColumn.getField());
+                    value = EReflectUtil.getFieldValue(t,fieldAndColumn.getField());
                     // 初始化字段和注解对象
                     fieldAndColValue = new FieldAndColValue();
                     // 回填字段对象
@@ -339,14 +338,14 @@ public class JpaAnnotationUtil {
                     // 如果该字段是枚举
                     if(fieldAndColumn.getField().getType().isEnum() && value!= null){
                         // 枚举类型赋值
-                        fieldEnum = (Enum) ReflectUtil.getFieldValue(t,fieldAndColumn.getField());
+                        fieldEnum = (Enum) EReflectUtil.getFieldValue(t,fieldAndColumn.getField());
                         // 获取字段上是否存在 Enumerated 注解，该注解决定获取枚举的定义值是哪一个
                         enumerated = fieldAndColumn.getField().getAnnotation(Enumerated.class);
                         // 特殊类型定义转换的 -- org.hibernate.annotations.Type
 //                        Type type = fieldAndColumn.getField().getAnnotation(Type.class);
                         if( enumerated!=null && enumerated.value() != EnumType.STRING){
                             // 判断该枚举是否存在 getValue 方法，有则走 getValue 的方法，赋予字段对象
-                            Method method = ReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
+                            Method method = EReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
                             if(method != null){
                                 try{
                                     // 返回枚举值
@@ -366,7 +365,7 @@ public class JpaAnnotationUtil {
                         fieldAndColValue.setFieldValue(value);
                     }
 
-                    if(AnnotationUtil.getAnnotation(fieldAndColumn.getField(), Id.class) != null){
+                    if(EAnnotationUtil.getAnnotation(fieldAndColumn.getField(), Id.class) != null){
                         fieldAndColValue.setIsPriKey(true);
                     }else{
                         fieldAndColValue.setIsPriKey(false);
@@ -396,7 +395,7 @@ public class JpaAnnotationUtil {
     public static <T> List<FieldAndColValue> getIdFieldAndColumnValues(T t){
         List<FieldAndColValue> columns = new ArrayList<FieldAndColValue>();
         // 获取对象类上的所有字段
-//        Field[] fields = ReflectUtil.getFields(t.getClass());
+//        Field[] fields = EReflectUtil.getFields(t.getClass());
         List<FieldAndColumn> fieldAndColumns = getCoumns(t.getClass());
 
         // 每次只需要找到 几个 ID 主键的注解
@@ -407,7 +406,7 @@ public class JpaAnnotationUtil {
             // 寻找到主键主键
             if(fieldAndColumn.getIsPriKey()){
                 // 获取column对象
-                column =  AnnotationUtil.getAnnotation(fieldAndColumn.getField(), Column.class);
+                column =  EAnnotationUtil.getAnnotation(fieldAndColumn.getField(), Column.class);
                 // 注解对象判断
                 if(column == null){
                     throw new RuntimeException("注解 @Id 必须配合 @Column 对象 ; 请引用包：javax.persistence.* ");
@@ -416,7 +415,7 @@ public class JpaAnnotationUtil {
                 fieldAndColValue.setField(fieldAndColumn.getField());
                 fieldAndColValue.setColumn(column);
                 fieldAndColValue.setIsPriKey(true);
-                fieldAndColValue.setFieldValue(ReflectUtil.getFieldValue(t,fieldAndColumn.getField()));
+                fieldAndColValue.setFieldValue(EReflectUtil.getFieldValue(t,fieldAndColumn.getField()));
                 // 添加对象
                 columns.add(fieldAndColValue);
             }
@@ -436,18 +435,18 @@ public class JpaAnnotationUtil {
     public static List<FieldAndColumn> getIdFieldAndColumns(Class mClass){
         List<FieldAndColumn> columns = new ArrayList<FieldAndColumn>();
         // 获取对象类上的所有字段
-        Field[] fields = ReflectUtil.getFields(mClass);
+        Field[] fields = EReflectUtil.getFields(mClass);
 
         // 每次只需要找到 几个 ID 主键的注解
         Id id = null;
         Column column = null;
         FieldAndColumn fieldAndColumn = null;
         for( Field field :fields){
-            id =  AnnotationUtil.getAnnotation(field, Id.class);
+            id =  EAnnotationUtil.getAnnotation(field, Id.class);
             // 寻找到主键主键
             if(id != null){
                 // 获取column对象
-                column =  AnnotationUtil.getAnnotation(field, Column.class);
+                column =  EAnnotationUtil.getAnnotation(field, Column.class);
                 // 注解对象判断
                 if(column == null){
                     throw new RuntimeException("注解 @Id 必须配合 @Column 对象 ; 请引用包：javax.persistence.* ");
@@ -474,7 +473,7 @@ public class JpaAnnotationUtil {
      */
     public static List<Column> getIdCoumns(Class mClass){
         // 获取对象类上的所有字段
-        Field[] fields = ReflectUtil.getFields(mClass);
+        Field[] fields = EReflectUtil.getFields(mClass);
         // 初始化 idColumns 对象
         List<Column> idColumns = new ArrayList<Column>();
 
@@ -483,11 +482,11 @@ public class JpaAnnotationUtil {
 
         Column column = null;
         for( Field field :fields){
-            id =  AnnotationUtil.getAnnotation(field, Id.class);
+            id =  EAnnotationUtil.getAnnotation(field, Id.class);
             // 寻找到主键主键
             if(id != null){
                 // 获取column对象
-                column =  AnnotationUtil.getAnnotation(field, Column.class);
+                column =  EAnnotationUtil.getAnnotation(field, Column.class);
                 // 注解对象判断
                 if(column == null){
                     throw new RuntimeException("注解 @Id 必须配合 @Column 对象 ; 请引用包：javax.persistence.* ");
@@ -553,7 +552,7 @@ public class JpaAnnotationUtil {
      * @return
      */
     public static Field getFieldForAnnationClass(Class mClass,Class annotationClass){
-        Field[] fields = ReflectUtil.getFields(mClass);
+        Field[] fields = EReflectUtil.getFields(mClass);
         for(Field field : fields){
             if(field.getAnnotation(annotationClass)!=null){
                 return field;
@@ -612,14 +611,14 @@ public class JpaAnnotationUtil {
         // 初始化
         fieldViews = new ArrayList<FieldAndView>();
         // 获取对象类上的所有字段
-        Field[] fields = ReflectUtil.getFields(mClass);
+        Field[] fields = EReflectUtil.getFields(mClass);
         //
         FieldAndView fieldForRel = null;
         // 关系
         EDbView eDbView = null;
         for( Field field : fields ){
             // 获取关联关系的注解对象
-            eDbView =  AnnotationUtil.getAnnotation(field, EDbView.class);
+            eDbView =  EAnnotationUtil.getAnnotation(field, EDbView.class);
             if(eDbView != null){
                 // 初始化字段和注解对象
                 fieldForRel = new FieldAndView();
@@ -684,7 +683,7 @@ public class JpaAnnotationUtil {
      */
     public static <T> T fillBeanWithMap(Map<String,Object> dataMap,T t){
         // 获取对象类上的所有字段
-        Field[] fields = ReflectUtil.getFields(t.getClass());
+        Field[] fields = EReflectUtil.getFields(t.getClass());
         Object value = null;
         //
         for (Field field:fields){
@@ -725,11 +724,11 @@ public class JpaAnnotationUtil {
                 // 获取枚举对象集
                 Enum[] enums = fieldEnum.getClass().getEnumConstants();
                 // 判断该枚举是否存在 getValue 方法，有则走 getValue 的方法，赋予字段对象
-                Method method = ReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
+                Method method = EReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
                 if(method != null){
                         // 遍历枚举对象
                         for(Enum enumObj :enums){
-                            method = ReflectUtil.getMethod(enumObj.getClass(), "getValue");
+                            method = EReflectUtil.getMethod(enumObj.getClass(), "getValue");
                             // 根据数值返回枚举对象
                             if(Objects.equals(value,method.invoke(fieldEnum))){
                                 field.set(t,enumObj);
@@ -750,7 +749,7 @@ public class JpaAnnotationUtil {
             }else{
                 if(value != null){
                     // 非枚举，直接赋值即可，使用该方式可以避免类型不一致，赋值出现异常情况
-                    ReflectUtil.setFieldValue(t,field,value);
+                    EReflectUtil.setFieldValue(t,field,value);
                 }
             }
         }catch (Exception e){
@@ -770,13 +769,13 @@ public class JpaAnnotationUtil {
             // 判断是否是枚举
             if (field.getType().isEnum()) {
                 // 枚举类型赋值 -- 这样子可以避免枚举初始化时，碰到null值的情况
-                Enum fieldEnum = (Enum) ReflectUtil.getFieldValue(t,field);
+                Enum fieldEnum = (Enum) EReflectUtil.getFieldValue(t,field);
                 // 如果获取不到枚举对象，则置为null即可
                 if(fieldEnum == null){
                     return null;
                 }
                 // 判断该枚举是否存在 getValue 方法，有则走 getValue 的方法，赋予字段对象
-                Method method = ReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
+                Method method = EReflectUtil.getMethod(fieldEnum.getClass(), "getValue");
                 if (method != null) {
                     return method.invoke(fieldEnum);
                 } else {
@@ -784,7 +783,7 @@ public class JpaAnnotationUtil {
                 }
             } else {
                 // 非枚举，直接返回结果即可
-                return ReflectUtil.getFieldValue(t, field);
+                return EReflectUtil.getFieldValue(t, field);
             }
         }catch (Exception e){
             throw new RuntimeException(e);

@@ -15,14 +15,9 @@
  */
 package com.edbplus.db;
 
-import cn.hutool.core.annotation.AnnotationUtil;
-import cn.hutool.core.date.DateUtil;
+// 这种对象map非Util不需要扩展
 import cn.hutool.core.map.CaseInsensitiveMap;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.ReUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.json.JSONUtil;
+
 import com.edbplus.db.annotation.EDbSave;
 import com.edbplus.db.annotation.EDbUpdate;
 import com.edbplus.db.druid.EDbSelectUtil;
@@ -37,15 +32,18 @@ import com.edbplus.db.listener.EDbListener;
 import com.edbplus.db.proxy.EDbViewProxy;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
+import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
+import com.edbplus.db.util.hutool.array.EArrayUtil;
+import com.edbplus.db.util.hutool.date.EDateUtil;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.edbplus.db.util.hutool.number.ENumberUtil;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
+import com.edbplus.db.util.hutool.rul.EReUtil;
 import com.jfinal.kit.LogKit;
 import com.jfinal.plugin.activerecord.*;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 import lombok.Setter;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.jdbc.datasource.ConnectionHolder;
-import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import javax.persistence.Table;
 import java.lang.reflect.Method;
 import java.sql.*;
@@ -155,7 +153,7 @@ public class EDbPro extends SpringDbPro {
             // 替换成 忽略 大小写的 map
             Map<String,Object> dataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
-            ReflectUtil.invoke(m, beforeUpdate, dataMap,coumns);
+            EReflectUtil.invoke(m, beforeUpdate, dataMap,coumns);
             // 替换数据
             record.setColumns(dataMap);
         }
@@ -236,7 +234,7 @@ public class EDbPro extends SpringDbPro {
                 // 替换成 忽略 大小写的 map
                 dataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
-                ReflectUtil.invoke(m, beforeSave, dataMap,coumns);
+                EReflectUtil.invoke(m, beforeSave, dataMap,coumns);
                 // 替换数据
                 record.setColumns(dataMap);
             }
@@ -325,7 +323,7 @@ public class EDbPro extends SpringDbPro {
                 // 替换成 忽略 大小写的 map
                 dataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
-                ReflectUtil.invoke(m, beforeSave, dataMap,coumns);
+                EReflectUtil.invoke(m, beforeSave, dataMap,coumns);
                 // 替换数据
                 record.setColumns(dataMap);
             }
@@ -372,7 +370,7 @@ public class EDbPro extends SpringDbPro {
             return 0;
         }
         // 获取表注解
-        Table table = AnnotationUtil.getAnnotation(tClass, Table.class);
+        Table table = EAnnotationUtil.getAnnotation(tClass, Table.class);
 
 
         // 表头部分
@@ -421,7 +419,7 @@ public class EDbPro extends SpringDbPro {
                     inserValues.append("'").append(value).append("',");
                 }else
                 if(value instanceof Date){
-                    inserValues.append("'").append(DateUtil.formatDateTime((Date) value)).append("',");
+                    inserValues.append("'").append(EDateUtil.formatDateTime((Date) value)).append("',");
                 }
                 else{
                     // 如果是 pg
@@ -554,7 +552,7 @@ public class EDbPro extends SpringDbPro {
             // 替换成 忽略 大小写的 map
             updateDataMap =  new CaseInsensitiveMap(dataMap);
             // 执行对象方法
-            ReflectUtil.invoke(ojb, beforeSave, updateDataMap,coumns);
+            EReflectUtil.invoke(ojb, beforeSave, updateDataMap,coumns);
             // 替换数据
             record.setColumns(updateDataMap);
         }
@@ -617,7 +615,7 @@ public class EDbPro extends SpringDbPro {
             // 替换成 忽略 大小写的 map
             Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
-            ReflectUtil.invoke(updateM, beforeSave, updateDataMap,coumns);
+            EReflectUtil.invoke(updateM, beforeSave, updateDataMap,coumns);
             // 替换数据
             record.setColumns(updateDataMap);
         }
@@ -676,7 +674,7 @@ public class EDbPro extends SpringDbPro {
             // 替换成 忽略 大小写的 map
             Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
             // 执行对象方法
-            ReflectUtil.invoke(m, beforeSave, updateDataMap,coumns);
+            EReflectUtil.invoke(m, beforeSave, updateDataMap,coumns);
             // 替换数据
             record.setColumns(updateDataMap);
         }
@@ -769,7 +767,7 @@ public class EDbPro extends SpringDbPro {
                 // 替换成 忽略 大小写的 map
                 updateDataMap =  new CaseInsensitiveMap(record.getColumns());
                 // 执行对象方法
-                ReflectUtil.invoke(obj, beforeUpdate, updateDataMap,coumns);
+                EReflectUtil.invoke(obj, beforeUpdate, updateDataMap,coumns);
                 // 替换数据
                 record.setColumns(updateDataMap);
             }
@@ -1074,7 +1072,7 @@ public class EDbPro extends SpringDbPro {
             // 如果是string字符串，则需要转换判断
             if(ids.get(0) instanceof String){
                 // 如果是数字的话，则全部转换成数字重新组装成数组
-                if( NumberUtil.isNumber(String.valueOf(ids.get(0)))){
+                if( ENumberUtil.isNumber(String.valueOf(ids.get(0)))){
                     for(Object obj:ids){
                         newIds.add(Long.valueOf(String.valueOf(obj)));
                     }
@@ -1172,6 +1170,7 @@ public class EDbPro extends SpringDbPro {
                 config.getDialect().fillStatement(pst, paras);
             }
             ResultSet rs = pst.executeQuery();
+            // 构建 bean 对象
             List<M> result = JpaBuilder.buildBean(mClass, rs,config.isInTransaction());
             // 关闭 ResultSet 对象
             this.close(rs);
@@ -1615,13 +1614,13 @@ public class EDbPro extends SpringDbPro {
 
         if (pageNumber >= 1 && pageSize >= 1) {
             // 截获 ? 的参数列表
-            List<String> totalParsList =  ReUtil.findAll("\\?",totalRowSql, 0, new ArrayList<String>());
+            List<String> totalParsList =  EReUtil.findAll("\\?",totalRowSql, 0, new ArrayList<String>());
             // 计算paraSize 总数 (统计语句里的实际 ? 个数)
             int parasSize = totalParsList.size();
             // 重新生成统计语句入参个数
             Object[] totalParas =  null;
             if(paras.length > 0){
-                totalParas = ArrayUtil.sub(paras,paras.length - parasSize,paras.length);
+                totalParas = EArrayUtil.sub(paras,paras.length - parasSize,paras.length);
             }else{
                 totalParas = new Object[0];
             }
@@ -1673,14 +1672,14 @@ public class EDbPro extends SpringDbPro {
             return super.config.getDialect().takeOverDbPaginate(conn, pageNumber, pageSize, isGroupBySql, totalRowSql, findSql, paras);
         }
         // 截获 sql语句里 ？ 参有几个 -- 剔除 '?' 直接赋值的场景
-        List<String> totalParsList =  ReUtil.findAll("\\?",totalRowSql, 0, new ArrayList<String>());
+        List<String> totalParsList =  EReUtil.findAll("\\?",totalRowSql, 0, new ArrayList<String>());
         // 计算paraSize 总数 (统计语句里的实际 ? 个数)
         int parasSize = totalParsList.size();
         // 改写统计与语句里的入参个数
         Object[] totalParas =  null;
         //
         if(paras.length > 0){
-            totalParas = ArrayUtil.sub(paras,paras.length - parasSize,paras.length);
+            totalParas = EArrayUtil.sub(paras,paras.length - parasSize,paras.length);
         }else{
             totalParas = new Object[0];
         }
@@ -1875,7 +1874,7 @@ public class EDbPro extends SpringDbPro {
         // 逻辑异常抛出
         if(result.size() > 1){
             // 抛出用户自己编写的语句，避免被改写的语句干扰判断
-            throw new RuntimeException("执行中断，记录集超过1条，执行的语句是: "+ sqlPara.getSql() + " 入参：" + JSONUtil.toJsonStr(sqlPara.getPara()));
+            throw new RuntimeException("执行中断，记录集超过1条，执行的语句是: "+ sqlPara.getSql() + " 入参：" + EJSONUtil.toJsonStr(sqlPara.getPara()));
         }
         return result.size() > 0 ? result.get(0) : null;
     }

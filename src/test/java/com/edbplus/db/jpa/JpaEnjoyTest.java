@@ -1,11 +1,12 @@
 package com.edbplus.db.jpa;
 
-import cn.hutool.json.JSONUtil;
+
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.jpa.pip.JpaRelPip;
 import com.edbplus.db.proxy.EDbRelProxy;
 import com.edbplus.db.jfinal.activerecord.db.vo.VehicleTypeVo;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.testng.annotations.BeforeTest;
@@ -42,7 +43,7 @@ public class JpaEnjoyTest extends BaseTest {
         SqlPara sqlPara = EDb.getSqlPara("test.findForId", 101);
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         System.out.println("打印sql语句：" + sqlPara.getSql());
-        System.out.println("打印参数：" + JSONUtil.toJsonStr(sqlPara.getPara()));
+        System.out.println("打印参数：" + EJSONUtil.toJsonStr(sqlPara.getPara()));
 
         start = System.currentTimeMillis();
         // 根据sql语句返回对象查询列表 -- 对象可以是jpa对象也可以是普通的vo对象
@@ -68,7 +69,7 @@ public class JpaEnjoyTest extends BaseTest {
         // 匹配普通的 vo 表 和 特殊字段的转义匹配
         VehicleTypeVo vehicleTypeVo = EDb.findFirst(VehicleTypeVo.class,sqlPara);
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
-        System.out.println("内容:"+ JSONUtil.toJsonStr(vehicleTypeVo));
+        System.out.println("内容:"+ EJSONUtil.toJsonStr(vehicleTypeVo));
 
     }
 

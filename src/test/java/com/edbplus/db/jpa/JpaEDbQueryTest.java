@@ -1,11 +1,11 @@
 package com.edbplus.db.jpa;
 
-import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.springframework.data.domain.PageRequest;
 import org.testng.annotations.BeforeTest;
@@ -92,7 +92,7 @@ public class JpaEDbQueryTest extends BaseTest {
         eDbQuery.and(EDbFilter.le("CREATE_TIME",new Date()));
 //        eDbQuery.and(new EDbFilter("CREATE_TIME",EDbFilter.Operator.le,new Date()));
         start = System.currentTimeMillis();
-        System.out.println(JSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
 
         eDbQuery = new EDbQuery();
@@ -100,7 +100,7 @@ public class JpaEDbQueryTest extends BaseTest {
         eDbQuery.and(EDbFilter.like("VEHICLE_TYPE_NAME","车"));
         //eDbQuery.and(new EDbFilter("VEHICLE_TYPE_NAME",EDbFilter.Operator.like,"%车%"));
         start = System.currentTimeMillis();
-        System.out.println(JSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
 
 
@@ -109,7 +109,7 @@ public class JpaEDbQueryTest extends BaseTest {
         eDbQuery.and(EDbFilter.isNotNull("VEHICLE_TYPE_NAME"));
         //eDbQuery.and(new EDbFilter("VEHICLE_TYPE_NAME", EDbFilter.Operator.isNotNull, null));
         start = System.currentTimeMillis();
-        System.out.println(JSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
 
 
@@ -129,7 +129,7 @@ public class JpaEDbQueryTest extends BaseTest {
         sqlPara.addPara(100);
         // 以下这种只支持 #para(0) 的写法，不支持 ? 的写法
 //        SqlPara sqlPara = EDb.getSqlParaByString(sql,2,100,100);
-//        System.out.println("para:"+ JSONUtil.toJsonStr(sqlPara.getPara()));
+//        System.out.println("para:"+ EJSONUtil.toJsonStr(sqlPara.getPara()));
 
         EDb.paginate(1,10,sqlPara);
 

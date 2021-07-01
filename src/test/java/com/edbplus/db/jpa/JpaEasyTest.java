@@ -1,10 +1,9 @@
 package com.edbplus.db.jpa;
 
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.EDb;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -53,11 +52,11 @@ public class JpaEasyTest extends BaseTest {
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
              start = System.currentTimeMillis();
              // 打印json字符串
-             System.out.println("原: "+JSONUtil.toJsonStr(vehicleType));
+             System.out.println("原: "+ EJSONUtil.toJsonStr(vehicleType));
              System.out.println("自增的主键id为 " + vehicleType.getVehicleTypeId());
              //  === 查询部分 ===
              VehicleType vehicleTypeFind = eDbPro.findById(VehicleType.class,vehicleType.getVehicleTypeId());
-             System.out.println("保存后查: "+JSONUtil.toJsonStr(vehicleTypeFind));
+             System.out.println("保存后查: "+EJSONUtil.toJsonStr(vehicleTypeFind));
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
              start = System.currentTimeMillis();
              //  === 更新部分 ===
@@ -68,13 +67,13 @@ public class JpaEasyTest extends BaseTest {
              start = System.currentTimeMillis();
              // 再次查询
              vehicleTypeFind = eDbPro.findById(VehicleType.class,vehicleType.getVehicleTypeId());
-             System.out.println("改后查: "+JSONUtil.toJsonStr(vehicleTypeFind));
+             System.out.println("改后查: "+EJSONUtil.toJsonStr(vehicleTypeFind));
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
              start = System.currentTimeMillis();
              //  === 删除部分 ===
             eDbPro.deleteById(vehicleTypeFind);
              vehicleTypeFind = EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId());
-             System.out.println("删后查: "+JSONUtil.toJsonStr(vehicleTypeFind));
+             System.out.println("删后查: "+EJSONUtil.toJsonStr(vehicleTypeFind));
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
              // 由于只是做测试，所以不想直接插入到数据库，直接设置为false即可
              return false;
@@ -101,7 +100,7 @@ public class JpaEasyTest extends BaseTest {
             VehicleType findNewVehicleType = eDbPro.findById(VehicleType.class, 101);
             //
             System.out.println(findNewVehicleType.getCreatorName());
-            System.out.println(JSONUtil.toJsonStr(findNewVehicleType));
+            System.out.println(EJSONUtil.toJsonStr(findNewVehicleType));
             return false;
         });
     }
@@ -123,7 +122,7 @@ public class JpaEasyTest extends BaseTest {
                 eDbPro.update(vehicleType);
             }
             vehicleTypes = eDbPro.find(VehicleType.class,"select * from cr_vehicle_type limit 5");
-            System.out.println(JSONUtil.toJsonStr(vehicleTypes));
+            System.out.println(EJSONUtil.toJsonStr(vehicleTypes));
 
             return false;
         });
@@ -136,7 +135,7 @@ public class JpaEasyTest extends BaseTest {
     @Test
     public void findByIds(){
 
-        System.out.println("==>"+ JSONUtil.toJsonStr(eDbPro.findByIds(VehicleType.class, Arrays.asList(100,101,102)).get(0)));
+        System.out.println("==>"+ EJSONUtil.toJsonStr(eDbPro.findByIds(VehicleType.class, Arrays.asList(100,101,102)).get(0)));
 
         eDbPro.findByIds(VehicleType.class, "100,101,102",",");
     }

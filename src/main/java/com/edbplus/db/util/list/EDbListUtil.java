@@ -107,6 +107,7 @@ public class EDbListUtil {
 
     /**
      * 重新加载权限树
+     * ps:hutool 5.7.2 有bug，退回 5.7.1后正常
      * @param treeList
      * @param config
      */

@@ -16,16 +16,17 @@
 package com.edbplus.db.generator.util;
 
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.CaseInsensitiveMap;
-import cn.hutool.core.util.StrUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.generator.entity.GenTable;
 import com.edbplus.db.generator.entity.GenTableColumn;
 import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.generator.jdbc.GenMysql;
+import com.edbplus.db.util.hutool.bean.EBeanUtil;
+import com.edbplus.db.util.hutool.date.EDateUtil;
+import com.edbplus.db.util.hutool.reflect.EReflectUtil;
+import com.edbplus.db.util.hutool.str.EStrUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Record;
@@ -78,13 +79,13 @@ public class EDbGenCode {
         Map<String,Object> tableInfo = new CaseInsensitiveMap(tableRecord.getColumns() );
 
         // 转换成bean对象
-        //GenTable genTable = BeanUtil.mapToBean(tableInfo,GenTable.class,false);
+        //GenTable genTable = EBeanUtil.mapToBean(tableInfo,GenTable.class,false);
         if(table.getCreater() == null ){
             // 回填创建人信息
             table.setCreater(GenJdbc.creater);
         }
         // 回填数据对象字段信息
-        BeanUtil.fillBeanWithMap(tableInfo,table,false);
+        EBeanUtil.fillBeanWithMap(tableInfo,table,false);
 
         List<Record> columns = getEDbPro().find(GenMysql.getTableColumnsSql(tableName));
 
@@ -93,7 +94,7 @@ public class EDbGenCode {
         // 指定类型
         for(Record column:columns){
             genTableColumn = new GenTableColumn();
-            genTableColumn = BeanUtil.mapToBean(column.getColumns(),GenTableColumn.class,false);
+            genTableColumn = EBeanUtil.fillBeanWithMap(column.getColumns(), EReflectUtil.newInstanceIfPossible(GenTableColumn.class), false);
             // 判断我方数据库字段
             if(GenJdbc.filedTypeMap.get(genTableColumn.getDataType()) == null){
                 // 回填表字段名称
@@ -102,7 +103,7 @@ public class EDbGenCode {
             // 指定字段的java类型
             genTableColumn.setColumnType(GenJdbc.filedTypeMap.get(genTableColumn.getDataType()));
             // 驼峰式字段名 -- 必须将字符转小写，不然驼峰字段转换会出意外
-            genTableColumn.setColumnCode(StrUtil.toCamelCase(genTableColumn.getColumnName().toLowerCase()));
+            genTableColumn.setColumnCode(EStrUtil.toCamelCase(genTableColumn.getColumnName().toLowerCase()));
             // 通过sql语句获取的字段长度
             if(genTableColumn.getMaxL()!=null && genTableColumn.getMaxL().contains(",")){
                 nums = genTableColumn.getMaxL().split(",");
@@ -132,7 +133,7 @@ public class EDbGenCode {
                 // 设置主键名称
                 table.setPriKeyClassName(column.getColumnCode());
                 // 设置首字母大写的主键对象
-                table.setPriKeyBigClassName(StrUtil.upperFirst(column.getColumnCode()));
+                table.setPriKeyBigClassName(EStrUtil.upperFirst(column.getColumnCode()));
                 // 主键类型
                 table.setPriKeyJavaType(column.getColumnType());
                 // 数据库主键字段名回填
@@ -156,7 +157,7 @@ public class EDbGenCode {
         String className = "";
         String tableName = table.getTableName();
         // 表对象实体后缀名称，首字母大写
-        table.setDtoSuffix(StrUtil.upperFirst(table.getDtoSuffix()));
+        table.setDtoSuffix(EStrUtil.upperFirst(table.getDtoSuffix()));
 
         // 去掉第一个下划线表前缀，避免前端暴露表对象全名称
         //tableName = tableName.substring(tableName.indexOf("_")+1,tableName.length());
@@ -171,12 +172,12 @@ public class EDbGenCode {
             // 表名转小写并做替换处理
             className = tableName.toLowerCase().replaceAll(preTableName,"");
             // 驼峰转换
-            className = StrUtil.upperFirst(StrUtil.toCamelCase(className));
+            className = EStrUtil.upperFirst(EStrUtil.toCamelCase(className));
             // 设置javaClass表名称
             table.setClassName(className);
         }else{
             // 设置javaClass表名称, false 大驼峰
-            table.setClassName(StrUtil.upperFirst(StrUtil.toCamelCase(tableName)));
+            table.setClassName(EStrUtil.upperFirst(EStrUtil.toCamelCase(tableName)));
         }
         // 转小驼峰 - 大驼峰的首字母小写即可
         table.setSmallClassName(StringUtils.uncapitalize(table.getClassName()));
@@ -194,7 +195,7 @@ public class EDbGenCode {
      * @param table
      */
     public static void loadObjUrlAndObjPackageName(String objPre,String projectUrl,String packageName,GenTable table){
-        Map<String,Object> tableMap = BeanUtil.beanToMap(table);
+        Map<String,Object> tableMap = EBeanUtil.beanToMap(table);
 
         // 去除空格
         projectUrl = projectUrl.trim();
@@ -229,7 +230,7 @@ public class EDbGenCode {
         //table.setEntityPackageName(packageName);
         tableMap.put(objPre + "PackageName",packageName);
         //
-        BeanUtil.copyProperties(BeanUtil.mapToBean(tableMap,table.getClass(),false),table);
+        EBeanUtil.copyProperties(EBeanUtil.mapToBean(tableMap,table.getClass(),false),table);
     }
 
 
@@ -271,7 +272,7 @@ public class EDbGenCode {
                 EDbTplRoot + "/java/baseJpa.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outBaseJavaFile
         );
@@ -296,7 +297,7 @@ public class EDbGenCode {
                 EDbTplRoot+"/java/jpa.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -346,7 +347,7 @@ public class EDbGenCode {
                 EDbTplRoot+"/java/iservice.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -395,7 +396,7 @@ public class EDbGenCode {
                 EDbTplRoot+"/java/baseXls.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -446,7 +447,7 @@ public class EDbGenCode {
                 EDbTplRoot+"/java/service.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -478,7 +479,7 @@ public class EDbGenCode {
             preUrl = table.getModelName().trim().toLowerCase();
         }
         // 小写 + 小驼峰
-        String webUrl = preUrl + "/" + StrUtil.toCamelCase(lastUrl);
+        String webUrl = preUrl + "/" + EStrUtil.toCamelCase(lastUrl);
         // 小写 + 全小写的小驼峰
         String webHtmlUrl = preUrl + "/" + lastUrl.toLowerCase().replaceAll("_","");
         table.setControllerWebUrl(webUrl);
@@ -519,7 +520,7 @@ public class EDbGenCode {
                 EDbTplRoot+"/java/web-controller.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -557,7 +558,7 @@ public class EDbGenCode {
                 EDbTplRoot+"/java/vueController.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -605,7 +606,7 @@ public class EDbGenCode {
                 EDbTplRoot+"/web/html/"+htmlPre+"html.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -642,7 +643,7 @@ public class EDbGenCode {
                 fileTplUrl,
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -690,7 +691,7 @@ public class EDbGenCode {
                 EDbTplRoot+"/web/js/"+htmlPre+"js.tpl",
                 Kv.by("genClass", genClass)
                         .set("fields",list)
-                        .set("nowdatetime", DateUtil.now())
+                        .set("nowdatetime", EDateUtil.now())
                 ,
                 outJavaFile
         );
@@ -705,7 +706,7 @@ public class EDbGenCode {
     public static Kv initKv(GenTable genClass, List<GenTableColumn> list){
         return Kv.by("genClass", genClass)
                 .set("fields",list)
-                .set("nowdatetime", DateUtil.now());
+                .set("nowdatetime", EDateUtil.now());
     }
 
     /**

@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.edbplus.db.jpa.column;
+package com.edbplus.db.util.hutool.reflect;
 
-import com.edbplus.db.dto.FieldAndColumn;
-import com.edbplus.db.jpa.JpaAnnotationUtil;
-import com.edbplus.db.jpa.column.jpa.DemoUser;
-import org.testng.annotations.Test;
-
-import java.util.List;
+import cn.hutool.core.util.ReflectUtil;
 
 /**
- * @ClassName ColumnTest
- * @Description: //todo
+ * @ClassName EReflectUtil
+ * @Description: 继承 ReflectUtil ，避免因为Hutool升级后导致类或方法无法正常使用
  * @Author 杨志佳
- * @Date 2021/4/25
+ * @Date 2021/6/28
  * @Version V1.0
  **/
-public class ColumnTest {
-
-    @Test
-    public void getColumns(){
-        List<FieldAndColumn> columns  = JpaAnnotationUtil.getCoumns(DemoUser.class);
-        System.out.println(columns.get(0).getColumn().name().equalsIgnoreCase("name"));
-    }
+public class EReflectUtil extends ReflectUtil {
 }

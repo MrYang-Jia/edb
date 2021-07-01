@@ -15,9 +15,6 @@
  */
 package com.edbplus.db.druid.filter;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.filter.FilterEventAdapter;
 import com.alibaba.druid.proxy.jdbc.JdbcParameter;
 import com.alibaba.druid.proxy.jdbc.ResultSetProxy;
@@ -26,18 +23,16 @@ import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.edbplus.db.util.json.EDbJsonUtil;
+import com.edbplus.db.util.hutool.date.EDateUtil;
+import com.edbplus.db.util.hutool.str.EStrUtil;
 import com.jfinal.kit.StrKit;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * druid - sql日志打印过滤器
@@ -235,7 +230,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                 }
             }finally {
                 // 格式化失败时，直接打印最短sql
-                lSql = StrUtil.removeAllLineBreaks(statement.getBatchSql()) ;
+                lSql = EStrUtil.removeAllLineBreaks(statement.getBatchSql()) ;
             }
 
             StringBuffer sqlLogStr = new StringBuffer();
@@ -263,7 +258,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                     //
                     if(lO instanceof Date){
                         // 转时间格式
-                        lS = DateUtil.formatDateTime((Date) lO);
+                        lS = EDateUtil.formatDateTime((Date) lO);
                     }else{
                         lS = String.valueOf(lO);
                     }
