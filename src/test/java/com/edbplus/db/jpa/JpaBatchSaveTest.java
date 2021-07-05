@@ -98,7 +98,7 @@ public class JpaBatchSaveTest extends BaseTest {
      */
     @Test
     public void batchSaveForPg(){
-        EDbPro pgDbPro =  EDb.use("xzw");
+        EDbPro pgDbPro =  EDb.use("pg");
 
         pgDbPro.tx(Connection.TRANSACTION_SERIALIZABLE, () -> {
             long start = System.currentTimeMillis();
@@ -141,7 +141,7 @@ public class JpaBatchSaveTest extends BaseTest {
      */
     @Test
     public void insertValuesForPg(){
-        EDbPro pgDbPro =  EDb.use("xzw");
+        EDbPro pgDbPro =  EDb.use("pg");
         //
         pgDbPro.tx(Connection.TRANSACTION_SERIALIZABLE, () -> {
             long start = System.currentTimeMillis();

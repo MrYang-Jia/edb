@@ -61,12 +61,12 @@ public class BaseTest {
         // 初始化
         GenJdbc.initForEnjoy(null,jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList,filterList);
 
-        GenJdbc.initForEnjoy("xzw",jdbcUrl2,userName2,pwd2,sqlTplList,shareSqlTplList,filterList);
+        GenJdbc.initForEnjoy("pg",jdbcUrl2,userName2,pwd2,sqlTplList,shareSqlTplList,filterList);
         JpaListener jpaListener = new JpaListener();
         // 初始化
         EDb.use().setEDbListener(jpaListener);
         // 一个数据库只能设定一个监听 ，所以要绑定监听的数据库对象
-        EDb.use("xzw").setEDbListener(jpaListener);
+        EDb.use("pg").setEDbListener(jpaListener);
     }
 
 
@@ -99,7 +99,7 @@ public class BaseTest {
                 @Override
                 public void run() {
                     long start = System.currentTimeMillis();
-                    System.out.println(EDb.use("xzw").findFirst(sql));
+                    System.out.println(EDb.use("pg").findFirst(sql));
                     System.out.println("耗时："+ ( System.currentTimeMillis() -start ));
                     System.out.println("累计:"+atomicI.getAndIncrement());
                 }
@@ -118,7 +118,7 @@ public class BaseTest {
 
 //        @Test
     public void testCk(){
-        EDb.use("xzw").find(" select gsid,CREATETIME from tra_goods_source where gsid in('45259508','45259504') ");
+        EDb.use("pg").find(" select gsid,CREATETIME from tra_goods_source where gsid in('45259508','45259504') ");
     }
 
 
@@ -135,7 +135,7 @@ public class BaseTest {
                 @Override
                 public void run() {
                     // 只打印1次初始化信息，避免并发时互相影响
-//                    EDb.use("xzw").find(" select * from app_activity limit 1 ");
+//                    EDb.use("pg").find(" select * from app_activity limit 1 ");
                     doSql();
                 }
             });
@@ -174,8 +174,8 @@ public class BaseTest {
         //
        System.out.println("对象2:"+EJSONUtil.toJsonStr(EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId())));
 
-        EDb.use("xzw").txInNewThread(Connection.TRANSACTION_SERIALIZABLE, () -> {
-            EDb.use("xzw").find(" select * from app_activity limit 1 ");
+        EDb.use("pg").txInNewThread(Connection.TRANSACTION_SERIALIZABLE, () -> {
+            EDb.use("pg").find(" select * from app_activity limit 1 ");
             return false;
         });
 
@@ -186,13 +186,13 @@ public class BaseTest {
     //@Test
     public void test2(){
         String sql  = "INSERT INTO `app_activity`(`id`, `name`, `image_id`, `click_like`, `display_number`, `click_number`, `type`, `whether_enabled`, `enabled`, `createTime`, `createBy`, `updateTime`, `updateBy`) VALUES ('022b71806ece11e82ba61db1136fe9e3', '啊', 'fa6fc4a06ecd11e82ba61db1136fe9e3', 'www.sina.com.cn', 0, 0, 3, 1, 0, '2018-06-13 13:52:51', 'admin', '2018-06-13 13:52:51', 'admin');\n";
-        Future<Boolean> future = EDb.use("xzw").txInNewThread(Connection.TRANSACTION_SERIALIZABLE, () -> {
-            EDb.use("xzw").update(sql);
+        Future<Boolean> future = EDb.use("pg").txInNewThread(Connection.TRANSACTION_SERIALIZABLE, () -> {
+            EDb.use("pg").update(sql);
             EDb.update(sql);
             return false;
         });
 
-//        EDb.use("xzw").update(sql);
+//        EDb.use("pg").update(sql);
 //        EDb.use("main").update(sql);
 
         try {

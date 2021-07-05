@@ -174,7 +174,7 @@ public class JpaEasyTest extends BaseTest {
 //     */
 //    @Test
 //    public void testPg(){
-//        EDbPro pgDbPro =  EDb.use("xzw");
+//        EDbPro pgDbPro =  EDb.use("pg");
 //        VehicleType crVehicleType = pgDbPro.findById(VehicleType.class,100);
 //
 //        System.out.println(crVehicleType);

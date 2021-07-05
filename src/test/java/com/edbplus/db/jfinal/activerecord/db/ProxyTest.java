@@ -34,7 +34,7 @@ public class ProxyTest extends BaseTest {
     @BeforeTest
     public void initBefor(){
         eDbPro =  EDb.use();
-//        eDbPro =  EDb.use("xzw");
+//        eDbPro =  EDb.use("pg");
     }
 
 //    /**

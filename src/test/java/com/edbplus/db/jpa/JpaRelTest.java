@@ -29,7 +29,7 @@ public class JpaRelTest extends BaseTest {
     @BeforeTest
     public void initBefor(){
         eDbPro =  EDb.use();
-//        eDbPro =  EDb.use("xzw");
+//        eDbPro =  EDb.use("pg");
         // 做一次查询连接，减少起始jdbc首次执行的耗时偏高问题
         eDbPro.findById(VehicleType.class,1);
     }

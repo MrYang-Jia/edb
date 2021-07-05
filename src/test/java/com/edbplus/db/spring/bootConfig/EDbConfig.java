@@ -90,7 +90,7 @@ public class EDbConfig {
         // 适配spring数据库连接池 -- 适配事务
         SpringConfig activerecordConfig = new SpringConfig(
                 // 默认名称 ，使用 Db.use() 时，可获取到
-                "xzw"
+                "pg"
                 // 这里可以替换成 spring体系的datasource
                 ,dataSource
                 // 事务级别 ，如果是spring时，可使用spring的事务级别替代，这个是属于数据库事务级别定义的，都一样
@@ -123,6 +123,6 @@ public class EDbConfig {
         System.out.println("=========  xzwEDbPro启动成功  ============");
 
         log.debug("=== xzwEDbPro启动成功===");
-        return EDb.use("xzw");
+        return EDb.use("pg");
     }
 }
