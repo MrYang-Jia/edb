@@ -8,7 +8,8 @@
     <artifactId>spring-jf-edb</artifactId>
     <!-- 每次deploy后必须调整版本号 , RELEASE -->
     <!--<version>1.5.RELEASE</version>-->
-    <version>1.7.0</version>
+    <!--<version>1.5.SNAPSHOT</version>-->
+    <version>1.7.1</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -17,15 +18,15 @@
 
     <properties>
 
-        <jfinal.version>4.9.11</jfinal.version>
-        <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
-        <druid.version>1.1.21_1</druid.version>
+        <jfinal.version>4.9.14</jfinal.version>
+        <druid.version>1.1.21</druid.version>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
         <spring-boot.version>2.1.0.RELEASE</spring-boot.version>
         <spring-web.version>5.2.6.RELEASE</spring-web.version>
+
     </properties>
 
 
@@ -70,7 +71,6 @@
 
     <dependencies>
 
-
         <!-- jpa注解规范工具类 -->
         <dependency>
             <groupId>javax.persistence</groupId>
@@ -82,7 +82,8 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>5.4.4</version>
+            <!--<version>5.4.4</version>-->
+            <version>5.7.1</version>
             <!-- 依赖时可选 -->
             <optional>true</optional>
         </dependency>
@@ -282,7 +283,6 @@
             <version>1.0</version>
         </dependency>
 
-        <!-- jfinal 升级时，单独调整版本号即可 -->
         <dependency>
             <groupId>com.jfinal</groupId>
             <artifactId>activerecord</artifactId>
