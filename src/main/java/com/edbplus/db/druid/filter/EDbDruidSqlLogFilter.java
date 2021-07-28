@@ -229,8 +229,8 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                     lSql = SQLUtils.format(statement.getBatchSql(), JdbcConstants.POSTGRESQL);
                 }
             }finally {
-                // 格式化失败时，直接打印最短sql
-                lSql = EStrUtil.removeAllLineBreaks(statement.getBatchSql()) ;
+                // 多行转一行
+                lSql = EStrUtil.replaceChars(statement.getBatchSql(),"\n"," ") ;
             }
 
             StringBuffer sqlLogStr = new StringBuffer();

@@ -133,4 +133,19 @@ public class EDbQuery extends EDbBaseQuery{
         return this;
     }
 
+    // 返回的分页数量
+    @Getter
+    private Integer limit ;
+    public  EDbQuery limit(int limit){
+        this.limit =limit;
+        return this;
+    }
+
+//    // 返回的随机分页数量 -- 不同数据库不一样，所以不写
+//    @Getter
+//    private Integer randomLimit ;
+//    public  EDbQuery randomLimit(int randomLimit){
+//        this.randomLimit =randomLimit;
+//        return this;
+//    }
 }

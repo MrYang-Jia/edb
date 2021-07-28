@@ -114,12 +114,12 @@ public class EDbQueryUtil {
 
         // is not null
         if(eDbFilter.getOperator() == EDbFilter.Operator.isNotNull){
-            andSqlStr.append(" is not null");
+            andSqlStr.append(" is not null ");
         }
 
         // is null
         if(eDbFilter.getOperator() == EDbFilter.Operator.isNull){
-            andSqlStr.append(" is null");
+            andSqlStr.append(" is null ");
         }
     }
 
@@ -251,6 +251,14 @@ public class EDbQueryUtil {
         for(Object para:paramsList){
             sqlPara.addPara(para);
         }
+
+        // 获取条数
+        if(queryParams.getLimit() != null){
+            sqlPara.setSql( sqlPara.getSql() + " limit ? " );
+            sqlPara.addPara( queryParams.getLimit() );
+        }
+
+
         return sqlPara;
     }
 

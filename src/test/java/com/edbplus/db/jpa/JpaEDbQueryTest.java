@@ -30,6 +30,25 @@ public class JpaEDbQueryTest extends BaseTest {
         EDb.findById(VehicleType.class,1);
     }
 
+    /**
+     * 单表简单查询案例
+     */
+    @Test
+    public void easyFind(){
+        EDbQuery eDbQuery = new EDbQuery();
+        // 根据情况设置查询条件
+        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"));
+        // 根据主键id降序排序 -- 跟创建时间基本上是一致的，性能还更好
+        eDbQuery.orderDESC("VEHICLE_TYPE_ID");
+        // 只获取一条数据
+        VehicleType vehicleType = EDb.use().findFirst(VehicleType.class,eDbQuery);
+        // 无法预估范围值时，建议写上
+        eDbQuery.limit(10);
+        // 普通查询
+        List<VehicleType> vehicleTypes =   EDb.find(VehicleType.class,eDbQuery);
+    }
+
+
     @Test
     public void test(){
 

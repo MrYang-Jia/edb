@@ -59,4 +59,18 @@ public class TaskDo {
         System.out.println(strings);
 
     }
+
+    @Test
+    public void test2(){
+        // uD83DuDC37
+        String strPart = "\uD83D\uDC37";
+        StringBuffer hexString = new StringBuffer();
+        for (int i = 0; i < strPart.length(); i++) {
+            int ch = (int) strPart.charAt(i);
+            String strHex = Integer.toHexString(ch);
+            hexString.append(strHex);
+        }
+        System.out.println(hexString);
+    }
+
 }

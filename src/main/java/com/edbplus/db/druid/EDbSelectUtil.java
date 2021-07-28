@@ -15,6 +15,7 @@
  */
 package com.edbplus.db.druid;
 
+import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLLimit;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
 import com.alibaba.druid.sql.parser.SQLStatementParser;
@@ -45,8 +46,18 @@ public class EDbSelectUtil {
             SQLLimit sqlLimit = new SQLLimit();
             sqlStatement.getSelect().getFirstQueryBlock().setLimit(sqlLimit);
         }
+        SQLExpr limitExpr = sqlStatement.getSelect().getFirstQueryBlock().getLimit().getRowCount();
+        // 修改标志
+        Boolean changeType = true;
+        if(limitExpr != null){
+            if("?".equals(String.valueOf(limitExpr))){
+                changeType = false;
+            }
+        }
         // 设置返回的记录集
-        sqlStatement.getSelect().getFirstQueryBlock().getLimit().setRowCount(limitCount);
+        if(changeType){
+            sqlStatement.getSelect().getFirstQueryBlock().getLimit().setRowCount(limitCount);
+        }
         return sqlStatement.getSelect().toString();
     }
 
