@@ -8,6 +8,11 @@ select * from cr_vehicle_type limit #para(0)
 select * from cr_vehicle_type where VEHICLE_TYPE_ID = #para(0)
 #end
 
+
+#sql("findTf")
+select VEHICLE_TYPE_ID tFid from cr_vehicle_type where VEHICLE_TYPE_ID = #para(0)
+#end
+
 #sql("updateDemo")
 update cr_vehicle_type
 set creator = #para(0)

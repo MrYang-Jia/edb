@@ -32,6 +32,18 @@ public class JpaEnjoyTest extends BaseTest {
         EDb.findById(VehicleType.class,1);
     }
 
+
+    @Test
+    public void findTest(){
+        long start = System.currentTimeMillis();
+        // 模板的指定 可以看 BaseTest.java 类里的 init() 方法
+        // 通过enjoySql 模板的方式
+        SqlPara sqlPara = EDb.getSqlPara("test.findTf", 101);
+        // pg 的问题是会出现全小写，用大写获取不到，除非是字段转移的时候，加上双引号 -> field as "FIELD"
+        System.out.println(EDb.use("pg").findFirst(sqlPara).getStr("tFid".toLowerCase()));
+
+    }
+
     /**
      * 通过enjoySql模板功能替代 mybaties 的sql模板功能
      */
