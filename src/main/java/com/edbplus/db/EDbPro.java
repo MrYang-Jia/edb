@@ -2420,10 +2420,17 @@ public class EDbPro extends SpringDbPro {
         }else{
             sqlPara = this.template(key).getSqlPara();
         }
-
-        //
+        // 定义获取的sql
         String totalRowSql = getCountSql(sqlPara.getSql());
-        List<Record> result = this.find(totalRowSql);
+        // 定义返回列表
+        List<Record> result = null;
+        if(data != null){
+            // 回填入参信息
+            result = this.find(totalRowSql,sqlPara.getPara());
+        }else{
+            result = this.find(totalRowSql);
+        }
+        // 返回结果对象
         if(result!=null && result.size()>0){
            return result.get(0).getLong("ct");
         }

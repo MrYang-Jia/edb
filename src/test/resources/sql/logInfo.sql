@@ -24,7 +24,10 @@ where VEHICLE_TYPE_ID = #para(1)
 select * from cr_vehicle_type
 where 1=1
 #if(vehicleTypeId)
-and VEHICLE_TYPE_ID = #(vehicleTypeId)
+  ### 增加 ? 入参情况
+and VEHICLE_TYPE_ID = #para(vehicleTypeId)
+  ### 增加替换填充情况
+  and VEHICLE_TYPE_ID = #(vehicleTypeId)
 #end
 #### 假如 crVehicleTypeMode 不为 null,则判断 crVehicleTypeMode.vehicleModeName 是否不为null ，否则不做任何处理
   ### 动态查询

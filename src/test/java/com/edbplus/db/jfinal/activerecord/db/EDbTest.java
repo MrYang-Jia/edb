@@ -9,6 +9,7 @@ import com.edbplus.db.jfinal.activerecord.db.vo.VehicleTypeVo;
 import com.edbplus.db.util.hutool.bean.EBeanUtil;
 import com.edbplus.db.util.hutool.http.EHttpUtil;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.apache.lucene.util.RamUsageEstimator;
@@ -452,10 +453,11 @@ public class EDbTest extends BaseTest {
 
     @Test
     public void testSqlCount(){
+
         // 根据视图直接统计记录数
-        System.out.println(EDb.templateForCount("test.EDbViewTest",null));
+        System.out.println("1==>"+EDb.templateForCount("test.EDbViewTest",Kv.by("vehicleTypeId",1)));
         // 根据sql语句直接返回记录数
-        System.out.println(EDb.sqlForCount( EDb.template("test.EDbViewTest").getSqlPara().getSql()));
+        System.out.println("1==>"+EDb.sqlForCount( EDb.template("test.EDbViewTest").getSqlPara().getSql()));
     }
 
 
