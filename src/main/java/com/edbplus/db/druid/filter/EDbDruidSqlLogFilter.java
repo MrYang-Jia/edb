@@ -15,6 +15,7 @@
  */
 package com.edbplus.db.druid.filter;
 
+import cn.hutool.core.util.ReUtil;
 import com.alibaba.druid.filter.FilterEventAdapter;
 import com.alibaba.druid.proxy.jdbc.JdbcParameter;
 import com.alibaba.druid.proxy.jdbc.ResultSetProxy;
@@ -189,15 +190,30 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
     @Override
     protected void statement_executeErrorAfter(StatementProxy statement, String sql, Throwable error) {
         try{
-
+            if(error.getMessage().contains("位置")){
+                String errStr = error.getMessage();
+                // 提取 【位置：81】 里的数字，便于结合sql语句进行精准范围定位
+                int idx = ReUtil.getFirstNumber(errStr.substring(errStr.indexOf("位置")));
+                int startIdx,endIdx =0;
+                if((idx - 20)>0){
+                    startIdx = idx - 20;
+                }else{
+                    startIdx = 0;
+                }
+                if((idx + 10)<sql.length()){
+                    endIdx = idx + 10;
+                }else{
+                    endIdx = sql.length();
+                }
+                // 弥补pgsql打印时，无法精准输出异常字段的问题
+                String errMsg = "sql异常位置:" + sql.substring(startIdx,endIdx) ;
+                log.error(errMsg);
+            }
         }catch (Throwable e)
         {
             // 报送错误日志
             sendErrLog(e);
         }
-
-
-
     }
 
     /**

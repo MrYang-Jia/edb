@@ -1,12 +1,18 @@
 package com.edbplus.db.jpa;
 
 
+import cn.hutool.core.convert.NumberChineseFormatter;
+import cn.hutool.core.convert.NumberWordFormatter;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.ReUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.jpa.pip.JpaRelPip;
 import com.edbplus.db.proxy.EDbRelProxy;
 import com.edbplus.db.jfinal.activerecord.db.vo.VehicleTypeVo;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.jfinal.plugin.activerecord.ActiveRecordException;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.testng.annotations.BeforeTest;
@@ -42,6 +48,11 @@ public class JpaEnjoyTest extends BaseTest {
         // pg 的问题是会出现全小写，用大写获取不到，除非是字段转移的时候，加上双引号 -> field as "FIELD"
         System.out.println(EDb.use("pg").findFirst(sqlPara).getStr("tFid".toLowerCase()));
 
+    }
+
+    @Test
+    public void findFirst(){
+        EDb.findFirst(VehicleType.class,"select * from cr_vehicle_type ");
     }
 
     /**
@@ -129,6 +140,26 @@ public class JpaEnjoyTest extends BaseTest {
         whereData.put("k3",ids);
 
         //System.out.println(sqlPara.getSql());
+    }
+
+
+    @Test
+    public void testDate(){
+        // 随意编写的一句sql
+        String sql = "select * from cr_vehicle_type " +
+                "where VEHICLE_TYPE_ID in(?,200) " +
+                " and create_time > ? ";
+        // create_time字段故意传入时间字符串，pg会报错,mysql是不会的
+        EDb.use("pg").find(VehicleType.class,sql,100, "2020-01-08");
+//        System.out.println(EDb.use("pg").find(VehicleType.class,sql,100, DateUtil.parseDate("2020-01-08")));
+
+//        System.out.println(DateUtil.formatTime(EDb.find("select * from oc_mileage_base_config").get(0).get("allow_gain_time")));
+    }
+
+    @Test
+    public void test(){
+        String str = "asdf";
+        System.out.println(str.substring(0,str.length()));
     }
 
 

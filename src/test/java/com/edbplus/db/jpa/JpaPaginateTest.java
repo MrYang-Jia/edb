@@ -51,7 +51,7 @@ public class JpaPaginateTest extends BaseTest {
         System.out.println("无统计语句的耗时:"+(System.currentTimeMillis()-start));
 
         start = System.currentTimeMillis();
-        EDb.paginate(VehicleType.class,PageRequest.of(1,10),"select * from cr_vehicle_type where VEHICLE_TYPE_ID in(100,200) ");
+        EDb.paginate(VehicleType.class,PageRequest.of(1,10),"select * from cr_vehicle_type where VEHICLE_TYPE_ID in(?,200) ","100");
         System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis()-start));
 
 

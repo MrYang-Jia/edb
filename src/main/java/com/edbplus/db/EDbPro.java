@@ -1789,13 +1789,13 @@ public class EDbPro extends SpringDbPro {
     }
 
     /**
-     * 改写sql为 limit 2 sql
+     * 改写sql为 limit 1 sql
      * @param sql
      * @return
      */
     public String getFirstSql(String sql){
-        // 获取返回limit 2 sql的语句
-        return EDbSelectUtil.returnLimitSql(sql,2);
+        // 获取返回limit 1 sql的语句
+        return EDbSelectUtil.returnLimitSql(sql,1);
     }
 
     /**

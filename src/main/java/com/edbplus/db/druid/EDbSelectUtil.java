@@ -31,13 +31,13 @@ public class EDbSelectUtil {
 
 
     /**
-     * 返回limitSql
+     * 修改原语句并返回limitSql
      * @param sql -- 原语句
-     * @param limitCount -- 返回条数
+     * @param limitCount -- 返回条数，ps:当用户自己的sql结尾含有 limit xxx 时，以用户自己输入的为准
      * @return
      */
     public static String returnLimitSql(String sql,int limitCount){
-        // mysql 装载容器 --  使用Parser解析生成AST
+        // sql 装载容器 --  使用Parser解析生成AST
         SQLStatementParser parser = new SQLStatementParser(sql);
         // 获取sql实例对象 -- sql语句本身
         SQLSelectStatement sqlStatement = (SQLSelectStatement) parser.parseStatement();
@@ -46,13 +46,12 @@ public class EDbSelectUtil {
             SQLLimit sqlLimit = new SQLLimit();
             sqlStatement.getSelect().getFirstQueryBlock().setLimit(sqlLimit);
         }
+        // sql解析
         SQLExpr limitExpr = sqlStatement.getSelect().getFirstQueryBlock().getLimit().getRowCount();
-        // 修改标志
+        // 修改标志 -- 用户如果有自己控制limit，则由用户自己控制返回个数
         Boolean changeType = true;
         if(limitExpr != null){
-            if("?".equals(String.valueOf(limitExpr))){
-                changeType = false;
-            }
+            changeType = false;
         }
         // 设置返回的记录集
         if(changeType){
@@ -60,5 +59,6 @@ public class EDbSelectUtil {
         }
         return sqlStatement.getSelect().toString();
     }
+
 
 }
