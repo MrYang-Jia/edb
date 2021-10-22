@@ -74,6 +74,18 @@ public class EDbPro extends SpringDbPro {
     }
 
     /**
+     * 返回表名称
+     * @param mClass
+     * @param <M>
+     * @return
+     */
+    public <M> String getTableName(Class<M> mClass) {
+        // 返回表对象 -- 便于获取表名称
+        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        return table.name();
+    }
+
+    /**
      * 根据Jpa对象返回实体
      * @param mClass
      * @param idValues -- 根据字段的顺序进行赋值
@@ -105,6 +117,20 @@ public class EDbPro extends SpringDbPro {
         // 根据主键返回对象
         M record = this.findById(mClass,table.name(),keys,idValue);
         return record;
+    }
+
+    /**
+     * 保存并返回int结果，1：成功 2:失败
+     * @param m
+     * @param <M>
+     * @return
+     */
+    public <M> int saveReInt(M m){
+        if(save(m)){
+            return 1;
+        }else{
+            return 0;
+        }
     }
 
     /**
@@ -562,6 +588,21 @@ public class EDbPro extends SpringDbPro {
     }
 
     /**
+     * 更新对象 -- 包含null值的变更情况 ,成功返回1 ，失败返回 0
+     * @param mClass -- 数据库表对象
+     * @param updateData  -- 数据库表字段(非驼峰对象)
+     * @param <M>
+     * @return
+     */
+    public <M> int updateReInt(Class<M> mClass,Map<String,Object> updateData){
+        if(update(mClass,updateData)){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+
+    /**
      * 更新对象 -- 包含null值的变更情况
      * @param mClass -- 数据库表对象
      * @param updateData  -- 数据库表字段(非驼峰对象)
@@ -629,6 +670,22 @@ public class EDbPro extends SpringDbPro {
         // 更新对象
         return this.update(table.name(),keys,record);
     }
+
+    /**
+     * 更新对象 -- 剔除null值
+     * @param m
+     * @param containsNullValue false-剔除null值，true-保留null值更新
+     * @param <M>
+     * @return
+     */
+    public <M> int updateReInt(M m,boolean containsNullValue){
+        if(update(m,containsNullValue)){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+
 
 
     /**
@@ -700,6 +757,19 @@ public class EDbPro extends SpringDbPro {
         return update(m,false);
     }
 
+    /**
+     * 更新对象 -- 剔除null值，成功返回1，失败返回0
+     * @param m
+     * @param <M>
+     * @return
+     */
+    public <M> int updateReInt(M m){
+        if(update(m)){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
 
     /**
      * 批量更新 -- 必须保证每条记录更新的字段数一样多，并且是同样的字段，否则会引发异常
@@ -1160,7 +1230,17 @@ public class EDbPro extends SpringDbPro {
      * @throws SQLException
      */
     protected <M> List<M> find(Class<M> mClass,Config config, Connection conn, String sql, Object... paras) throws SQLException {
-        PreparedStatement pst = conn.prepareStatement(sql);
+        // 调整成可调节游标的方式，不然pg会报错，目前只测试了 pg 和 mysql 的游标模式 ; 但是如果是大数据量读取，mysql 应该是使用 TYPE_FORWARD_ONLY 模式
+        PreparedStatement pst = null;
+        if(this.getConfig().getDialect() instanceof PostgreSqlDialect){
+//            ResultSet.CONCUR_READ_ONLY 不能用结果集更新数据库中的表  --> 默认使用该模式，便于查阅和修改需要提交的数据，再通过反向更新操作提交记录集
+//            ResultSet.CONCUR_UPDATETABLE 能用结果集更新数据库中的表  --> 配合 rs.update 更新记录集的变动
+            pst = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_READ_ONLY); // 允许pg模式下重置游标，否则无法进行size数计算
+        }else{
+            // https://blog.csdn.net/axman/article/details/3984103 -> 需要参考和做一些测试，避免默认模式和想要实现的结果集查询不一致
+            pst = conn.prepareStatement(sql); // 避免mysql查询数据，查询出不想查询的数据,导致更新异常
+        }
+
         Throwable var6 = null;
 
         List var9;
@@ -1867,8 +1947,8 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <T> T findOnlyOne(Class<T> tClass,SqlPara sqlPara) {
-        // 改写sql语句
-        String newSql = getFirstSql(sqlPara.getSql());
+        // 改写sql语句 -- 最多返回2条，避免太多
+        String newSql = EDbSelectUtil.returnLimitSql(sqlPara.getSql(),2);
         // 获取记录集
         List<T> result = find(tClass,newSql,sqlPara.getPara());
         // 逻辑异常抛出
@@ -1901,10 +1981,47 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <T> T findOnlyOne(Class<T> tClass,String sql) {
-        // 改写sql语句
-        String newSql = getFirstSql(sql);
+        // 改写sql语句 -- 最多返回2条
+        String newSql = EDbSelectUtil.returnLimitSql(sql,2);
         // 获取记录集
         List<T> result = find(tClass,newSql,new Object[0]);
+        // 逻辑异常抛出
+        if(result.size() > 1){
+            // 抛出用户自己编写的语句，避免被改写的语句干扰判断
+            throw new RuntimeException("执行中断，记录集超过1条，执行的语句是: "+ sql);
+        }
+        return result.size() > 0 ? result.get(0) : null;
+    }
+
+    /**
+     * 获取唯一记录，超过1条则抛错
+     * @param sqlPara
+     * @return
+     */
+    public Record findOnlyOne(SqlPara sqlPara)
+    {
+        // 改写sql语句 -- 最多返回2条，避免太多
+        String newSql = EDbSelectUtil.returnLimitSql(sqlPara.getSql(),2);
+        // 获取记录集
+        List<Record> result = find(newSql,sqlPara.getPara());
+        // 逻辑异常抛出
+        if(result.size() > 1){
+            // 抛出用户自己编写的语句，避免被改写的语句干扰判断
+            throw new RuntimeException("执行中断，记录集超过1条，执行的语句是: "+ sqlPara.getSql() + " 入参：" + EJSONUtil.toJsonStr(sqlPara.getPara()));
+        }
+        return result.size() > 0 ? result.get(0) : null;
+    }
+
+    /**
+     * 获取唯一记录，超过1条则抛错
+     * @param sql
+     * @return
+     */
+    public Record findOnlyOne(String sql) {
+        // 改写sql语句 -- 最多返回2条
+        String newSql = EDbSelectUtil.returnLimitSql(sql,2);
+        // 获取记录集
+        List<Record> result = find(newSql,new Object[0]);
         // 逻辑异常抛出
         if(result.size() > 1){
             // 抛出用户自己编写的语句，避免被改写的语句干扰判断
@@ -2289,6 +2406,19 @@ public class EDbPro extends SpringDbPro {
         eDbRelProxy.setPageNo(pageNo);
         eDbRelProxy.setPageSize(pageSize);
         return eDbRelProxy.createProcy(t,this);
+    }
+
+
+    /**
+     * 通过relKey直接返回对象
+     * @param t
+     * @param relKey
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    public Object getRelKey(Object t,String relKey,Integer pageNo,Integer pageSize){
+        return  JpaRelUtil.getRelObject(relKey,null,pageNo,pageSize,this,t,null,null,true,false);
     }
 
     /**

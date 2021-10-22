@@ -159,6 +159,17 @@ public class EDb extends Db{
 
 
     /**
+     * 返回表名称
+     * @param mClass
+     * @param <M>
+     * @return
+     */
+    public static  <M> String getTableName(Class<M> mClass)
+    {
+        return MAIN.getTableName(mClass);
+    }
+
+    /**
      * 返回数据库字段
      * @param m
      * @param ignoreNullValue  - true -屏蔽 null , false - 包含null
@@ -192,6 +203,15 @@ public class EDb extends Db{
         return MAIN.findByGroupId(mClass,idValues);
     }
 
+    /**
+     * 保存并返回int结果，1：成功 2:失败
+     * @param m
+     * @param <M>
+     * @return
+     */
+    public static <M> int saveReInt(M m){
+        return MAIN.saveReInt(m);
+    }
 
     /**
      * 保存jpa对象
@@ -252,6 +272,27 @@ public class EDb extends Db{
     }
 
     /**
+     * 更新对象 -- 剔除null值，成功返回1，失败返回0
+     * @param m
+     * @param <M>
+     * @return
+     */
+    public static <M> int updateReInt(M m){
+        return MAIN.updateReInt(m);
+    }
+
+    /**
+     * 更新对象 -- 剔除null值
+     * @param m
+     * @param containsNullValue false-剔除null值，true-保留null值更新
+     * @param <M>
+     * @return
+     */
+    public static  <M> int updateReInt(M m,boolean containsNullValue){
+        return MAIN.updateReInt(m,containsNullValue);
+    }
+
+    /**
      * 更新对象
      * @param m
      * @param containsNullValue false-剔除null值，true-保留null值更新
@@ -262,6 +303,16 @@ public class EDb extends Db{
         return MAIN.update(m,containsNullValue);
     }
 
+    /**
+     * 更新对象 -- 包含null值的变更情况 ,成功返回1 ，失败返回 0
+     * @param mClass -- 数据库表对象
+     * @param updateData  -- 数据库表字段(非驼峰对象)
+     * @param <M>
+     * @return
+     */
+    public static  <M> int updateReInt(Class<M> mClass,Map<String,Object> updateData){
+        return MAIN.updateReInt(mClass,updateData);
+    }
 
     /**
      * 更新对象 -- 包含null值的变更情况
@@ -880,6 +931,24 @@ public class EDb extends Db{
     }
 
     /**
+     * 获取唯一记录，超过1条则抛错
+     * @param sqlPara
+     * @return
+     */
+    public static Record findOnlyOne(SqlPara sqlPara)
+    {
+        return MAIN.findOnlyOne(sqlPara);
+    }
+    /**
+     * 根据sql返回1条唯一记录,超过则报错
+     * @param sql
+     * @return
+     */
+    public static Record findOnlyOne(String sql){
+        return MAIN.findOnlyOne(sql);
+    }
+
+    /**
      * 根据 EDbQuery 返回查询结果
      * @param tClass
      * @param eDbQuery
@@ -981,6 +1050,18 @@ public class EDb extends Db{
     }
 
     /**
+     * 通过relKey直接返回对象
+     * @param t
+     * @param relKey
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    public static Object getRelKey(Object t,String relKey,Integer pageNo,Integer pageSize) {
+        return MAIN.getRelKey(t,relKey,pageNo,pageSize);
+    }
+
+    /**
      * 通过relKey直接返回指定对象
      * @param t
      * @param relKey
@@ -992,15 +1073,15 @@ public class EDb extends Db{
     }
 
     /**
-     * 获取关系对象，控制返回条数
+     * 获取关系对象，并可控制对象的其实和结束节点，以便控制返回更多的结果
      * @param t
-     * @param limit
-     * @param offset
-     * @param <T>
+     * @param pageNo
+     * @param pageSize
+     * @param <T> -- 这类方法一般返回的是list对象，不排除多个里取一个结果集
      * @return
      */
-    public static  <T> T getRel(T t,Integer limit,Integer offset){
-        return MAIN.rel(t,limit,offset);
+    public static  <T> T getRel(T t,Integer pageNo,Integer pageSize){
+        return MAIN.rel(t,pageNo,pageSize);
     }
 
     /**

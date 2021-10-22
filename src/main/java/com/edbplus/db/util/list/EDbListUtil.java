@@ -22,6 +22,7 @@ import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.json.JSONUtil;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -128,6 +129,30 @@ public class EDbListUtil {
             resultList.add( (T)BeanUtil.fillBeanWithMap(tree, ReflectUtil.newInstanceIfPossible(clazz), false) );
         }
         return resultList;
+    }
+
+
+    /**
+     *
+     *@Title:  ListToArray
+     *@Description: list列表转换成二维数组
+     *@Author: 杨志佳
+     *@Since: 2021年10月12日下午7:01:25
+     *@param: @param list
+     *@param: @param KeyLenght每个map的key数即列数，按最长的计算
+     *@param: @return
+     *@return Object[][]
+     */
+    public static Object[][] ListToArray(List<Map<String, Object>> list, int KeyLenght) {
+        if (CollectionUtils.isEmpty(list)) {
+            return new Object[0][];
+        }
+        int size = list.size();
+        Object[][] array = new Object[size][KeyLenght];
+        for (int i = 0; i < size; i++) {//循环遍历所有行
+            array[i] = list.get(i).values().toArray();//每行的列数
+        }
+        return array;
     }
 
 

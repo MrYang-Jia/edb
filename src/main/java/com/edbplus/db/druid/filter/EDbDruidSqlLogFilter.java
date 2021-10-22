@@ -109,7 +109,6 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try{
             // 执行查询完成后触发
             addLastlLog();
-
         }catch (Throwable e){
             // 报送错误日志
             sendErrLog(e);
@@ -171,7 +170,6 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try {
             // 执行批量命令之后
             addLastlLog();
-
         }catch (Throwable e)
         {
             // 报送错误日志
@@ -189,30 +187,26 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
      */
     @Override
     protected void statement_executeErrorAfter(StatementProxy statement, String sql, Throwable error) {
-        try{
-            if(error.getMessage().contains("位置")){
-                String errStr = error.getMessage();
-                // 提取 【位置：81】 里的数字，便于结合sql语句进行精准范围定位
-                int idx = ReUtil.getFirstNumber(errStr.substring(errStr.indexOf("位置")));
-                int startIdx,endIdx =0;
-                if((idx - 20)>0){
-                    startIdx = idx - 20;
-                }else{
-                    startIdx = 0;
-                }
-                if((idx + 10)<sql.length()){
-                    endIdx = idx + 10;
-                }else{
-                    endIdx = sql.length();
-                }
-                // 弥补pgsql打印时，无法精准输出异常字段的问题
-                String errMsg = "sql异常位置:" + sql.substring(startIdx,endIdx) ;
-                log.error(errMsg);
+        if(error.getMessage().contains("位置")){// pg异常报错时，只能捕获的方式来提示
+            String errStr = error.getMessage();
+            // 提取 【位置：81】 里的数字，便于结合sql语句进行精准范围定位
+            int idx = ReUtil.getFirstNumber(errStr.substring(errStr.indexOf("位置")));
+            int startIdx,endIdx =0;
+            if((idx - 20)>0){
+                startIdx = idx - 20;
+            }else{
+                startIdx = 0;
             }
-        }catch (Throwable e)
-        {
-            // 报送错误日志
-            sendErrLog(e);
+            if((idx + 10)<sql.length()){
+                endIdx = idx + 10;
+            }else{
+                endIdx = sql.length();
+            }
+            // 弥补pgsql打印时，无法精准输出异常字段的问题
+            String errMsg = "sql异常位置:" + sql.substring(startIdx,endIdx) ;
+            RuntimeException newErr = new RuntimeException(errMsg,error);
+            log.error(errMsg);
+            throw newErr;
         }
     }
 
@@ -226,6 +220,18 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
     }
 
 
+    /**
+     * 获取执行sql
+     * @param statement
+     * @return
+     */
+    public String getSql(StatementProxy statement){
+        String sql =  statement.getBatchSql();
+        if(sql==null){
+            sql = statement.getLastExecuteSql();
+        }
+        return sql;
+    }
 
     /**
      * sql日志打印
@@ -239,14 +245,14 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
             // 获取sql
             String lSql = null;
             try {
-                if(dbType==1){
-                    lSql = SQLUtils.formatMySql(statement.getBatchSql());
-                }else{
-                    lSql = SQLUtils.format(statement.getBatchSql(), JdbcConstants.POSTGRESQL);
+                if(dbType==1){ // mysql
+                    lSql = SQLUtils.formatMySql(getSql(statement));
+                }else{ // 其他
+                    lSql = SQLUtils.format(getSql(statement), JdbcConstants.POSTGRESQL);
                 }
-            }finally {
-                // 多行转一行
-                lSql = EStrUtil.replaceChars(statement.getBatchSql(),"\n"," ") ;
+            }catch (Throwable e){
+                // 格式化异常，则获取普通sql即可
+                lSql = getSql(statement) ;
             }
 
             StringBuffer sqlLogStr = new StringBuffer();
@@ -254,16 +260,16 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
             String lS = null;
             // 判空
             if(StrKit.notBlank(lSql)){
-                if(!onlyRealsql){
-                    Map<Integer, Object> parameters = new HashMap<>();
-                    for (Map.Entry<Integer, JdbcParameter> m : lParameters.entrySet()) {
-                        parameters.put(m.getKey(),m.getValue().getValue());
-                    }
-//                    log.debug("edb-sql-?: "+lSql);
-//                    log.debug("edb-sql-params: "+ EDbJsonUtil.toJsonForFormat(parameters));
-                    sqlLogStr.append("\r\nsql-?: ").append(lSql).append("\r\nparams: ").append(JSON.toJSONStringWithDateFormat(parameters,"yyyy-MM-dd HH:mm:ss", SerializerFeature.WriteMapNullValue,SerializerFeature.DisableCircularReferenceDetect,
-                            SerializerFeature.WriteDateUseDateFormat));
+
+                Map<Integer, Object> parameters = new HashMap<>();
+                for (Map.Entry<Integer, JdbcParameter> m : lParameters.entrySet()) {
+                    parameters.put(m.getKey(),m.getValue().getValue());
                 }
+                if(!onlyRealsql){
+                    sqlLogStr.append("\r\nsql-?: ").append(lSql);
+                }
+                sqlLogStr.append("\r\nparams: ").append(JSON.toJSONStringWithDateFormat(parameters,"yyyy-MM-dd HH:mm:ss", SerializerFeature.WriteMapNullValue,SerializerFeature.DisableCircularReferenceDetect,
+                        SerializerFeature.WriteDateUseDateFormat));
                 // 循环获取
                 for (Map.Entry<Integer,JdbcParameter> lEntry : lParameters.entrySet()){
                     JdbcParameter lValue = lEntry.getValue();
@@ -294,16 +300,16 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                     // 不需要输入转义符去定位sql，避免干扰
                     lSql = replaceFirst(lSql,"?",lS);
                 }
-//                log.debug("edb-sql-real: "+lSql);
+//                log.info("edb-sql-real: "+lSql);
                 sqlLogStr.append("\r\nsql-real: ").append(lSql);
             }else{
                 lSql = statement.getLastExecuteSql();
                 // 如果 lSql 不为空的话
                 if(StrKit.notBlank(lSql)){
-//                    log.debug("edb-sql-real: " + lSql);
+//                    log.info("edb-sql-real: " + lSql);
                 }else{
                     lSql = "批量执行sql，暂不完整打印，避免拖沓";
-//                    log.debug("edb-sql-real: " + lSql);
+//                    log.info("edb-sql-real: " + lSql);
                 }
                 sqlLogStr.append("\r\nsql-real: ").append(lSql);
             }

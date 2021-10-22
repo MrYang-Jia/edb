@@ -150,7 +150,7 @@ public class JpaEnjoyTest extends BaseTest {
                 "where VEHICLE_TYPE_ID in(?,200) " +
                 " and create_time > ? ";
         // create_time字段故意传入时间字符串，pg会报错,mysql是不会的
-        EDb.use("pg").find(VehicleType.class,sql,100, "2020-01-08");
+        EDb.use("pg").find(VehicleType.class,sql,"100", "2020-01-08");
 //        System.out.println(EDb.use("pg").find(VehicleType.class,sql,100, DateUtil.parseDate("2020-01-08")));
 
 //        System.out.println(DateUtil.formatTime(EDb.find("select * from oc_mileage_base_config").get(0).get("allow_gain_time")));
