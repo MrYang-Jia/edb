@@ -1232,14 +1232,21 @@ public class EDbPro extends SpringDbPro {
     protected <M> List<M> find(Class<M> mClass,Config config, Connection conn, String sql, Object... paras) throws SQLException {
         // 调整成可调节游标的方式，不然pg会报错，目前只测试了 pg 和 mysql 的游标模式 ; 但是如果是大数据量读取，mysql 应该是使用 TYPE_FORWARD_ONLY 模式
         PreparedStatement pst = null;
-        if(this.getConfig().getDialect() instanceof PostgreSqlDialect){
-//            ResultSet.CONCUR_READ_ONLY 不能用结果集更新数据库中的表  --> 默认使用该模式，便于查阅和修改需要提交的数据，再通过反向更新操作提交记录集
-//            ResultSet.CONCUR_UPDATETABLE 能用结果集更新数据库中的表  --> 配合 rs.update 更新记录集的变动
-            pst = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_READ_ONLY); // 允许pg模式下重置游标，否则无法进行size数计算
-        }else{
-            // https://blog.csdn.net/axman/article/details/3984103 -> 需要参考和做一些测试，避免默认模式和想要实现的结果集查询不一致
-            pst = conn.prepareStatement(sql); // 避免mysql查询数据，查询出不想查询的数据,导致更新异常
-        }
+        // 注释掉pg的游标模式，正常来说是不需要打开游标的，所以从 JpaBuilder 取数上直接保存最后结果集的统计信息，有需要的地方，直接获取对应的结果集统计结果就行
+//        if(this.getConfig().getDialect() instanceof PostgreSqlDialect){
+//            // ResultSet.CONCUR_READ_ONLY 不能用结果集更新数据库中的表  --> 默认使用该模式，便于查阅和修改需要提交的数据，再通过反向更新操作提交记录集
+//            // ResultSet.CONCUR_UPDATETABLE 能用结果集更新数据库中的表  --> 配合 rs.update 更新记录集的变动
+//            // ResultSet.TYPE_FORWARD_ONLY -> 不开启游标，直接往后查询，不能往前设置游标，即 结果集的游标只能向下滚动。
+//            // ResultSet.TYPE_SCROLL_INSENSITIVE -> 结果集的游标可以上下移动，当数据库变化时，当前结果集不变 --> 修改后的数据可能无法显示，对数据修改的信息变化不敏感，默认获取缓存中的数据直接展示，
+//            // ResultSet.TYPE_SCROLL_SENSITIVE -> 返回可滚动的结果集，当数据库变化时，当前结果集同步改变
+//            pst = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY); // 允许pg模式下重置游标，否则无法进行size数计算
+//        }else{
+//            // https://blog.csdn.net/axman/article/details/3984103 -> 需要参考和做一些测试，避免默认模式和想要实现的结果集查询不一致
+//            pst = conn.prepareStatement(sql); // 避免mysql查询数据，查询出不想查询的数据,导致更新异常
+//        }
+        // 统一打开游标，便于快速返回计算结果
+//        pst = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+        pst = conn.prepareStatement(sql); // 默认不打开游标，以便提升本身的性能，还有节约内存开销
 
         Throwable var6 = null;
 
