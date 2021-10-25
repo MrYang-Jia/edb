@@ -103,9 +103,12 @@ public class EDbTest extends BaseTest {
         }
 
         // jpa模式的批量更新，必须保证每条记录变更字段个数必须一致，否则会导致更新异常
-        EDb.use().batchUpdate(VehicleType.class,result,1000);
-
-
+//        EDb.use().batchUpdate(VehicleType.class,result,1000); // 放弃该更新方法
+        // 另外一种更新方式 --> 推荐指定字段的更新，避免遇到无法更新的问题
+        List<String> updateFields = new ArrayList<>();
+        updateFields.add("vehicleTypeId");//pkid
+        updateFields.add("creatorName"); //other update field
+        EDb.use().batchUpdate(VehicleType.class,result,updateFields,1000);
     }
 
     /**

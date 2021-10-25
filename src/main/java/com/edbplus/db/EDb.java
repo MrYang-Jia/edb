@@ -350,6 +350,20 @@ public class EDb extends Db{
     }
 
     /**
+     * 批量更新 -- 推荐使用该方式
+     * @param mClass
+     * @param updateList
+     * @param updateFields -- 指定要更新的字段，必须要有 column 对应，否则会有异常
+     * @param batchSize
+     * @param <M>
+     * @return
+     */
+    public static <M> int[] batchUpdate(Class<M> mClass,List<M> updateList,List<String> updateFields, int batchSize){
+        return MAIN.batchUpdate(mClass,updateList,updateFields,batchSize);
+    }
+
+
+    /**
      * 批量更新 -- 必须保证每条记录更新的字段数一样多，并且是同样的字段，否则会引发异常
      * @param mClass
      * @param updateList

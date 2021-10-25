@@ -783,6 +783,83 @@ public class EDbPro extends SpringDbPro {
         return batchUpdate(mClass,updateList,batchSize,false);
     }
 
+
+    /**
+     * 批量更新 -- 推荐使用该方式
+     * @param mClass
+     * @param updateList
+     * @param updateFields -- 指定要更新的字段，必须要有 column 对应，否则会有异常
+     * @param batchSize
+     * @param <M>
+     * @return
+     */
+    public  <M> int[] batchUpdate(Class<M> mClass,List<M> updateList,List<String> updateFields, int batchSize) {
+        if(updateList == null){
+            return null;
+        }
+        // 返回表对象 -- 便于获取表名称
+        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        // 获取主键键值
+        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        //JpaProxy jpaProxy = null;
+        Record record = null;
+        List<Record> records = new ArrayList<>();
+        // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
+        Map<String,Object> dataMap = null;
+
+        Map<String,Object> updateDataMap = null;
+        Method beforeUpdate = null;
+        // 获取所有字段列表
+        List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(mClass);
+        // 拼凑 mysql or pg(pg模式下，建表建议全部小写，否则不适用该语法) 通用的 update sql 语句，多语句用 分隔符号 间隔
+        for(M obj : updateList){
+            record = new Record();
+            dataMap = new HashMap<>();
+            // 必须有更新条件，所以不用判断null
+            dataMap = JpaAnnotationUtil.getJpaMap(obj,updateFields); // 只获取指定的驼峰字段
+            // 必须指定2个字段以上才允许更新，否则一点意义都没有，所以直接抛错，避免无效更新！！！
+            if(dataMap.size() < 2 ){
+                throw new RuntimeException("updateFields size must be than 2,nowSize=> "+ dataMap.size() +" , pkId or other bean fieldName,nowIs ==> " + dataMap);
+            }
+            // 设置到对象集
+            record.setColumns(dataMap);
+            if(beforeUpdate == null){
+                // 更新前的方法事件
+                beforeUpdate = JpaAnnotationUtil.getMethod(mClass, EDbUpdate.class);
+            }
+
+            // 保存前的监听
+            if(eDbListener!=null){
+                updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+                // 执行对象方法
+                eDbListener.beforeUpdate(mClass , updateDataMap , coumns);
+                // 替换数据
+                record.setColumns(updateDataMap);
+            }
+
+            //
+            if(beforeUpdate != null){
+                // 替换成 忽略 大小写的 map
+                updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+                // 执行对象方法
+                EReflectUtil.invoke(obj, beforeUpdate, updateDataMap,coumns);
+                // 替换数据
+                record.setColumns(updateDataMap);
+            }
+
+            // 反向赋予键值
+            for(FieldAndColumn fieldAndColumn : coumns) {
+                // 字段赋值 -- 反向赋予主键的键值
+                JpaAnnotationUtil.setFieldValue(obj,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+            }
+
+            records.add(record);
+        }
+
+
+        return  this.batchUpdate(table.name(),keys,records,batchSize);
+    }
+
     /**
      * 批量更新 -- 必须保证每条记录更新的字段数一样多，并且是同样的字段，否则会引发异常
      * @param mClass

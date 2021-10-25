@@ -16,7 +16,6 @@
 package com.edbplus.db.jpa;
 
 import cn.hutool.core.lang.SimpleCache;
-import cn.hutool.core.map.CaseInsensitiveMap;
 import com.edbplus.db.annotation.EDbRel;
 import com.edbplus.db.annotation.EDbView;
 import com.edbplus.db.dto.FieldAndColValue;
@@ -24,6 +23,7 @@ import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.dto.FieldAndRel;
 import com.edbplus.db.dto.FieldAndView;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
+import com.edbplus.db.util.hutool.map.CaseInsensitiveMap;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 
 import javax.persistence.*;
@@ -287,13 +287,13 @@ public class JpaAnnotationUtil {
      * @param <T>
      * @return
      */
-    public static <T> Map<String,FieldAndColValue> getCoumnValuesMap(T t){
+    public static <T> CaseInsensitiveMap<String,FieldAndColValue> getCoumnValuesMap(T t){
         // 设置返回的column集合
-        Map<String,FieldAndColValue> columnMap = null;
+        CaseInsensitiveMap<String,FieldAndColValue> columnMap = null;
         // 初始化 columns 对象
         List<FieldAndColValue> columns = getCoumnValues(t);
         if(columns!=null && columns.size()>0){
-            columnMap = new HashMap<>();
+            columnMap = new CaseInsensitiveMap<>();
             for (FieldAndColValue fieldAndColValue:columns){
                 columnMap.put(fieldAndColValue.getField().getName(),fieldAndColValue);
             }
@@ -588,6 +588,26 @@ public class JpaAnnotationUtil {
                 dataMap.put(fieldAndColValue.getColumn().name().toLowerCase(),fieldAndColValue.getFieldValue());
             }
 
+        }
+        return dataMap;
+    }
+
+    /**
+     * 将对象转换成map
+     * @param t -- 对象
+     * @param updateFields -- 需要转换的对象字段
+     * @return
+     */
+    public static <T> Map<String,Object> getJpaMap(T t,List<String> updateFields){
+        //
+        Map<String,Object> dataMap = new HashMap<>();
+        // 获取keyValue的对象集
+        Map<String,FieldAndColValue> fieldAndColValueMap = getCoumnValuesMap(t);
+        FieldAndColValue fieldAndColValue = null;
+        // 只匹配对应的字段数据
+        for(String fieldName:updateFields){
+            fieldAndColValue = fieldAndColValueMap.get(fieldName);
+            dataMap.put(fieldAndColValue.getColumn().name().toLowerCase(),fieldAndColValue.getFieldValue());
         }
         return dataMap;
     }

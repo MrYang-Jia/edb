@@ -15,10 +15,10 @@
  */
 package com.edbplus.db.jpa;
 
-import cn.hutool.core.map.CaseInsensitiveMap;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
+import com.edbplus.db.util.hutool.map.CaseInsensitiveMap;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import com.edbplus.db.util.hutool.str.EStrUtil;
 
@@ -97,7 +97,7 @@ public class JpaBuilder  {
         // 这里需要判断是否有column字段匹配上，有则用column对应的字段填充，适配特殊字段实现的模式
 //        columns = JpaAnnotationUtil.getCoumns(beanClass);
         // 获取根据 columnName 字段存储的map对象
-        CaseInsensitiveMap<String,List<FieldAndColumn>>  coumnNameDataMap = JpaAnnotationUtil.getCoumnsMapForColumnName(beanClass);
+        CaseInsensitiveMap<String,List<FieldAndColumn>> coumnNameDataMap = JpaAnnotationUtil.getCoumnsMapForColumnName(beanClass);
 
         while (rs.next()) {
             // 对象实例化
