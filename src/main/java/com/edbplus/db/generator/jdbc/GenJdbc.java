@@ -165,8 +165,8 @@ public class GenJdbc {
         dp.setMinIdle(minIdle);
         // 最大活动连接数
         dp.setMaxActive(maxActive);
-        //
-        dp.setTimeBetweenConnectErrorMillis(60 * 1000);
+        // 连接检测时间 - net_read_timeout = 30 默认是30秒
+        dp.setTimeBetweenConnectErrorMillis(30 * 1000);
         dp.setValidationQuery("select 1");
         dp.setTestOnBorrow(false);
         dp.setTestOnReturn(false);

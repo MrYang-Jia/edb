@@ -786,10 +786,10 @@ public class EDbPro extends SpringDbPro {
 
     /**
      * 批量更新 -- 推荐使用该方式
-     * @param mClass
-     * @param updateList
-     * @param updateFields -- 指定要更新的字段，必须要有 column 对应，否则会有异常
-     * @param batchSize
+     * @param mClass -- 实体对象,包含 @Table @Column 的实体对象
+     * @param updateList -- 需要更新的实体对象集合
+     * @param updateFields -- 指定要更新的字段，必须要有 @column 对应的对象字段名，即 entity.fieldName，否则无法正常匹配
+     * @param batchSize -- 每批次批量更新提交的数量
      * @param <M>
      * @return
      */
