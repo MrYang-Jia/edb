@@ -530,6 +530,23 @@ public class JpaAnnotationUtil {
         return keys.toString();
     }
 
+    /**
+     * 返回主键字段
+     * @param idFieldAndColumns
+     * @return
+     */
+    public static String getPriKeysByFieldAndColumn(List<FieldAndColumn> idFieldAndColumns){
+        // 这里没有对 idColumns 做判断，是因为有异常的时候会直接抛出
+        StringBuffer keys= new StringBuffer();
+        for(FieldAndColumn fieldAndColumn : idFieldAndColumns){
+            // 统一小写，避免无法识别
+            keys.append(fieldAndColumn.getColumn().name().toLowerCase()).append(",");
+        }
+        // 删除最后一个字符串
+        keys.deleteCharAt(keys.length()-1);
+        return keys.toString();
+    }
+
 
     /**
      * 返回主键字段数值

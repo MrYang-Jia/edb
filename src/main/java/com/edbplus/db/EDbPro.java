@@ -800,7 +800,16 @@ public class EDbPro extends SpringDbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+//        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        List<FieldAndColumn> getIdFieldAndColumns = JpaAnnotationUtil.getIdFieldAndColumns(mClass); // 返回主键字段集合
+        String keys = JpaAnnotationUtil.getPriKeysByFieldAndColumn(getIdFieldAndColumns); // 返回字段解析结果
+        // 匹配主键键值
+        for(FieldAndColumn keyField:getIdFieldAndColumns){
+            if(!updateFields.contains(keyField.getField().getName())){
+                updateFields.add(keyField.getField().getName()); // 不存在主键键值则添加，避免无法匹配
+            }
+        }
+
         //JpaProxy jpaProxy = null;
         Record record = null;
         List<Record> records = new ArrayList<>();

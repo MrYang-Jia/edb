@@ -106,7 +106,7 @@ public class EDbTest extends BaseTest {
 //        EDb.use().batchUpdate(VehicleType.class,result,1000); // 放弃该更新方法
         // 另外一种更新方式 --> 推荐指定字段的更新，避免遇到无法更新的问题
         List<String> updateFields = new ArrayList<>();
-        updateFields.add("vehicleTypeId");//pkid
+//        updateFields.add("vehicleTypeId");//pkid -- 可以不用指定，指定的话不会更新该键值
         updateFields.add("creatorName"); //other update field
         EDb.use().batchUpdate(VehicleType.class,result,updateFields,1000);
     }
