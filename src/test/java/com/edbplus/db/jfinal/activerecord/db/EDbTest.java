@@ -461,6 +461,22 @@ public class EDbTest extends BaseTest {
         System.out.println("1==>"+EDb.templateForCount("test.EDbViewTest",Kv.by("vehicleTypeId",1)));
         // 根据sql语句直接返回记录数
         System.out.println("1==>"+EDb.sqlForCount( EDb.template("test.EDbViewTest").getSqlPara().getSql()));
+
+
+        // 根据sql语句直接返回记录数
+        System.out.println("1==>"+EDb.sqlForCount(EDb.template("test.EDbViewTest",Kv.by("vehicleTypeId",1)).getSqlPara()));
+
+        System.out.println("1==>"+EDb.use().sqlForCount(EDb.use().template("test.EDbViewTest",Kv.by("vehicleTypeId",1)).getSqlPara()));
+
+
+
+    }
+
+    @Test
+    public void testTempl(){
+        EDb.use().template("test.EDbViewTest",Kv.by("vehicleTypeId",1)).sqlForCount();
+
+        EDb.use().template("test.EDbViewTest").paginate(VehicleType.class,1,20);
     }
 
 

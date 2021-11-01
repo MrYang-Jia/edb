@@ -2660,6 +2660,23 @@ public class EDbPro extends SpringDbPro {
         return 0L;
     }
 
+    /**
+     * 返回sql对应的总记录数
+     * @param sqlPara
+     * @return
+     */
+    public Long sqlForCount(SqlPara sqlPara){
+        //
+        String[] sqls = PageSqlKit.parsePageSql(sqlPara.getSql());
+        //
+        String totalRowSql = "select count(1) ct " + this.config.getDialect().replaceOrderBy(sqls[1]);
+        List<Record> result = this.find(totalRowSql,sqlPara.getPara());
+        if(result!=null && result.size()>0){
+            return result.get(0).getLong("ct");
+        }
+        return 0L;
+    }
+
 
     /**
      * 返回sql对应的总记录数
@@ -2689,5 +2706,20 @@ public class EDbPro extends SpringDbPro {
     }
 
 
+    public EDbTemplate template(String key, Map data) {
+        return new EDbTemplate(this, key, data);
+    }
+
+    public EDbTemplate template(String key, Object... paras) {
+        return new EDbTemplate(this, key, paras);
+    }
+
+    public EDbTemplate templateByString(String content, Map data) {
+        return new EDbTemplate(true, this, content, data);
+    }
+
+    public EDbTemplate templateByString(String content, Object... paras) {
+        return new EDbTemplate(true, this, content, paras);
+    }
 
 }

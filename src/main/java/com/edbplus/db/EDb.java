@@ -1219,4 +1219,14 @@ public class EDb extends Db{
         return MAIN.sqlForCount(sql);
     }
 
+    /**
+     * 返回sql对应的总记录数
+     * @param sqlPara
+     * @return
+     */
+    public static Long sqlForCount(SqlPara sqlPara)
+    {
+        return MAIN.sqlForCount(sqlPara);
+    }
+
 }
