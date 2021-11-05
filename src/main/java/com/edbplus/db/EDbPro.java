@@ -2590,7 +2590,9 @@ public class EDbPro extends SpringDbPro {
      * @returnt
      */
     public <T> T getAllRel(T t){
-        return (T) JpaRelUtil.getRelObject(null,null,null,null,this,t,null,null,true,false);
+        // 由于该方法映射的时候，会有一个问题点，就是返回的对象可能是List类型，导致循环匹配时，类型无法正确转换
+        JpaRelUtil.getRelObject(null,null,null,null,this,t,null,null,true,false);
+        return t;
     }
 
     /**
