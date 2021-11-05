@@ -400,7 +400,7 @@ public class JpaRelUtil {
         SqlPara sqlPara = new SqlPara();
         // 自定义查询字段 -- 估计用到的场合少，但是也有特殊情况需要有，甚至可以针对特别字段自己做一些函数表达式等处理
         if(fields != null){
-            sqlBuf.append(" fields ");
+            sqlBuf.append( fields );
         }
         else{
             sqlBuf.append(" * ");

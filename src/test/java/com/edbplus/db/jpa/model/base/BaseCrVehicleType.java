@@ -1,6 +1,9 @@
 package com.edbplus.db.jpa.model.base;
 
 import java.io.Serializable;
+
+import com.edbplus.db.EDbModel;
+import com.edbplus.db.jpa.model.CrVehicleType;
 import lombok.Data;
 import javax.persistence.*;
 import java.util.Date;
@@ -13,7 +16,7 @@ import java.util.Date;
  **/
 @Data
 @Table(name = "cr_vehicle_type")
-public class BaseCrVehicleType implements Serializable{
+public class BaseCrVehicleType extends EDbModel<CrVehicleType> implements Serializable{
 
    @Id
    @Column(name="VEHICLE_TYPE_ID")

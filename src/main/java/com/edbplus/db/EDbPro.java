@@ -603,6 +603,22 @@ public class EDbPro extends SpringDbPro {
     }
 
     /**
+     * 更新对象 -- 包含null值的变更情况 ,成功返回1 ，失败返回 0
+     * @param mClass -- 数据库表对象
+     * @param updateData  -- 数据库表字段(非驼峰对象)
+     * @isColumnName -- 是否是数据库字段名称,true-数据库字段名称,false-驼峰字段名称
+     * @param <M>
+     * @return
+     */
+    public <M> int updateReInt(Class<M> mClass,Map<String,Object> updateData,boolean isColumnName){
+        if(update(mClass,updateData,isColumnName)){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+
+    /**
      * 更新对象 -- 包含null值的变更情况
      * @param mClass -- 数据库表对象
      * @param updateData  -- 数据库表字段(非驼峰对象)
@@ -2164,6 +2180,7 @@ public class EDbPro extends SpringDbPro {
         if(offset == null){
             sqlPara.setSql(sqlPara.getSql() + " limit " + limit);
         }else{
+            // todo:需要根据不同数据库做不同的sql拼接，不然分页会有bug(暂时懒得写，后续改进)
             sqlPara.setSql(sqlPara.getSql() + " limit " + limit + " offset " + offset);
         }
 
@@ -2477,9 +2494,9 @@ public class EDbPro extends SpringDbPro {
 
 
     /**
-     *
+     * 限定字段并返回
      * @param t
-     * @param fields
+     * @param fields -- 可传入自定义的sql字段，并可使用 case when 等语法替代字段的模式
      * @param pageNo
      * @param pageSize
      * @param <T>

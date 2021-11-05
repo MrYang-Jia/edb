@@ -12,6 +12,7 @@ import com.edbplus.db.jpa.model.base.BaseCrVehicleTypeMode;
 @Table(name = "cr_vehicle_type_mode")
 public class CrVehicleTypeMode extends BaseCrVehicleTypeMode{
 
+    public static CrVehicleTypeMode dao = new CrVehicleTypeMode().dao();
     // 实现自定义枚举
 
     // 实现基于该业务表的相关处理方法

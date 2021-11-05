@@ -43,7 +43,7 @@ public class EDb extends Db{
     // 连接池
     public static final Map<String, ExecutorService> edbFutruePools = new SyncWriteMap<String, ExecutorService>(32, 0.25F);
 
-    // 主要访问的对象
+    // 主要访问的对象 -- 私有可以避免对外暴露信息，尤其是转json时
     private static EDbPro MAIN = null;
 
     // 主要载体
@@ -312,6 +312,18 @@ public class EDb extends Db{
      */
     public static  <M> int updateReInt(Class<M> mClass,Map<String,Object> updateData){
         return MAIN.updateReInt(mClass,updateData);
+    }
+
+    /**
+     * 更新对象 -- 包含null值的变更情况 ,成功返回1 ，失败返回 0
+     * @param mClass -- 数据库表对象
+     * @param updateData  -- 数据库表字段(非驼峰对象)
+     * @param isColumnName -- 是否是数据库字段名称,true-数据库字段名称,false-驼峰字段名称
+     * @param <M>
+     * @return
+     */
+    public static <M> int updateReInt(Class<M> mClass,Map<String,Object> updateData,boolean isColumnName){
+        return MAIN.updateReInt(mClass,updateData,isColumnName);
     }
 
     /**
