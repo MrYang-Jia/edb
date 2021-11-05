@@ -92,7 +92,7 @@ public class EDbModel<M extends EDbModel> {
      */
     public void checkUpType(){
         if(this.upType == 0){
-            throw new RuntimeException(" 不允许直接进行保存或更新操作，包括直接调用 rel() or view() ");
+            throw new RuntimeException(" 不允许没有赋予新对象就进行保存或更新操作，包括直接调用 rel() or view() ");
         }
     }
 
@@ -213,7 +213,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public int[] batchSaveRid(List<M> saveList, int batchSize){
-        checkUpType();
+//        checkUpType(); // 批量保存时，无需校验是否是主方法
         Class mClass = saveList.get(0).getClass(); // 如果保存列表是null，直接抛错就好，不然保存插入也是会报错
         return getEDbPro().batchSaveRid(mClass,saveList,batchSize);
     }
@@ -227,7 +227,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public <M> int[] batchSave(List<M> saveList,int batchSize){
-        checkUpType();
+//        checkUpType();
         Class mClass = saveList.get(0).getClass(); // 如果保存列表是null，直接抛错就好，不然保存插入也是会报错
         return getEDbPro().batchSave(mClass,saveList,batchSize);
     }
@@ -238,7 +238,7 @@ public class EDbModel<M extends EDbModel> {
      * @param batchSize
      */
     public  int  insertValues(List<M> saveList,int batchSize){
-        checkUpType();
+//        checkUpType();
         Class mClass = saveList.get(0).getClass(); // 如果保存列表是null，直接抛错就好，不然保存插入也是会报错
         return getEDbPro().insertValues(mClass,saveList,batchSize);
     }
@@ -348,7 +348,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public   int[] batchUpdate(List<M> updateList, int batchSize){
-        checkUpType();
+//        checkUpType();
         Class mClass = updateList.get(0).getClass();
         return getEDbPro().batchUpdate(mClass,updateList,batchSize);
     }
@@ -362,7 +362,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public  <M> int[] batchUpdate(List<M> updateList,List<String> updateFields, int batchSize){
-        checkUpType();
+//        checkUpType();
         Class mClass = updateList.get(0).getClass();
         return getEDbPro().batchUpdate(mClass,updateList,updateFields,batchSize);
     }
@@ -375,7 +375,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public  int[] batchUpdate(List<M> updateList, int batchSize,boolean containsNullValue){
-        checkUpType();
+//        checkUpType();
         Class mClass = updateList.get(0).getClass();
         return getEDbPro().batchUpdate(mClass,updateList,batchSize,containsNullValue);
     }
@@ -386,7 +386,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public boolean deleteByGroupIds(Object... ids){
-        checkUpType();
+//        checkUpType();
         return getEDbPro().deleteByGroupIds(this.getClass(),ids);
     }
 
@@ -396,7 +396,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public boolean deleteById(Object id){
-        checkUpType();
+//        checkUpType();
         return getEDbPro().deleteById(this.getClass(),id);
     }
 
@@ -415,7 +415,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public  int deleteByJpaList(List<M> jpaList){
-        checkUpType();
+//        checkUpType();
         return getEDbPro().deleteByIds(jpaList);
     }
 
@@ -425,7 +425,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public  int deleteByIds(List<Object> deleteIds){
-        checkUpType();
+//        checkUpType();
         return getEDbPro().deleteByIds(this.getClass(),deleteIds);
     }
 
@@ -435,7 +435,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public  int deleteByIds(String deleteIds) {
-        checkUpType();
+//        checkUpType();
         return getEDbPro().deleteByIds(this.getClass(),deleteIds);
     }
 
@@ -446,7 +446,7 @@ public class EDbModel<M extends EDbModel> {
      * @return
      */
     public  int deleteByIds(String deleteIds,String splitStr){
-        checkUpType();
+//        checkUpType();
         return getEDbPro().deleteByIds(this.getClass(),deleteIds,splitStr);
     }
 
