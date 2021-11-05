@@ -17,9 +17,12 @@ package com.edbplus.db;
 
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.util.bean.EDbBeanUtil;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +34,8 @@ import java.util.Map;
  * @Date 2021/11/4
  * @Version V1.0
  **/
+// https://blog.csdn.net/blwinner/article/details/98532847 fastJson fastJson 注解相关
+@JsonIgnoreType // 不允许被fastJson反解析调用，避免默认调用方法级时被反向触发get方法，导致循环调用相应的方法
 public class EDbModel<M extends EDbModel> {
 //    public static Map<Class,EDbPro> eDbProMap = new HashMap<>(); // 数据集合对象
 
@@ -791,7 +796,8 @@ public class EDbModel<M extends EDbModel> {
      */
     public M getAllRel(){
         checkUpType();
-        return (M) getEDbPro().getAllRel(this);
+        getEDbPro().getAllRel(this);
+        return (M) this;
     }
 
     /**
@@ -814,6 +820,7 @@ public class EDbModel<M extends EDbModel> {
         checkUpType();
         return (M) getEDbPro().view(this,pageNo,pageSize);
     }
+
 
     public SqlPara getSqlPara(String key, Map data) {
         return getEDbPro().getConfig().getSqlKit().getSqlPara(key, data);
