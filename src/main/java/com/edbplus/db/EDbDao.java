@@ -70,6 +70,7 @@ public class EDbDao<M> {
     public EDbDao(Class<M> mClass,String configName) {
         this.mClass = mClass;
         this.configName = configName; // 指定默认数据源
+        this.defaultConfigName = configName; // 指定默认数据源
     }
 
 
@@ -102,10 +103,14 @@ public class EDbDao<M> {
      * 默认初始化当前实体对象
      */
     public EDbDao<M> use(String configName){
-        this.configName = configName;
-        if(defaultConfigName == null){
-            this.defaultConfigName = DbKit.MAIN_CONFIG_NAME; // 避免直接使用use时，导致 defaultConfigName 没有指向
+        if(this.defaultConfigName == null){// 如果默认配置没有，则根据情况进行重置
+            if(this.configName == null) {
+                this.defaultConfigName = DbKit.MAIN_CONFIG_NAME; // 避免直接使用use时，导致 defaultConfigName 没有指向
+            }else{
+                this.defaultConfigName = this.configName;
+            }
         }
+        this.configName = configName;
         return this;
     }
 

@@ -49,12 +49,12 @@ public class EDbModelTest extends BaseTest {
         crVehicleType.setCreator("创建人-pg"); // 保存到pg库
         crVehicleType.use("pg").update(); // 指定更新pg库的更新结果集
         crVehicleType = CrVehicleType.dao.use("pg").findById(100); // 查询pg库的对象，会发现已更新成功
-        System.out.println("==>"+crVehicleType.getCreator()); // 上一个对象指定查询pg库的数据，搜易
+        System.out.println("==>"+crVehicleType.getCreator()); // 上一个对象指定查询pg库的数据，所以打印pg库修改后的信息
         crVehicleType = CrVehicleType.dao.findById(100); // 再次查询主库数据
         System.out.println(crVehicleType); // 再次打印数据库查询之后的结果
 
         CrVehicleType.dao.use("pg").deleteById(crVehicleType); // 删除
-        crVehicleType = CrVehicleType.dao.findById(100);
+        crVehicleType = CrVehicleType.dao.findById(100); // 查询主库信息
         System.out.println("==>"+crVehicleType.getCreator()); // 切换回主库，并打印信息
 
         crVehicleType.rel().getCrVehicleTypeModesRel(); // 关联查询,思考 view 和 rel 很容易混淆，相似，但是用途又不一样
