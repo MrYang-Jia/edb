@@ -245,12 +245,21 @@ public class EDbModel<M extends EDbModel> {
 
 
     /**
+     * 删除对象
+     * @return
+     */
+    public boolean delete(){
+        return getEDbPro().delete(this);
+    }
+
+    /**
      * 删除当前对象
      * @return
      */
     public boolean deleteById(){
         return getEDbPro().deleteById(this);
     }
+
 
 
 

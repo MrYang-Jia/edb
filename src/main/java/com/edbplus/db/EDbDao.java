@@ -333,6 +333,15 @@ public class EDbDao<M> {
     }
 
     /**
+     * 删除对象
+     * @param m
+     * @return
+     */
+    public boolean delete(M m){
+        return getEDbPro().delete(m);
+    }
+
+    /**
      * 传入一个id组，删除指定对象，但是只支持 唯一键值 只有一个的数据结构
      * @param ids
      * @return
@@ -353,6 +362,8 @@ public class EDbDao<M> {
         }
         return getEDbPro().deleteById(this.mClass,id);
     }
+
+
 
 
 

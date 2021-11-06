@@ -1020,6 +1020,17 @@ public class EDbPro extends SpringDbPro {
         return this.deleteById(table.name(), keys, id);
     }
 
+    /**
+     * 根据主键字段删除数据
+     * @param t
+     * @param <T>
+     * @return
+     */
+    public <T> boolean delete(T t)
+    {
+        return deleteById(t);
+    }
+
 
     /**
      * 根据主键字段删除数据

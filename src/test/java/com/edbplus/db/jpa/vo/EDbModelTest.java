@@ -53,7 +53,7 @@ public class EDbModelTest extends BaseTest {
         crVehicleType = CrVehicleType.dao.findById(100); // 再次查询主库数据
         System.out.println(crVehicleType); // 再次打印数据库查询之后的结果
 
-        CrVehicleType.dao.use("pg").deleteById(crVehicleType); // 删除
+        CrVehicleType.dao.use("pg").delete(crVehicleType); // 删除
         crVehicleType = CrVehicleType.dao.findById(100); // 查询主库信息
         System.out.println("==>"+crVehicleType.getCreator()); // 切换回主库，并打印信息
 
