@@ -41,10 +41,7 @@ import java.util.Map;
 @JsonIgnoreType // 不允许被fastJson反解析调用，避免默认调用方法级时被反向触发get方法，导致循环调用相应的方法
 public class EDbDao<M> {
 
-    private Class<M> mClass;
-
-    private String daoConfigName; // 多数据源时触发
-
+    private Class<M> mClass; // 表对象 class 类型
     private String configName; // 单数据源时指向
     private String defaultConfigName; // 每次切换完数据库查询完后，当前实例化对象必须进行一次重置，以便指向正确的数据库进行相关操作
 
@@ -56,14 +53,6 @@ public class EDbDao<M> {
     public void mainConfig(String configName) {
         this.configName = configName;
         this.defaultConfigName = configName;
-    }
-
-    /**
-     * 定义对象组合名 -- 只有使用 use(xxx) 时触发
-     * @param daoConfigName
-     */
-    private void setDaoConfigName(String daoConfigName){
-        this.daoConfigName = daoConfigName;
     }
 
     /**
