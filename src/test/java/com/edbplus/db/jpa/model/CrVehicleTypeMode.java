@@ -1,6 +1,8 @@
 package com.edbplus.db.jpa.model;
 
 import javax.persistence.*;
+
+import com.edbplus.db.EDbDao;
 import com.edbplus.db.jpa.model.base.BaseCrVehicleTypeMode;
 
 /**
@@ -12,7 +14,7 @@ import com.edbplus.db.jpa.model.base.BaseCrVehicleTypeMode;
 @Table(name = "cr_vehicle_type_mode")
 public class CrVehicleTypeMode extends BaseCrVehicleTypeMode{
 
-    public static CrVehicleTypeMode dao = new CrVehicleTypeMode().dao();
+    public static final EDbDao<CrVehicleTypeMode> dao = new EDbDao<CrVehicleTypeMode>(CrVehicleTypeMode.class);
     // 实现自定义枚举
 
     // 实现基于该业务表的相关处理方法

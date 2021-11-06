@@ -15,6 +15,7 @@
  */
 package com.edbplus.db;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.plugin.activerecord.Model;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
@@ -29,26 +30,27 @@ import java.util.Map;
  * @Date 2021/11/5
  * @Version V1.0
  **/
-public class EDbDaoTemplate<M extends EDbModel> {
-    protected EDbModel<M> dao;
+@JsonIgnoreType
+public class EDbDaoTemplate<M> {
+    protected EDbDao<M> dao;
     protected SqlPara sqlPara;
 
-    public EDbDaoTemplate(EDbModel dao, String key, Map<?, ?> data) {
+    public EDbDaoTemplate(EDbDao dao, String key, Map<?, ?> data) {
         this.dao = dao;
         this.sqlPara = dao.getSqlPara(key, data);
     }
 
-    public EDbDaoTemplate(EDbModel dao, String key, Object... paras) {
+    public EDbDaoTemplate(EDbDao dao, String key, Object... paras) {
         this.dao = dao;
         this.sqlPara = dao.getSqlPara(key, paras);
     }
 
-    public EDbDaoTemplate(boolean byString, EDbModel dao, String content, Map<?, ?> data) {
+    public EDbDaoTemplate(boolean byString, EDbDao dao, String content, Map<?, ?> data) {
         this.dao = dao;
         this.sqlPara = dao.getSqlParaByString(content, data);
     }
 
-    public EDbDaoTemplate(boolean byString, EDbModel dao, String content, Object... paras) {
+    public EDbDaoTemplate(boolean byString, EDbDao dao, String content, Object... paras) {
         this.dao = dao;
         this.sqlPara = dao.getSqlParaByString(content, paras);
     }

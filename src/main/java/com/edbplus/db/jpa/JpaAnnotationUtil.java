@@ -504,6 +504,34 @@ public class JpaAnnotationUtil {
     }
 
     /**
+     * 返回驼峰对象主键字段字符串
+     * @param t 对象
+     * @return
+     */
+    public static <T> Map<String,Object> getPriKeyMap(T t){
+        List<FieldAndColValue> priKeys = getIdFieldAndColumnValues(t);
+        Map<String,Object> priKeyMap = new HashMap<>();
+        for(FieldAndColValue fieldAndColValue : priKeys){
+            priKeyMap.put(fieldAndColValue.getField().getName(),fieldAndColValue.getFieldValue());
+        }
+        return priKeyMap;
+    }
+
+    /**
+     * 返回数据库主键字段字符串
+     * @param t 对象
+     * @return
+     */
+    public static <T> CaseInsensitiveMap<String,Object> getPriKeyColumnMap(T t){
+        List<FieldAndColValue> priKeys = getIdFieldAndColumnValues(t);
+        CaseInsensitiveMap<String,Object> priKeyMap = new CaseInsensitiveMap<>();
+        for(FieldAndColValue fieldAndColValue : priKeys){
+            priKeyMap.put(fieldAndColValue.getColumn().name(),fieldAndColValue.getFieldValue());
+        }
+        return priKeyMap;
+    }
+
+    /**
      * 返回主键字段字符串
      * @param mClass
      * @return

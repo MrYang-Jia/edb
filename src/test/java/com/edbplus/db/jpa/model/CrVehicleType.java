@@ -2,6 +2,7 @@ package com.edbplus.db.jpa.model;
 
 import javax.persistence.*;
 
+import com.edbplus.db.EDbDao;
 import com.edbplus.db.EDbModel;
 import com.edbplus.db.annotation.EDbRel;
 import com.edbplus.db.jpa.model.base.BaseCrVehicleType;
@@ -18,10 +19,8 @@ import java.util.List;
  **/
 @Table(name = "cr_vehicle_type")
 public class CrVehicleType extends BaseCrVehicleType{
-
     // 静态化 dao 对象
-    public static final CrVehicleType dao = new CrVehicleType().dao();
-
+    public static final EDbDao<CrVehicleType> dao = new EDbDao<>(CrVehicleType.class);
 
     // 实现基于该业务表的相关处理方法
     @Setter

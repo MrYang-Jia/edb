@@ -49,7 +49,7 @@ public class BaseCrVehicleType extends EDbModel<CrVehicleType> implements Serial
 
    /**字段说明:IS_DEL*/
    /**描述说明:是否删除*/
-   @Column(name="IS_DEL")
+//   @Column(name="IS_DEL")
    private  Integer isDel;
 
 
