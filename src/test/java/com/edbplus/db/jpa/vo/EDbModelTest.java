@@ -47,13 +47,13 @@ public class EDbModelTest extends BaseTest {
         crVehicleType.update(); // 更新结果集
         crVehicleType.use("pg").save(); //切换数据库保存
         crVehicleType.setCreator("创建人-pg"); // 保存到pg库
-        crVehicleType.update(); // 更新结果集
-        crVehicleType = CrVehicleType.dao.findById(100);
-        System.out.println("==>"+crVehicleType.getCreator()); // 这时候会发现又切换回 主库 ，这是因为使用use的上一个对象进行了数据库操作切换的情况
-        crVehicleType = CrVehicleType.dao.findById(100); // 再次查询
+        crVehicleType.use("pg").update(); // 指定更新pg库的更新结果集
+        crVehicleType = CrVehicleType.dao.use("pg").findById(100); // 查询pg库的对象，会发现已更新成功
+        System.out.println("==>"+crVehicleType.getCreator()); // 上一个对象指定查询pg库的数据，搜易
+        crVehicleType = CrVehicleType.dao.findById(100); // 再次查询主库数据
         System.out.println(crVehicleType); // 再次打印数据库查询之后的结果
 
-        CrVehicleType.dao.use("pg").deleteById(crVehicleType);
+        CrVehicleType.dao.use("pg").deleteById(crVehicleType); // 删除
         crVehicleType = CrVehicleType.dao.findById(100);
         System.out.println("==>"+crVehicleType.getCreator()); // 切换回主库，并打印信息
 

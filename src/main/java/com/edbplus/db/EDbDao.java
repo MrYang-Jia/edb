@@ -46,9 +46,17 @@ public class EDbDao<M> {
     private String daoConfigName; // 多数据源时触发
 
     private String configName; // 单数据源时指向
+    private String defaultConfigName; // 每次切换完数据库查询完后，当前实例化对象必须进行一次重置，以便指向正确的数据库进行相关操作
 
-    // 额外的开销，如果是多数据源的话，还是得分开，不然一个对象多用途，是会有所影响的
-    private static final Map<String, EDbDao> dbMap = new SyncWriteMap<String, EDbDao>(32, 0.25F);
+
+    /**
+     * 指定默认数据源(有需要的情况下，可以指定默认的操作库)
+     * @param configName
+     */
+    public void mainConfig(String configName) {
+        this.configName = configName;
+        this.defaultConfigName = configName;
+    }
 
     /**
      * 定义对象组合名 -- 只有使用 use(xxx) 时触发
@@ -57,16 +65,6 @@ public class EDbDao<M> {
     private void setDaoConfigName(String daoConfigName){
         this.daoConfigName = daoConfigName;
     }
-
-    /**
-     * 指定数据源
-     * @param configName
-     */
-    private void setConfigName(String configName) {
-        this.configName = configName;
-    }
-
-    //private EDbPro eDbPro; // 数据对象
 
     /**
      * 模拟dao层通用常规操作行为
@@ -91,35 +89,35 @@ public class EDbDao<M> {
      * @return
      */
     private EDbPro getEDbPro() {
-        if(configName==null){
-            this.configName = DbKit.MAIN_CONFIG_NAME;
+        if(configName == null){
+            this.configName = DbKit.MAIN_CONFIG_NAME; // 默认库
+            this.defaultConfigName = this.configName; // 默认数据源指定
         }
-        return EDb.use(configName);
+        EDbPro eDbPro = EDb.use(configName); // 当前操作的数据库对象
+        this.configName = this.defaultConfigName; //切换回默认数据源
+        return eDbPro;
     }
 
     /**
      * 默认初始化当前实体对象
      */
     public EDbDao<M> use(){
-        if(daoConfigName ==null){
-            this.daoConfigName = DbKit.MAIN_CONFIG_NAME;
+        if(configName ==null){
+            this.configName = DbKit.MAIN_CONFIG_NAME;
+            this.defaultConfigName = this.configName;
         }
-        return use(daoConfigName);
+        return use(configName);
     }
 
     /**
      * 默认初始化当前实体对象
      */
     public EDbDao<M> use(String configName){
-        String modelConfigName = configName +":" +this.mClass.getSimpleName();
-        if(dbMap.get(modelConfigName) !=null ){
-            return dbMap.get(modelConfigName);
+        this.configName = configName;
+        if(defaultConfigName == null){
+            this.defaultConfigName = DbKit.MAIN_CONFIG_NAME; // 避免直接使用use时，导致 defaultConfigName 没有指向
         }
-        EDbDao<M> eDbDao = new  EDbDao<M>(this.mClass); // 定义新的数据对象
-        eDbDao.setDaoConfigName(modelConfigName); // 定义对象
-        eDbDao.setConfigName(configName); // 定义数据集对象
-        dbMap.put(modelConfigName,eDbDao);
-        return eDbDao;
+        return this;
     }
 
 
@@ -135,20 +133,18 @@ public class EDbDao<M> {
     /**
      * 返回数据库字段
      * @param ignoreNullValue - true -屏蔽 null , false - 包含null
-     * @param <M>
      * @return
      */
-    public <M> Map<String,Object> getColumnsMap(boolean ignoreNullValue){
+    public  Map<String,Object> getColumnsMap(boolean ignoreNullValue){
         return getEDbPro().getColumnsMap(this,ignoreNullValue);
     }
 
     /**
      * 获取真实的jpa对象实例 -- 如果没有直接指定申明 jpa 对象class 类型，则必须调用该方法，保证类型的准确性
-     * @param <M>
      * @return
      */
-    public <M> Class<M> getRealJpaClass(){
-        return (Class<M>) this.mClass;
+    public  Class<M> getRealJpaClass(){
+        return this.mClass;
     }
 
     /**
@@ -158,7 +154,7 @@ public class EDbDao<M> {
      * @return
      */
     public M findByGroupId(Object... idValues ) {
-        return (M) getEDbPro().findByGroupId(this.mClass,idValues);
+        return getEDbPro().findByGroupId(this.mClass,idValues);
     }
 
     /**
@@ -167,7 +163,7 @@ public class EDbDao<M> {
      * @return
      */
     public  M findById( Object idValue ){
-        return (M) getEDbPro().findById(this.mClass,idValue);
+        return getEDbPro().findById(this.mClass,idValue);
     }
 
     /**

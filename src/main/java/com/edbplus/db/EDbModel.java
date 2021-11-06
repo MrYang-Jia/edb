@@ -42,12 +42,15 @@ public class EDbModel<M extends EDbModel> {
 
     private String configName; // 单数据源时指向,多数据源时，可通过 use 切换到另外一个数据库进行操作,一体多用
 
+    private String defaultConfigName; // 每次切换完数据库查询完后，当前实例化对象必须进行一次重置，以便指向正确的数据库进行相关操作
+
     /**
-     * 指定数据源
+     * 指定默认数据源(有需要的情况下，可以指定默认的操作库)
      * @param configName
      */
-    private void setConfigName(String configName) {
+    public void mainConfig(String configName) {
         this.configName = configName;
+        this.defaultConfigName = configName;
     }
 
 
@@ -58,9 +61,12 @@ public class EDbModel<M extends EDbModel> {
      */
     private EDbPro getEDbPro() {
         if(configName==null){
-            this.configName = DbKit.MAIN_CONFIG_NAME;
+            this.configName = DbKit.MAIN_CONFIG_NAME; // 默认库
+            this.defaultConfigName = this.configName; // 默认数据源指定
         }
-        return EDb.use(configName);
+        EDbPro eDbPro = EDb.use(configName); // 当前操作的数据库对象
+        this.configName = this.defaultConfigName; //切换回默认数据源
+        return eDbPro;
     }
 
     /**
@@ -69,6 +75,7 @@ public class EDbModel<M extends EDbModel> {
     public M use(){
         if(configName==null){
             this.configName = DbKit.MAIN_CONFIG_NAME;
+            this.defaultConfigName = this.configName;
         }
         return use(configName);
     }
@@ -78,6 +85,9 @@ public class EDbModel<M extends EDbModel> {
      */
     public M use(String configName){
         this.configName = configName;
+        if(defaultConfigName == null){
+            this.defaultConfigName = DbKit.MAIN_CONFIG_NAME; // 避免直接使用use时，导致 defaultConfigName 没有指向
+        }
         return (M) this;
     }
 
