@@ -21,9 +21,7 @@ import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.kit.SyncWriteMap;
-import com.jfinal.plugin.activerecord.DbKit;
-import com.jfinal.plugin.activerecord.Page;
-import com.jfinal.plugin.activerecord.SqlPara;
+import com.jfinal.plugin.activerecord.*;
 
 import javax.persistence.Table;
 import java.util.List;
@@ -777,6 +775,44 @@ public class EDbDao<M> {
      */
     public M view(M m,int pageNo,int pageSize){
         return getEDbPro().view(m,pageNo,pageSize);
+    }
+
+    /**
+     * 返回视图的总记录数
+     * @param key
+     * @param data
+     * @return
+     */
+    public Long templateForCount(String key,Map data){
+        return getEDbPro().templateForCount(key,data);
+    }
+
+    /**
+     * 返回sql对应的总记录数
+     * @param sqlPara
+     * @return
+     */
+    public Long sqlForCount(SqlPara sqlPara){
+        return getEDbPro().sqlForCount(sqlPara);
+    }
+
+
+    /**
+     * 返回sql对应的总记录数
+     * @param sql
+     * @return
+     */
+    public Long sqlForCount(String sql){
+        return getEDbPro().sqlForCount(sql);
+    }
+
+    /**
+     * 返回统计sql
+     * @param sql
+     * @return
+     */
+    public String getCountSql(String sql){
+        return getEDbPro().getCountSql(sql);
     }
 
 
