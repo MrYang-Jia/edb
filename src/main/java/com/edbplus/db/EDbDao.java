@@ -221,6 +221,14 @@ public class EDbDao<M> {
     }
 
     /**
+     * 通过 sqlPara 执行更新语句
+     * @return
+     */
+    public int update(SqlPara sqlPara){
+        return getEDbPro().update(sqlPara);
+    }
+
+    /**
      * 更新对象 -- 剔除null值，成功返回1，失败返回0
      * @return
      */

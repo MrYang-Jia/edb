@@ -80,4 +80,12 @@ public class EDbDaoTemplate<M> {
         return this.dao.paginate(pageNumber, pageSize, isGroupBySql, this.sqlPara);
     }
 
+    /**
+     * 通过 sqlPara 执行更新语句
+     * @return
+     */
+    public int update() {
+        return this.dao.update(this.sqlPara);
+    }
+
 }
