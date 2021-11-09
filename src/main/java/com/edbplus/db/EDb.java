@@ -18,6 +18,8 @@ package com.edbplus.db;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.query.EDbQuery;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,9 @@ import java.util.concurrent.Future;
  * @Version V1.0
  **/
 @Slf4j
+@JsonIgnoreType
+// 因为方法名以getxxx开头，如果没有参数的话，会被当作是属性对象返回给前端，所以接下来方法名命名要注意不能以get开头
+@JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
 public class EDb extends Db{
 
     // 连接池

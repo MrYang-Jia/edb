@@ -39,6 +39,8 @@ import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.hutool.number.ENumberUtil;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import com.edbplus.db.util.hutool.rul.EReUtil;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.kit.LogKit;
 import com.jfinal.plugin.activerecord.*;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
@@ -58,6 +60,9 @@ import java.util.concurrent.Future;
  * @Date 2020/10/14
  * @Version V1.0
  **/
+@JsonIgnoreType
+// 因为方法名以getxxx开头，如果没有参数的话，会被当作是属性对象返回给前端，所以接下来方法名命名要注意不能以get开头
+@JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
 public class EDbPro extends SpringDbPro {
 
 //    protected final Config config;

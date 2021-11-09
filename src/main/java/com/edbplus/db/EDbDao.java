@@ -19,6 +19,7 @@ import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
@@ -36,7 +37,9 @@ import java.util.Map;
  * @Version V1.0
  **/
 // https://blog.csdn.net/blwinner/article/details/98532847 fastJson fastJson 注解相关
-@JsonIgnoreType // 不允许被fastJson反解析调用，避免默认调用方法级时被反向触发get方法，导致循环调用相应的方法
+@JsonIgnoreType
+// 因为方法名以getxxx开头，如果没有参数的话，会被当作是属性对象返回给前端，所以接下来方法名命名要注意不能以get开头
+@JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
 public class EDbDao<M> {
 
     private Class<M> mClass; // 表对象 class 类型

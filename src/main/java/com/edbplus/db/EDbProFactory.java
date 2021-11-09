@@ -15,6 +15,8 @@
  */
 package com.edbplus.db;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.plugin.activerecord.DbPro;
 import com.jfinal.plugin.activerecord.IDbProFactory;
 
@@ -25,6 +27,9 @@ import com.jfinal.plugin.activerecord.IDbProFactory;
  * @Date 2021/5/24
  * @Version V1.0
  **/
+@JsonIgnoreType
+// 因为方法名以getxxx开头，如果没有参数的话，会被当作是属性对象返回给前端，所以接下来方法名命名要注意不能以get开头
+@JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
 public class EDbProFactory implements IDbProFactory {
 
     @Override
