@@ -159,18 +159,18 @@ public class EDbQueryUtil {
      * @param paramsList
      */
     public static void baseQueryFun(EDbBaseQuery queryParams,StringBuffer andSqlStr,List<Object> paramsList){
-        EDbFilter EDbFilter = null;
+        EDbFilter eDbFilter = null;
         // and 部分
         for(int i = 0; i< queryParams.getAndEDbFilters().size(); i++){
             //
-            EDbFilter = (EDbFilter) queryParams.getAndEDbFilters().get(i);
+            eDbFilter = queryParams.getAndEDbFilters().get(i);
             if(i>0){
                 andSqlStr.append(" and ");
             }
             // 驼峰转下划线 -- 如果是规范的驼峰写法，则不会有异常，否则需要去获取jpa对应的字段上的colum注解
-            andSqlStr.append(EDbFilter.getProperty());
+            andSqlStr.append(eDbFilter.getProperty());
             // 加载过滤器生成sql部分
-            loadFilter(EDbFilter,andSqlStr,paramsList);
+            loadFilter(eDbFilter,andSqlStr,paramsList);
         }
 
 //        // or 部分

@@ -59,9 +59,11 @@ public class EDbValidatorUtils {
         // 判断校验集是否有信息，有则解析
         if (!constraintViolations.isEmpty()) {
             Iterator iterator = constraintViolations.iterator();
+            ConstraintViolation<Object> constraint = null;
+            FieldError fieldError = null;
             while (iterator.hasNext()){
-                ConstraintViolation<Object> constraint = (ConstraintViolation<Object>)iterator.next();
-                FieldError fieldError = new FieldError(object.getClass().getSimpleName(),constraint.getPropertyPath().toString(),constraint.getMessage());
+                constraint = (ConstraintViolation<Object>)iterator.next();
+                fieldError = new FieldError(object.getClass().getSimpleName(),constraint.getPropertyPath().toString(),constraint.getMessage());
                 validateList.add(fieldError);
             }
         }

@@ -101,9 +101,10 @@ public class JpaAnnotationUtil {
         }
         // 本身存在方法级缓存
         Method[] methods = EReflectUtil.getMethods(mClass);
+        Object annotation = null;
         //
         for(Method method : methods){
-            Object annotation = method.getAnnotation(annotationClass);
+            annotation = method.getAnnotation(annotationClass);
             if(annotation!=null){
                 // 如果是首次则需要重置注解的方法对象
                 if(annotationMethodMap == null){

@@ -2278,9 +2278,10 @@ public class EDbPro extends SpringDbPro {
         int index = 0;
         StringBuilder columns = new StringBuilder();
         // the same as the iterator in Dialect.forDbSave() to ensure the order of the columns
+        Object value = null;
         for (Map.Entry<String, Object> e : cols.entrySet()) {
             if (config.getDialect().isOracle()) {	// 支持 oracle 自增主键
-                Object value = e.getValue();
+                value = e.getValue();
                 if (value instanceof String && ((String)value).endsWith(".nextval")) {
                     continue ;
                 }
@@ -2372,13 +2373,14 @@ public class EDbPro extends SpringDbPro {
 
                 Throwable var16 = null;
                 Map map = null;
+                Object value = null;
+                int[] r = null;
                 try {
                     for(int i = 0; i < size; ++i) {
                         // 去掉判断 isModel ? ((Model)list.get(i))._getAttrs() :
                         map = ((Record)list.get(i)).getColumns();
-
                         for(int j = 0; j < columnArray.length; ++j) {
-                            Object value = map.get(columnArray[j]);
+                            value = map.get(columnArray[j]);
                             if (value instanceof Date) {
                                 if (value instanceof java.sql.Date) {
                                     pst.setDate(j + 1, (java.sql.Date)value);
@@ -2397,7 +2399,7 @@ public class EDbPro extends SpringDbPro {
                         ++counter;
                         if (counter >= batchSize) {
                             counter = 0;
-                            int[] r = pst.executeBatch();
+                            r = pst.executeBatch();
                             if (!isInTransaction) {
                                 conn.commit();
                             }
@@ -2418,7 +2420,7 @@ public class EDbPro extends SpringDbPro {
 
                     } // 跳出for循环
 
-                    int[] r;
+
                     if (counter != 0) {
                         r = pst.executeBatch();
                         if (!isInTransaction) {
@@ -2451,8 +2453,6 @@ public class EDbPro extends SpringDbPro {
                             map.put( priKey.getColumn().name().toLowerCase() ,keys[i]);
                         }
                     }
-
-
 
                     return r;
                 } catch (Throwable var29) {

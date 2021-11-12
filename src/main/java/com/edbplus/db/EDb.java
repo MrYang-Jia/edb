@@ -1246,4 +1246,21 @@ public class EDb extends Db{
         return MAIN.sqlForCount(sqlPara);
     }
 
+
+    public static EDbTemplate template(String key, Map data) {
+        return MAIN.template( key, data);
+    }
+
+    public static EDbTemplate template(String key, Object... paras) {
+        return MAIN.template(key, paras);
+    }
+
+    public static EDbTemplate templateByString(String content, Map data) {
+        return MAIN.templateByString(content, data);
+    }
+
+    public static EDbTemplate templateByString(String content, Object... paras) {
+        return MAIN.templateByString(content, paras);
+    }
+
 }

@@ -98,10 +98,13 @@ public class JpaBuilder  {
 //        columns = JpaAnnotationUtil.getCoumns(beanClass);
         // 获取根据 columnName 字段存储的map对象
         CaseInsensitiveMap<String,List<FieldAndColumn>> coumnNameDataMap = JpaAnnotationUtil.getCoumnsMapForColumnName(beanClass);
-
+        Object ar = null;
+        Table table = null;
+        //
+        String keys = null;
         while (rs.next()) {
             // 对象实例化
-            Object ar = beanClass.newInstance();
+            ar = beanClass.newInstance();
             // 使用不区分大小写的对象赋值
             attrs = new CaseInsensitiveMap();
             for (int i=1; i<=columnCount; i++) {
@@ -151,14 +154,11 @@ public class JpaBuilder  {
             // 兼容枚举回填的类型(忽略 静态变量 和 常量 字段)
             JpaAnnotationUtil.fillBeanWithMap(attrs, ar);
             //
-            Table table = null;
-            //
-            String keys = null;
             try {
                 table = JpaAnnotationUtil.getTableAnnotation(beanClass);
                 keys = JpaAnnotationUtil.getPriKeys(beanClass);
             }catch (Throwable e){
-                // 如果不是jpa对象，则会抛出异常
+                // 如果不是jpa对象，则会抛出异常，不用理会
             }
 
             // 由于 cglib 动态代理太消耗内存，所以放弃使用，代码保留

@@ -95,6 +95,10 @@ public class EDbViewProxy implements MethodInterceptor {
         Object object = null;
         // 获取调用方法的返回对象
         Type returnType = method.getAnnotatedReturnType().getType();
+        Map<String,Object> map = null;
+        SqlPara sqlPara = null;
+        Type packingType = null;
+        Page jfinalPage = null;
         // 如果返回类型有值，才进行关系扩展
         if(returnType!= null ){
             // 获取所有字段 -- 包含
@@ -106,11 +110,11 @@ public class EDbViewProxy implements MethodInterceptor {
                     continue;
                 }
                 // 将当前对象的所有属性转换成入参对象
-                Map<String,Object> map = EDbBeanUtil.beanToMap(oriJpa);
+                map = EDbBeanUtil.beanToMap(oriJpa);
                 // 将对象先转成json字符串，再转map对象，这样子对象里的对象，就都是map，否则enjoy解析器，基于bean的内部解析时，无法使用类似 map[field] 的语法
 //                map = JSONUtil.toBean(JSONUtil.toJsonStr(oriJpa),map.getClass());
                 //
-                SqlPara sqlPara = eDbPro.getSqlPara(fieldAndView.getEDbView().name(), map);
+                sqlPara = eDbPro.getSqlPara(fieldAndView.getEDbView().name(), map);
                 if(sqlPara==null){
                     throw new RuntimeException("未加载sql视图:" + fieldAndView.getEDbView().name());
                 }
@@ -118,14 +122,14 @@ public class EDbViewProxy implements MethodInterceptor {
                     // 默认 jfinal page
                     entityClass = (Class<?>)((ParameterizedType) returnType).getActualTypeArguments()[0];
                     // 包装类 -- 目前只支持 List jfinal-page spring-page 三种包装类型
-                    Type packingType = ((ParameterizedType) returnType).getRawType();
+                    packingType = ((ParameterizedType) returnType).getRawType();
                     // com.jfinal.plugin.activerecord.Page -- 分页对象的情况
                     if(packingType == Page.class){
                         object = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
                     }
                     // 适配spring分页
                     else if(packingType == org.springframework.data.domain.Page.class){
-                        Page jfinalPage = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                        jfinalPage = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
                         // 返回对象
                         object = EDbPageUtil.returnSpringPage(jfinalPage);
                     }

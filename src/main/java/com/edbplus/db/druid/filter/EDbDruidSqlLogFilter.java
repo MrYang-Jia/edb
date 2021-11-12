@@ -258,6 +258,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
             StringBuffer sqlLogStr = new StringBuffer();
             Object lO = null;
             String lS = null;
+            JdbcParameter lValue = null;
             // 判空
             if(StrKit.notBlank(lSql)){
 
@@ -272,7 +273,7 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
                         SerializerFeature.WriteDateUseDateFormat));
                 // 循环获取
                 for (Map.Entry<Integer,JdbcParameter> lEntry : lParameters.entrySet()){
-                    JdbcParameter lValue = lEntry.getValue();
+                    lValue = lEntry.getValue();
                     if(lValue == null){
                         continue;
                     }
