@@ -1669,7 +1669,9 @@ public class EDbPro extends SpringDbPro {
         Page var10;
         try {
             conn = this.config.getConnection();
-            String totalRowSql = "select count(*) " + this.config.getDialect().replaceOrderBy(sqlExceptSelect);
+//            String totalRowSql = "select count(1) " + this.config.getDialect().replaceOrderBy(sqlExceptSelect);
+//            String totalRowSql = "select count(1) from ( select 1 " + this.config.getDialect().replaceOrderBy(sqlExceptSelect) +") as countTb "; // 再套1层，避免优化掉order时内部包含 group ，导致统计错误
+            String totalRowSql = this.config.getDialect().forPaginateTotalRow(select, sqlExceptSelect, (Object)null);
             StringBuilder findSql = new StringBuilder();
             findSql.append(select).append(' ').append(sqlExceptSelect);
             var10 = this.doPaginateByFullSql(mClass,this.config, conn, pageNumber, pageSize, isGroupBySql, totalRowSql, findSql, paras);
@@ -1681,6 +1683,7 @@ public class EDbPro extends SpringDbPro {
 
         return var10;
     }
+
 
     /**
      * 分页查询
@@ -1835,7 +1838,7 @@ public class EDbPro extends SpringDbPro {
             totalParas = null;
             totalParsList = null;
             // 记录数
-            int size = pageResult.size();
+            int size = pageResult.size(); // 如果是执行 group 的语句则会返回多条统计结果
             // 是否是统计性的语句(如果语句后面出现group , count 时会出现多条)
             if (isGroupBySql == null) {
                 isGroupBySql = size > 1;
@@ -2702,9 +2705,9 @@ public class EDbPro extends SpringDbPro {
      */
     public Long sqlForCount(SqlPara sqlPara){
         //
-        String[] sqls = PageSqlKit.parsePageSql(sqlPara.getSql());
+//        String[] sqls = PageSqlKit.parsePageSql(sqlPara.getSql());
         //
-        String totalRowSql = "select count(1) ct " + this.config.getDialect().replaceOrderBy(sqls[1]);
+        String totalRowSql = getCountSql(sqlPara.getSql());
         List<Record> result = this.find(totalRowSql,sqlPara.getPara());
         if(result!=null && result.size()>0){
             return result.get(0).getLong("ct");
@@ -2735,9 +2738,16 @@ public class EDbPro extends SpringDbPro {
      */
     public String getCountSql(String sql){
         String[] sqls = PageSqlKit.parsePageSql(sql);
-        //
-        String totalRowSql = "select count(1) ct " + this.config.getDialect().replaceOrderBy(sqls[1]);
-        return totalRowSql;
+        // 其实一样的sql，但是避免不兼容，所以单独改写
+//        String totalRowSql = this.config.getDialect().forPaginateTotalRow(sqls[0], sqls[1], (Object)null);
+//        String totalRowSql = "select count(1) ct from ( select 1 " + this.getConfig().getDialect().replaceOrderBy(sqls[1]) +") as ct_tb_0 ";
+//        System.out.println("len->"+totalRowSql.length());
+//        return totalRowSql;
+        StringBuilder totalRowSqlBuilder = new StringBuilder(64); // 当字符串长度大于 64 时，会重新计算需要开辟的内存空间和大小
+        // 再套1层，避免优化掉 order 排序影响性能的部分，但是内部包含 group ，会变成代码级别的统计模式，但是建议可以改成内外嵌套，内部改为 字段为 1 ，交给数据库统计性能也能非常不错
+        totalRowSqlBuilder.append("select count(1) ct from ( select 1 ").append(this.getConfig().getDialect().replaceOrderBy(sqls[1])).append(") as ct_tb_0 ");
+//        System.out.println("len->"+totalRowSqlBuilder.toString().length());
+        return totalRowSqlBuilder.toString();
     }
 
 

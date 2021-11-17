@@ -1247,6 +1247,15 @@ public class EDb extends Db{
     }
 
 
+    /**
+     * 返回统计语句
+     * @param sql
+     * @return
+     */
+    public static String getCountSql(String sql){
+        return MAIN.getCountSql(sql);
+    }
+
     public static EDbTemplate template(String key, Map data) {
         return MAIN.template( key, data);
     }

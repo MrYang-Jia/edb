@@ -4,6 +4,7 @@ import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
+import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.springframework.data.domain.PageRequest;
 import org.testng.annotations.BeforeTest;
@@ -43,16 +44,16 @@ public class JpaPaginateTest extends BaseTest {
         start = System.currentTimeMillis();
         //
         SqlPara sqlPara = EDb.getSqlPara("test.findForId", 200);
-        EDb.paginate(VehicleType.class,PageRequest.of(1,10),sqlPara);
-        System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis() - start));
+        Page page = EDb.paginate(VehicleType.class,PageRequest.of(1,10),sqlPara);
+        System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis() - start) + "==>"+ page.getTotalRow());
 
         start = System.currentTimeMillis();
         EDb.paginate(VehicleType.class,PageRequest.of(1,10),200,sqlPara);
         System.out.println("无统计语句的耗时:"+(System.currentTimeMillis()-start));
 
         start = System.currentTimeMillis();
-        EDb.paginate(VehicleType.class,PageRequest.of(1,10),"select * from cr_vehicle_type where VEHICLE_TYPE_ID in(?,200) ","100");
-        System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis()-start));
+        page = EDb.paginate(VehicleType.class,PageRequest.of(1,10),"select * from cr_vehicle_type where VEHICLE_TYPE_ID in(?,200) ","100");
+        System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis()-start) + "==>"+ page.getTotalRow());
 
 
     }

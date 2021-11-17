@@ -16,24 +16,21 @@
 package com.edbplus.db.druid.filter;
 
 import cn.hutool.core.util.ReUtil;
+import com.alibaba.druid.filter.FilterChain;
 import com.alibaba.druid.filter.FilterEventAdapter;
-import com.alibaba.druid.proxy.jdbc.JdbcParameter;
-import com.alibaba.druid.proxy.jdbc.ResultSetProxy;
-import com.alibaba.druid.proxy.jdbc.StatementProxy;
+import com.alibaba.druid.proxy.jdbc.*;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.edbplus.db.util.hutool.date.EDateUtil;
-import com.edbplus.db.util.hutool.str.EStrUtil;
 import com.jfinal.kit.StrKit;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * druid - sql日志打印过滤器
@@ -47,6 +44,8 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
      */
     @Setter
     private int dbType = 1;
+
+    //SQLUtils.FormatOption statementSqlFormatOption = new SQLUtils.FormatOption(false, true);
 
 
     // 只打印real-sql
@@ -109,12 +108,25 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         try{
             // 执行查询完成后触发
             addLastlLog();
+
         }catch (Throwable e){
             // 报送错误日志
             sendErrLog(e);
         }
 
 
+    }
+
+    /**
+     * 每次请求返回的实际条数在这里体现!!!
+     * @param chain
+     * @param resultSet
+     * @throws SQLException
+     */
+    @Override
+    public void resultSet_close(FilterChain chain, ResultSetProxy resultSet) throws SQLException {
+        // 查询条数 = resultSet.getFetchRowCount() -- 可以用来规避一些服务漏洞造成的内存泄漏问题
+        //System.out.println("resultSet_close==>"+ resultSet.getFetchRowCount() );
     }
 
     /**
@@ -239,6 +251,31 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
      * @param statement
      */
     public void sqlLog(StatementProxy statement){
+        // 这个时候只有1.1.21 支持，1.28就不支持了！！！
+//        try {
+//            String sql = getSql(statement);
+//            int parametersSize = statement.getParametersSize();
+//            if (parametersSize == 0) {
+//                log.info("{conn-" + statement.getConnectionProxy().getId() + ", " + stmtId(statement) + "} executed. "
+//                        + sql);
+//                return;
+//            }
+//            List<Object> parameters = new ArrayList<Object>(parametersSize);
+//            JdbcParameter jdbcParam;
+//            for (int i = 0; i < parametersSize; ++i) {
+//                jdbcParam = statement.getParameter(i);
+//                parameters.add(jdbcParam != null
+//                        ? jdbcParam.getValue()
+//                        : null);
+//            }
+//            String dbType = statement.getConnectionProxy().getDirectDataSource().getDbType();
+//            String formattedSql = SQLUtils.format(sql, dbType, parameters, this.statementSqlFormatOption);
+//            log.info("{conn-" + statement.getConnectionProxy().getId() + ", " + stmtId(statement) + "} executed. "
+//                    + formattedSql);
+//        }catch (Throwable e){
+//            log.error("sql格式化失败",e);
+//        }
+
         try {
             // 参数对象
             Map<Integer, JdbcParameter> lParameters = statement.getParameters();
@@ -321,6 +358,24 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
         }catch (Exception e){
             log.error("---sql日志打印出错---",e);
         }
+    }
+
+    /**
+     * stmt-Id格式化
+     * @param statement
+     * @return
+     */
+    private String stmtId(StatementProxy statement) {
+        StringBuffer buf = new StringBuffer();
+        if (statement instanceof CallableStatementProxy) {
+            buf.append("cstmt-");
+        } else if (statement instanceof PreparedStatementProxy) {
+            buf.append("pstmt-");
+        } else {
+            buf.append("stmt-");
+        }
+        buf.append(statement.getId());
+        return buf.toString();
     }
 
 
