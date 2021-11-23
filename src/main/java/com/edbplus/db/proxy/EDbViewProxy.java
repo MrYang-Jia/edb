@@ -61,9 +61,18 @@ public class EDbViewProxy implements MethodInterceptor {
     // 每页的数量
     private int pageSize = 10;
 
+    // 总记录数
+    private Long totalRow = null;
+
     public void pageOf(int pageNo,int pageSize){
         this.pageNo = pageNo;
         this.pageSize = pageSize;
+    }
+
+    public void pageOf(int pageNo,int pageSize,long totalRow){
+        this.pageNo = pageNo;
+        this.pageSize = pageSize;
+        this.totalRow = totalRow;
     }
 
 
@@ -125,11 +134,19 @@ public class EDbViewProxy implements MethodInterceptor {
                     packingType = ((ParameterizedType) returnType).getRawType();
                     // com.jfinal.plugin.activerecord.Page -- 分页对象的情况
                     if(packingType == Page.class){
-                        object = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                        if(totalRow != null){
+                            object = eDbPro.paginate(entityClass,pageNo,pageSize,totalRow,sqlPara);
+                        }else{
+                            object = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                        }
                     }
                     // 适配spring分页
                     else if(packingType == org.springframework.data.domain.Page.class){
-                        jfinalPage = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                        if(totalRow != null){
+                            jfinalPage = eDbPro.paginate(entityClass,pageNo,pageSize,totalRow,sqlPara);
+                        }else{
+                            jfinalPage = eDbPro.paginate(entityClass,pageNo,pageSize,sqlPara);
+                        }
                         // 返回对象
                         object = EDbPageUtil.returnSpringPage(jfinalPage);
                     }

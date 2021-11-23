@@ -117,7 +117,7 @@ public class EDbTest extends BaseTest {
     @Test
     public void testFindFoyTpl(){
         // 获取返回 N 条记录的sql模板 -- 可指定不同的数据库使用不同的数据库模板
-        SqlPara sqlPara = EDb.use().getSqlPara("test.findForLimit", 2);
+        SqlPara sqlPara = EDb.use().getSqlPara("test2.findForLimit", 2);
         System.out.println(sqlPara.getSql());
         System.out.println(EJSONUtil.toJsonStr(EDb.use().find(VehicleType.class,sqlPara)));
 

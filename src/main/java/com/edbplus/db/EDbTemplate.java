@@ -57,6 +57,14 @@ public class EDbTemplate extends DbTemplate {
 
     /**
      * 获取1条记录
+     * @return
+     */
+    public Record findFirst() {
+        return this.db.findFirst(this.sqlPara);
+    }
+
+    /**
+     * 获取1条记录
      * @param tClass
      * @param <T>
      * @return

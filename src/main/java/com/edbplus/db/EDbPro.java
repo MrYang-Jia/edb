@@ -1291,6 +1291,21 @@ public class EDbPro extends SpringDbPro {
     }
 
     /**
+     * 扩展方法体
+     * @param sql
+     * @param paras
+     * @return
+     */
+    public List<Record> find(String sql, Object... paras) {
+        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
+            SqlPara sqlPara = getSqlParaByString(sql, (Map) paras[0]); // 参数转换
+            return this.find(sqlPara);// 重新封装
+        }else{
+            return super.find(sql,paras);
+        }
+    }
+
+    /**
      * 通过sql语句返回对象实体
      * @param mClass
      * @param finalSql
@@ -1323,6 +1338,10 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <M> List<M> find(Class<M> mClass,String sql, Object... paras) {
+        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
+            SqlPara sqlPara = getSqlParaByString(sql, (Map) paras[0]);
+            return this.find(mClass,sqlPara);// 重新封装
+        }
         Connection conn = null;
         List var4;
         try {
@@ -1452,6 +1471,11 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <M> Page<M> paginate(Class<M> mClass,int pageNumber, int pageSize, String findSql,Object... paras) {
+        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
+            SqlPara sqlPara = this.getSqlParaByString(findSql, (Map) paras[0]);
+            return this.paginate(mClass,pageNumber,pageSize,sqlPara);
+        }
+
         String[] sqls = PageSqlKit.parsePageSql(findSql);
         return this.doPaginate(mClass,pageNumber, pageSize, (Boolean)null, sqls[0], sqls[1], paras);
     }
@@ -1466,6 +1490,10 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql,Object... paras) {
+        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
+            SqlPara sqlPara = this.getSqlParaByString(findSql, (Map) paras[0]);
+            return this.paginate(mClass,pageRequest,sqlPara);
+        }
         String[] sqls = PageSqlKit.parsePageSql(findSql);
         return this.doPaginate(mClass,pageRequest, (Boolean)null, sqls[0], sqls[1], paras);
     }
@@ -1513,6 +1541,10 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <M> Page<M> paginate(Class<M> mClass,int pageNumber, int pageSize,long totalRow, String findSql,Object... paras) {
+        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
+            SqlPara sqlPara = this.getSqlParaByString(findSql, (Map) paras[0]);
+            return this.paginate(mClass,pageNumber,pageSize,totalRow,sqlPara);
+        }
         //
         return this.doPaginate(mClass,pageNumber, pageSize, (Boolean)null,totalRow, new StringBuilder(findSql),paras);
     }
@@ -1528,6 +1560,10 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql,Object... paras) {
+        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
+            SqlPara sqlPara = this.getSqlParaByString(findSql, (Map) paras[0]);
+            return this.paginate(mClass,pageRequest,totalRow,sqlPara);
+        }
         return this.doPaginate(mClass,pageRequest, (Boolean)null,totalRow, new StringBuilder(findSql),paras);
     }
 
@@ -2014,11 +2050,16 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <T> T findFirst(Class<T> tClass,String sql, Object... paras) {
-        // 改写sql语句
-        sql = getFirstSql(sql);
-        // 获取记录集
-        List<T> result = find(tClass,sql,paras);
-        return result.size() > 0 ? result.get(0) : null;
+        if(paras!=null && paras.length == 1 && paras[0] instanceof Map){
+            SqlPara sqlPara = getSqlParaByString(sql,(Map) paras[0]);
+            return findFirst(tClass,sqlPara);
+        }else{
+            // 改写sql语句
+            sql = getFirstSql(sql);
+            // 获取记录集
+            List<T> result = find(tClass,sql,paras);
+            return result.size() > 0 ? result.get(0) : null;
+        }
     }
 
     /**
@@ -2037,6 +2078,15 @@ public class EDbPro extends SpringDbPro {
     }
 
 
+    /**
+     * 获取1条记录
+     * @param sqlPara
+     * @return
+     */
+    public Record findFirst(SqlPara sqlPara) {
+        String sql = getFirstSql(sqlPara.getSql());
+        return this.findFirst(sql, sqlPara.getPara());
+    }
 
     /**
      * 获取1条记录
@@ -2651,6 +2701,19 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <T> T view(T t,int pageNo,int pageSize){
+        return view(t,pageNo,pageSize,null);
+    }
+
+    /**
+     * 获取翻页视图对象
+     * @param t
+     * @param pageNo
+     * @param pageSize
+     * @param totalRow 总记录数，无需单独执行统计sql
+     * @param <T>
+     * @return
+     */
+    public <T> T view(T t,int pageNo,int pageSize,Long totalRow){
         if(t == null){
             throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
         }
@@ -2662,7 +2725,7 @@ public class EDbPro extends SpringDbPro {
         // 生成视图对象
         EDbViewProxy eDbViewProxy = new EDbViewProxy();
         // 设置翻页参数
-        eDbViewProxy.pageOf(pageNo,pageSize);
+        eDbViewProxy.pageOf(pageNo,pageSize,totalRow);
         return eDbViewProxy.createProcy(t,this);
     }
 

@@ -4,6 +4,8 @@ import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.EDb;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
@@ -30,6 +32,16 @@ public class JpaEasyTest extends BaseTest {
         eDbPro.findById(VehicleType.class,1);
     }
 
+    @Test
+    public void testFirst(){
+        VehicleType vehicleType = eDbPro.findFirst(VehicleType.class,"select * from cr_vehicle_type where VEHICLE_TYPE_ID =#para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
+        System.out.println(vehicleType);
+
+        Record record = eDbPro.findFirst("select * from cr_vehicle_type where VEHICLE_TYPE_ID =#para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
+
+        System.out.println(record);
+    }
+
     /**
      * JPA 单体对象测试
      * 保存、查询、修改、删除
@@ -48,7 +60,7 @@ public class JpaEasyTest extends BaseTest {
              vehicleType.setVehicleTypeName("原:小汽车");
              vehicleType.setCreatorName("小陈陈");
              // 如果有多个数据库，可以用 EDb.use("数据库标识1") 指定
-            eDbPro.save(vehicleType);
+             eDbPro.save(vehicleType);
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
              start = System.currentTimeMillis();
              // 打印json字符串
@@ -62,7 +74,7 @@ public class JpaEasyTest extends BaseTest {
              //  === 更新部分 ===
              vehicleTypeFind.setVehicleTypeName("改:大型卡车");
              // 数改保存
-            eDbPro.update(vehicleTypeFind);
+             eDbPro.update(vehicleTypeFind);
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
              start = System.currentTimeMillis();
              // 再次查询
@@ -71,7 +83,7 @@ public class JpaEasyTest extends BaseTest {
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
              start = System.currentTimeMillis();
              //  === 删除部分 ===
-            eDbPro.deleteById(vehicleTypeFind);
+             eDbPro.deleteById(vehicleTypeFind);
              vehicleTypeFind = EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId());
              System.out.println("删后查: "+EJSONUtil.toJsonStr(vehicleTypeFind));
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
@@ -165,7 +177,11 @@ public class JpaEasyTest extends BaseTest {
 
     @Test
     public void testFindByPara(){
-        eDbPro.find(VehicleType.class,"select * from cr_vehicle_type where VEHICLE_TYPE_ID= ? ",1);
+        List<VehicleType> vehicleTypes = eDbPro.find(VehicleType.class,"select * from cr_vehicle_type where VEHICLE_TYPE_ID= ? ",100);
+        System.out.println("1-->"+vehicleTypes);
+        vehicleTypes = eDbPro.find(VehicleType.class,"select * from cr_vehicle_type where VEHICLE_TYPE_ID= #para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
+        System.out.println("2-->"+vehicleTypes);
+
     }
 
 //

@@ -510,6 +510,15 @@ public class EDb extends Db{
         return MAIN.findById(mClass,tableName,primaryKey,idValue);
     }
 
+    /**
+     * 扩展方法体
+     * @param sql
+     * @param paras
+     * @return
+     */
+    public static List<Record> find(String sql, Object... paras){
+        return MAIN.find(sql,paras);
+    }
 
     /**
      * 通过sql语句返回对象实体
@@ -872,6 +881,14 @@ public class EDb extends Db{
         return MAIN.findByIds(mClass,idsStr,splitStr);
     }
 
+    /**
+     * 获取1条记录
+     * @param sqlPara
+     * @return
+     */
+    public static Record findFirst(SqlPara sqlPara){
+        return MAIN.findFirst(sqlPara);
+    }
 
     /**
      * 获取第一条记录 (改写原 Db.getFirst sql)
@@ -1215,6 +1232,19 @@ public class EDb extends Db{
      */
     public static <T> T view(T t,int pageNo,int pageSize){
         return MAIN.view(t,pageNo,pageSize);
+    }
+
+    /**
+     * 获取翻页视图对象
+     * @param t
+     * @param pageNo
+     * @param pageSize
+     * @param totalRow 总记录数，无需单独执行统计sql
+     * @param <T>
+     * @return
+     */
+    public static <T> T view(T t,int pageNo,int pageSize,Long totalRow){
+        return MAIN.view(t,pageNo,pageSize,totalRow);
     }
 
     /**
