@@ -2701,7 +2701,19 @@ public class EDbPro extends SpringDbPro {
      * @return
      */
     public <T> T view(T t,int pageNo,int pageSize){
-        return view(t,pageNo,pageSize,null);
+        if(t == null){
+            throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
+        }
+        // 已被代理则返回自身，不做二次代理
+        if (t.getClass().getSimpleName().indexOf("$$Enhancer") > 0){
+            // 存在奇葩的代理情况，则暂不做考虑，因为这种情况会比较少，否则直接抛错
+            return t;
+        }
+        // 生成视图对象
+        EDbViewProxy eDbViewProxy = new EDbViewProxy();
+        // 设置翻页参数
+        eDbViewProxy.pageOf(pageNo,pageSize);
+        return eDbViewProxy.createProcy(t,this);
     }
 
     /**
@@ -2713,7 +2725,7 @@ public class EDbPro extends SpringDbPro {
      * @param <T>
      * @return
      */
-    public <T> T view(T t,int pageNo,int pageSize,Long totalRow){
+    public <T> T view(T t,int pageNo,int pageSize,long totalRow){
         if(t == null){
             throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
         }

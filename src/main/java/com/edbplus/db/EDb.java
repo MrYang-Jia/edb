@@ -1239,11 +1239,11 @@ public class EDb extends Db{
      * @param t
      * @param pageNo
      * @param pageSize
-     * @param totalRow 总记录数，无需单独执行统计sql
+     * @param totalRow 总记录数，无需单独执行统计sql (小写的long可以支持int类型的输入，请勿改造成大写，避免已应用的地方导致异常，其次规避null入参的问题)
      * @param <T>
      * @return
      */
-    public static <T> T view(T t,int pageNo,int pageSize,Long totalRow){
+    public static <T> T view(T t,int pageNo,int pageSize,long totalRow){
         return MAIN.view(t,pageNo,pageSize,totalRow);
     }
 

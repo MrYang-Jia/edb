@@ -39,7 +39,7 @@ public class EDbViewTest extends BaseTest {
         System.out.println("==>"+EDb.view(vehicleView,1,10).getCrVehicleTypePageView().getPageNumber());
 
         // 返回查询page列表 -- 已兼容springData page返回结果页，便于适配,注意spring的起始页是从0开始
-        System.out.println("==》"+EDb.view(vehicleView,1,10).getCrVehicleTypeSpringPageView().getPageable().getPageNumber());
+        System.out.println("==》"+EDb.view(vehicleView,1,10,100).getCrVehicleTypeSpringPageView().getPageable().getPageNumber());
     }
 
 }

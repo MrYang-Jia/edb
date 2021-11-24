@@ -69,6 +69,12 @@ public class EDbViewProxy implements MethodInterceptor {
         this.pageSize = pageSize;
     }
 
+    /**
+     * 设置成必须输入参数类型的
+     * @param pageNo
+     * @param pageSize
+     * @param totalRow
+     */
     public void pageOf(int pageNo,int pageSize,long totalRow){
         this.pageNo = pageNo;
         this.pageSize = pageSize;
