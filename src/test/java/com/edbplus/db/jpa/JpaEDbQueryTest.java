@@ -12,6 +12,7 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -38,14 +39,23 @@ public class JpaEDbQueryTest extends BaseTest {
         EDbQuery eDbQuery = new EDbQuery();
         // 根据情况设置查询条件
         eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"));
+        List<Integer> list =  new ArrayList<>();
+        list.add(1); // 用 in 替代需要 or 一堆类型的场景，性能会更好
+        list.add(2);
+        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.in, list));
+        eDbQuery.or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "3"));
+        eDbQuery.andCom().and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"))
+                .or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "2"));
+        eDbQuery.orCom().and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"))
+                .or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "2"));
         // 根据主键id降序排序 -- 跟创建时间基本上是一致的，性能还更好
         eDbQuery.orderDESC("VEHICLE_TYPE_ID");
         // 只获取一条数据
         VehicleType vehicleType = EDb.use().findFirst(VehicleType.class,eDbQuery);
-        // 无法预估范围值时，建议写上
-        eDbQuery.limit(10);
-        // 普通查询
-        List<VehicleType> vehicleTypes =   EDb.find(VehicleType.class,eDbQuery);
+//        // 无法预估范围值时，建议写上
+//        eDbQuery.limit(10);
+//        // 普通查询
+//        List<VehicleType> vehicleTypes =   EDb.find(VehicleType.class,eDbQuery);
     }
 
 
@@ -71,6 +81,8 @@ public class JpaEDbQueryTest extends BaseTest {
         // 根据 VEHICLE_TYPE_ID 进行降序布局 -- 可添加多个排序排序规则
         eDbQuery.orderDESC("VEHICLE_TYPE_ID");
         eDbQuery.orderASC("CREATE_TIME");
+
+
         // ==================== 通用查询自定义组合 结束  ===================
         // EDbQuery 查询对象解析器，依赖于 注解 @Table 实现，可用于自定义不同表视图切换时使用
         SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(VehicleType.class,eDbQuery);

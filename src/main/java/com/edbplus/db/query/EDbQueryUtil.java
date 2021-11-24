@@ -164,24 +164,22 @@ public class EDbQueryUtil {
         for(int i = 0; i< queryParams.getAndEDbFilters().size(); i++){
             //
             eDbFilter = queryParams.getAndEDbFilters().get(i);
-            if(i>0){
-                andSqlStr.append(" and ");
-            }
+            andSqlStr.append(" and ");
             // 驼峰转下划线 -- 如果是规范的驼峰写法，则不会有异常，否则需要去获取jpa对应的字段上的colum注解
             andSqlStr.append(eDbFilter.getProperty());
             // 加载过滤器生成sql部分
             loadFilter(eDbFilter,andSqlStr,paramsList);
         }
 
-//        // or 部分
-//        for(int i = 0; i< queryParams.getOrEDbFilters().size(); i++){
-//            //
-//            EDbFilter = (EDbFilter) queryParams.getOrEDbFilters().get(i);
-//            // 驼峰转下划线 -- 如果是规范的驼峰写法，则不会有异常，否则需要去获取jpa对应的字段上的colum注解
-//            andSqlStr.append(" or ").append(EDbFilter.getProperty());
-//            // 加载过滤器生成sql部分
-//            loadFilter(EDbFilter,andSqlStr,paramsList);
-//        }
+        // or 部分
+        for(int i = 0; i< queryParams.getOrEDbFilters().size(); i++){
+            //
+            eDbFilter =  queryParams.getOrEDbFilters().get(i);
+            andSqlStr.append(" or ");
+            andSqlStr.append(eDbFilter.getProperty());
+            // 加载过滤器生成sql部分
+            loadFilter(eDbFilter,andSqlStr,paramsList);
+        }
     }
 
     public static SqlPara getSqlParaForJpaQuery(String tableName, EDbQuery queryParams){
@@ -198,22 +196,18 @@ public class EDbQueryUtil {
         // 首次拼接前用 1=1 ，以便后续的对象可以 and 拼接
         andSqlStr.append(" 1=1 ");
 
-        if (queryParams.getAndEDbFilters().size()>0){
-            andSqlStr.append(" and ");
-            // 处理当前 and filter 部分 和 or fillter 部分
-            baseQueryFun(queryParams,andSqlStr,paramsList);
-        }
+        baseQueryFun(queryParams,andSqlStr,paramsList);
 
         // and ( filters ) 部分
         if(queryParams.andCom().getAndEDbFilters().size()>0 ) {
-            andSqlStr.append(" and (  ");
+            andSqlStr.append(" and ( 1=1  ");
             baseQueryFun(queryParams.andCom(), andSqlStr, paramsList);
             andSqlStr.append(" )");
         }
 
         // or ( filters ) 部分
         if(queryParams.orCom().getAndEDbFilters().size()>0 ){
-            andSqlStr.append(" or (  ");
+            andSqlStr.append(" or (  1=1 ");
             baseQueryFun( queryParams.orCom(),andSqlStr,paramsList);
             andSqlStr.append(" )");
         }

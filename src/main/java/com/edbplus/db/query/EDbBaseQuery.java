@@ -36,12 +36,12 @@ public class EDbBaseQuery {
     @Setter
     @Getter
     private List<EDbFilter> andEDbFilters = new ArrayList<>();
-//    /**
-//     * or条件
-//     */
-//    @Setter
-//    @Getter
-//    private List<EDbFilter> orEDbFilters = new ArrayList<>();
+    /**
+     * or条件
+     */
+    @Setter
+    @Getter
+    private List<EDbFilter> orEDbFilters = new ArrayList<>();
 
 
     /**
@@ -62,24 +62,24 @@ public class EDbBaseQuery {
         this.andEDbFilters.addAll(Arrays.asList(EDbFilter));
         return this;
     }
-//    /**
-//     * 添加一个or条件
-//     * @param EDbFilter 该条件
-//     * @return 链式调用
-//     */
-//    public  EDbBaseQuery or(EDbFilter EDbFilter){
-//        this.orEDbFilters.add(EDbFilter);
-//        return this;
-//    }
-//    /**
-//     * 添加多个or条件
-//     * @param EDbFilter 该条件
-//     * @return 链式调用
-//     */
-//    public  EDbBaseQuery or(EDbFilter... EDbFilter){
-//        this.orEDbFilters.addAll(Arrays.asList(EDbFilter));
-//        return this;
-//    }
+    /**
+     * 添加一个or条件
+     * @param EDbFilter 该条件
+     * @return 链式调用
+     */
+    public  EDbBaseQuery or(EDbFilter EDbFilter){
+        this.orEDbFilters.add(EDbFilter);
+        return this;
+    }
+    /**
+     * 添加多个or条件
+     * @param EDbFilter 该条件
+     * @return 链式调用
+     */
+    public  EDbBaseQuery or(EDbFilter... EDbFilter){
+        this.orEDbFilters.addAll(Arrays.asList(EDbFilter));
+        return this;
+    }
 
 
 }
