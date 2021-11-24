@@ -19,6 +19,7 @@ import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
 import com.jfinal.plugin.activerecord.SqlPara;
 
 import javax.persistence.Table;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -134,9 +135,9 @@ public class EDbQueryUtil {
                 EDbFilter.getValue() instanceof String[] ||
                 EDbFilter.getValue() instanceof Integer[] ||
                 EDbFilter.getValue() instanceof Long[] ||
-                EDbFilter.getValue() instanceof ArrayList ) {
+                EDbFilter.getValue() instanceof List) {
             Object[] values = null;
-            if(EDbFilter.getValue() instanceof ArrayList){
+            if(EDbFilter.getValue() instanceof List){
                 values = ((List<Object>) EDbFilter.getValue()).toArray();
             }else{
                 values = (Object[]) EDbFilter.getValue();

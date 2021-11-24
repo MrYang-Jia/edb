@@ -39,7 +39,7 @@ public class JpaEDbQueryTest extends BaseTest {
         EDbQuery eDbQuery = new EDbQuery();
         // 根据情况设置查询条件
         eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"));
-        List<Integer> list =  new ArrayList<>();
+        List<Integer> list =  new ArrayList<>();//Arrays.asList(new Integer[]{1,2});
         list.add(1); // 用 in 替代需要 or 一堆类型的场景，性能会更好
         list.add(2);
         eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.in, list));
