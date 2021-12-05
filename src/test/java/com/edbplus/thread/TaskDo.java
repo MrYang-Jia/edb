@@ -19,6 +19,7 @@ import cn.hutool.core.convert.Convert;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jpa.VehicleType;
 import com.edbplus.db.util.list.EDbListUtil;
+import com.jfinal.plugin.activerecord.Record;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -56,6 +57,13 @@ public class TaskDo {
         result.add(dataMap);
         // 提取 idStr 字段
         List<String> strings = EDbListUtil.toConvertList(String.class,result,"idStr","");
+        System.out.println(strings);
+
+        List<Record> records = new ArrayList<>();
+        Record record = new Record();
+        record.set("idStr","世界是java的");
+        records.add(record);
+        strings = EDbListUtil.toConvertList(String.class,records,"idStr","");
         System.out.println(strings);
 
     }

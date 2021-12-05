@@ -408,6 +408,7 @@ public class JpaRelUtil {
         // 赋予表名
         sqlBuf.append(" from ").append(table.name()).append(" where 1=1 ");
 
+        // 匹配多键值
         for (String columnName : eDbRel.relColumn()){
             // 匹配
             for(FieldAndColValue fieldAndColValue : fieldAndColValues){
@@ -420,6 +421,7 @@ public class JpaRelUtil {
                 }
             }
         }
+
         // where条件
         // 拼接的sql
         String appendSql = eDbRel.appendSql();

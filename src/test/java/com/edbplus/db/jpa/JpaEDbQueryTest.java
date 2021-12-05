@@ -1,16 +1,29 @@
 package com.edbplus.db.jpa;
 
+import com.alibaba.druid.sql.SQLUtils;
+import com.alibaba.druid.sql.ast.SQLOrderBy;
+import com.alibaba.druid.sql.ast.statement.SQLSelect;
+import com.alibaba.druid.sql.ast.statement.SQLSelectItem;
+import com.alibaba.druid.sql.ast.statement.SQLSelectQueryBlock;
+import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
+import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
+import com.alibaba.druid.util.JdbcUtils;
 import com.edbplus.db.EDb;
+import com.edbplus.db.druid.EDbSelectUtil;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.ICallback;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.springframework.data.domain.PageRequest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -26,9 +39,29 @@ import java.util.List;
 public class JpaEDbQueryTest extends BaseTest {
 
     @BeforeTest
-    public void initBefor(){
+    public void initBefor() {
         // 做一次查询连接，减少起始jdbc首次执行的耗时偏高问题
-        EDb.findById(VehicleType.class,1);
+        EDb.findById(VehicleType.class, 1);
+    }
+
+
+
+    @Test
+    public void countSqlTest() {
+        String sql = "\n" +
+                "select a.* from cr_vehicle_type a,cr_vehicle_type b \n" +
+                " where 1=1 and b.VEHICLE_TYPE_ID in (1,3,10)  group by a.VEHICLE_TYPE_ID having count(1) > 1 " +
+                " order by\n" +
+                "(\n" +
+                "case when a.VEHICLE_TYPE_ID =100 then 1 else 0 end\n" +
+                ")\n" +
+                "desc ";
+        System.out.println("==>"+  EDb.getCountSql(sql));
+
+//        System.out.println("==>"+  EDb.use().getFirstSql(sql));
+
+
+
     }
 
     /**
@@ -39,9 +72,9 @@ public class JpaEDbQueryTest extends BaseTest {
         EDbQuery eDbQuery = new EDbQuery();
         // 根据情况设置查询条件
         eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"));
-        List<Integer> list =  new ArrayList<>();//Arrays.asList(new Integer[]{1,2});
-        list.add(1); // 用 in 替代需要 or 一堆类型的场景，性能会更好
-        list.add(2);
+        List<Integer> list =  Arrays.asList(new Integer[]{1,2});
+//        list.add(1); // 用 in 替代需要 or 一堆类型的场景，性能会更好
+//        list.add(2);
         eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.in, list));
         eDbQuery.or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "3"));
         eDbQuery.andCom().and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"))

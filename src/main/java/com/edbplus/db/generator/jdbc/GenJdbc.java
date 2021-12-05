@@ -23,6 +23,7 @@ import com.edbplus.db.EDbPro;
 import com.edbplus.db.EDbProFactory;
 import com.edbplus.db.SpringConfig;
 import com.edbplus.db.dialect.EDbMysqlDialect;
+import com.edbplus.db.dialect.EDbPostgreSqlDialect;
 import com.edbplus.db.jpa.kit.JpaKit;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
@@ -213,7 +214,7 @@ public class GenJdbc {
 
         // 定于 pg 的解析器
         if(jdbcUrl.contains("postgresql")){
-            arp.setDialect(new PostgreSqlDialect());
+            arp.setDialect(new EDbPostgreSqlDialect());
         }else{
             arp.setDialect(new EDbMysqlDialect());
         }

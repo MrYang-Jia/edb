@@ -52,7 +52,12 @@ public class JpaPaginateTest extends BaseTest {
         System.out.println("无统计语句的耗时:"+(System.currentTimeMillis()-start));
 
         start = System.currentTimeMillis();
-        page = EDb.paginate(VehicleType.class,PageRequest.of(1,10),"select * from cr_vehicle_type where VEHICLE_TYPE_ID in(?,200) ","100");
+        page = EDb.paginate(VehicleType.class,PageRequest.of(1,10),"select * from cr_vehicle_type where VEHICLE_TYPE_ID in(?,200) order by VEHICLE_TYPE_ID desc ","100");
+        System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis()-start) + "==>"+ page.getTotalRow());
+
+        // =============== 传统 jfinal 查询方式 ==============
+        start = System.currentTimeMillis();
+        page = EDb.paginate(1,10,"select *  ","from cr_vehicle_type where VEHICLE_TYPE_ID in(100,200)");
         System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis()-start) + "==>"+ page.getTotalRow());
 
 

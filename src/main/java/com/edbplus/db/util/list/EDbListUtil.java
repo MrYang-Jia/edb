@@ -22,6 +22,7 @@ import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.json.JSONUtil;
+import com.jfinal.plugin.activerecord.Record;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.lang.reflect.Field;
@@ -86,7 +87,17 @@ public class EDbListUtil {
                             // 如果不是数字，则赋予默认值
                             defaultValue
                     );
+                }else if(p instanceof Record){
+                    return Convert.convert(
+                            // 转换的类型
+                            type,
+                            // 提取字段
+                            ((Record) p).get(fieldName),
+                            // 如果不是数字，则赋予默认值
+                            defaultValue
+                    );
                 }
+
                 // 其他则认为是一个实体对象
                 return Convert.convert(
                         // 转换的类型

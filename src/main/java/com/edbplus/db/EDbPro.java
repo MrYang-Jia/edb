@@ -2601,7 +2601,7 @@ public class EDbPro extends SpringDbPro {
     }
 
     /**
-     * 通过relKey直接返回对象
+     * 通过relKey直接返回 object 对象
      * @param t
      * @param relKey
      * @return
@@ -2813,16 +2813,9 @@ public class EDbPro extends SpringDbPro {
      */
     public String getCountSql(String sql){
         String[] sqls = PageSqlKit.parsePageSql(sql);
-        // 其实一样的sql，但是避免不兼容，所以单独改写
-//        String totalRowSql = this.config.getDialect().forPaginateTotalRow(sqls[0], sqls[1], (Object)null);
-//        String totalRowSql = "select count(1) ct from ( select 1 " + this.getConfig().getDialect().replaceOrderBy(sqls[1]) +") as ct_tb_0 ";
-//        System.out.println("len->"+totalRowSql.length());
-//        return totalRowSql;
-        StringBuilder totalRowSqlBuilder = new StringBuilder(64); // 当字符串长度大于 64 时，会重新计算需要开辟的内存空间和大小
-        // 再套1层，避免优化掉 order 排序影响性能的部分，但是内部包含 group ，会变成代码级别的统计模式，但是建议可以改成内外嵌套，内部改为 字段为 1 ，交给数据库统计性能也能非常不错
-        totalRowSqlBuilder.append("select count(1) ct from ( select 1 ").append(this.getConfig().getDialect().replaceOrderBy(sqls[1])).append(") as ct_tb_0 ");
-//        System.out.println("len->"+totalRowSqlBuilder.toString().length());
-        return totalRowSqlBuilder.toString();
+        String totalRowSql = this.config.getDialect().forPaginateTotalRow(sqls[0], sqls[1], (Object)null);
+        sqls = null;
+        return totalRowSql;
     }
 
 

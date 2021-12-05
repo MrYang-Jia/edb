@@ -37,7 +37,7 @@ public class EDbQuery extends EDbBaseQuery{
     private EDbBaseQuery andCom;
 
     /**
-     * 添加一个and条件
+     * 添加一个and条件 -> and (  xxxx  )
      * @return 链式调用
      */
     public  EDbBaseQuery andCom(){
@@ -48,13 +48,14 @@ public class EDbQuery extends EDbBaseQuery{
     }
 
 
-
-    // or
+    /**
+     * or组合对象
+     */
     @Setter
     private EDbBaseQuery orCom;
 
     /**
-     * 添加一个 or 条件组合
+     * 添加一个 or 条件组合 -> or ( xxx )
      * @return 链式调用
      */
     public  EDbBaseQuery orCom(){
@@ -78,13 +79,13 @@ public class EDbQuery extends EDbBaseQuery{
 
 
     /**
-     * sql 头部拼接
+     * sql 头部拼接  -> select ${fieldsSql}(数字库字段,多个用逗号隔开) from
      */
     @Getter
     private String fieldsSql;
 
     /**
-     * 封装的 select 头部快捷拼接方法
+     * 封装的 select 头部快捷拼接方法 -> select ${fieldsSql}(数字库字段,多个用逗号隔开) from
      * @param fields
      */
     public void fields(String fields){
