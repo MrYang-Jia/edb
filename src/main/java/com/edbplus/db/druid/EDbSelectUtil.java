@@ -175,7 +175,7 @@ public class EDbSelectUtil {
                 // 内部limit函数，则都会在右侧嵌套 ) 以表示结束，所以只要判断这个，就可以在外围加 limit
                 if(lastSql.indexOf(")") > -1){ // 可能存在 order 关键字
                     // in | exist (select xxx from xxx order by xxx) 场景模式需要过滤
-                    String leftLastSql = sqlLower.substring(0,lastIdx); // 截取左侧sql
+                    String leftLastSql = sql.substring(0,lastIdx); // 截取左侧sql
                     int selectIdx = leftLastSql.lastIndexOf("select"); // order 左侧的 "最后一个" select 位置
                     // 校验select是否是关键字
                     leftIdxStr = leftLastSql.substring(selectIdx-1,selectIdx); // 关键字左侧字符串
@@ -196,11 +196,11 @@ public class EDbSelectUtil {
                     rightIdxStr = lastSql.substring(limitIdx + 5,limitIdx + 6);
                     if(checkSpecialCharacters(leftIdxStr,rightIdxStr)) { // 存在关键字 limit
                         lastSql = lastSql.substring(limitIdx,lastSql.length()); // 去除 order ，保留 limit
-                        return sqlLower.substring(0,lastIdx) + " " + lastSql;
+                        return sql.substring(0,lastIdx) + " " + lastSql;
                     }
                 }
                 // 说明只需要去除 order 即可
-                return sqlLower.substring(0,lastIdx);
+                return sql.substring(0,lastIdx);
             }
         }
         return sql;

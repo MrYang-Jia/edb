@@ -80,9 +80,9 @@ public class SqlParserTest {
         System.out.println("8=>"+EDbSelectUtil.returnLimitSql(sql,1));
         Assert.assertEquals(" select 1_limit from tb offset 0  limit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
-        sql = " select 1  from tb offset 0 \tlimit 9 ";
+        sql = " select 1  from tb where gs='N' offset 0 \tlimit 9 ";
         System.out.println("9=>"+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1  from tb offset 0 \t limit 1",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1  from tb where gs='N' offset 0 \t limit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
         sql = " select 1_limit -- 换行 \n from tb offset 0 limit 9 ";
         System.out.println("10 => "+EDbSelectUtil.returnLimitSql(sql,1));
@@ -152,9 +152,9 @@ public class SqlParserTest {
         Assert.assertEquals(" select 1 from tb where exist (select 1 from tb2 where tb.id=tb2.id order by id desc ) ",EDbSelectUtil.removeOrder(sql));
 
 
-        sql = " select 1 from tb group by id order by id desc limit 10";
+        sql = " select 1 from tb where gs='N' group by id order by id desc limit 10";
         System.out.println("8=>"+EDbSelectUtil.removeOrder(sql));
-        Assert.assertEquals(" select 1 from tb group by id  limit 10",EDbSelectUtil.removeOrder(sql));
+        Assert.assertEquals(" select 1 from tb where gs='N' group by id  limit 10",EDbSelectUtil.removeOrder(sql));
 
     }
 
