@@ -16,17 +16,12 @@
 package com.edbplus.db;
 
 import com.edbplus.db.jpa.JpaAnnotationUtil;
-import com.edbplus.db.query.EDbQuery;
-import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.edbplus.db.util.hutool.map.CaseInsensitiveMap;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,14 +33,34 @@ import java.util.Map;
  * @Version V1.0
  **/
 // https://blog.csdn.net/blwinner/article/details/98532847 fastJson fastJson 注解相关
-@JsonIgnoreType
+//@JsonIgnoreType
 // 因为方法名以getxxx开头，如果没有参数的话，会被当作是属性对象返回给前端，所以接下来方法名命名要注意不能以get开头
-@JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
+//@JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
 public class EDbModel<M extends EDbModel> {
+    // 使用 transient 的目的是避免有些方法使用了 get ，导致json序列化的时候被序列化了，尤其是 fastJson的序列化模式，但是尽量避免普通方法用get导致该问题发生
+    @JsonIgnore
+    private transient  String configName; // 单数据源时指向,多数据源时，可通过 use 切换到另外一个数据库进行操作,一体多用
+    @JsonIgnore
+    private transient  String defaultConfigName; // 每次切换完数据库查询完后，当前实例化对象必须进行一次重置，以便指向正确的数据库进行相关操作
+    @JsonIgnore
+    private transient String realJpaClass;
+    @JsonIgnore
+    private transient String tableName;
+    @JsonIgnore
+    private transient Object dbPro;
+    @JsonIgnore
+    private transient Map<String,Object> columnsMap;
+    @JsonIgnore
+    private transient String relKey;
+    @JsonIgnore
+    private transient Object allRel;
+    @JsonIgnore
+    private transient Object relKeyForFutrue;
+    @JsonIgnore
+    private transient Object allRelForFutrue;
+    @JsonIgnore
+    private transient String countSql;
 
-    private String configName; // 单数据源时指向,多数据源时，可通过 use 切换到另外一个数据库进行操作,一体多用
-
-    private String defaultConfigName; // 每次切换完数据库查询完后，当前实例化对象必须进行一次重置，以便指向正确的数据库进行相关操作
 
     /**
      * 指定默认数据源(有需要的情况下，可以指定默认的操作库)
