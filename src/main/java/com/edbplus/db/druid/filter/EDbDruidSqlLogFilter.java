@@ -130,6 +130,17 @@ public class EDbDruidSqlLogFilter extends FilterEventAdapter {
     }
 
     /**
+     * 每次更新操作之后
+     * @param chain
+     * @param statement
+     * @throws SQLException
+     */
+    @Override
+    public void statement_close(FilterChain chain, StatementProxy statement) throws SQLException{
+//        System.out.println("执行更新数:"+statement.getUpdateCount());
+    }
+
+    /**
      * 更新指令之前触发
      * @param statement
      * @param sql

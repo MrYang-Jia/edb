@@ -47,9 +47,9 @@ public class BaseVehicleType implements Serializable{
    @Column(name="MODIFY_TIME")
    private  Date modifyTime;
 
-
-   @Column(name="v_type")
-   private Integer vType;
+//
+//   @Column(name="v_type")
+//   private Integer vType;
 
 
 }

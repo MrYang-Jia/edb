@@ -105,7 +105,7 @@ public class JpaBatchSaveTest extends BaseTest {
             List<VehicleType> saveList = new ArrayList<>();
             VehicleType vehicleType =null;
             // 插入数量自己预设
-            for(int i=1000;i<1100;i++){
+            for(int i=0;i<10;i++){
                 // 数据对象
                 vehicleType = new VehicleType();
                 // 如果是大量数据的话，建议可以提前初始化，这样子就可以不用数据库的自增
@@ -115,11 +115,11 @@ public class JpaBatchSaveTest extends BaseTest {
             }
             // 批量插入并返回实体id
             // 原 Db.batchSave 无返回id，这里主要测试返回id的Jpa对象方法
-            pgDbPro.batchSaveRid(VehicleType.class,saveList,100);
+            pgDbPro.batchSaveRid(VehicleType.class,saveList,2);
             //
             for(VehicleType v:saveList){
                 System.out.println("主键键值:" + v.getVehicleTypeId());
-                System.out.println("主键键值:" + v.getCreateTime());
+//                System.out.println("创建时间:" + v.getCreateTime());
             }
 
             System.out.println("耗时:"+(System.currentTimeMillis()-start));

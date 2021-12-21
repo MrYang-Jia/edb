@@ -235,71 +235,120 @@ public class EDbPro extends SpringDbPro {
         List<FieldAndColumn> priCoumns  = JpaAnnotationUtil.getIdFieldAndColumns(mClass);
 
         Record record = null;
-        List<Record> records = new ArrayList<>();
+        List<Record> records = null;
         //
         Method beforeSave = null;
         Map<String,Object> dataMap = null;
-        for(M m:saveList){
-            record = new Record();
-            for(FieldAndColumn fieldAndColumn : coumns){
-                // 字段赋值 -- 字段全小写
-                record.set(fieldAndColumn.getColumn().name().toLowerCase(), JpaAnnotationUtil.getFieldValue(m,fieldAndColumn.getField()));
-            }
-            if(beforeSave == null){
-                // 保存前的方法事件
-                beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbSave.class);
-            }
+        // 总记录数
+        int totaolCount = saveList.size();
+        int t = 0;
+        int ct = totaolCount/batchSize + 1;
+        M m;
+        // 初始化结果数组长度
+        int[] resultSize = new int[totaolCount];
+        int[] tmpResultSize ;
+        int tmpIdx = 0;
+        int rt = 0; // 主键回填时的下标记录
+        fj : for(int jt=0;jt<ct;jt++) {
+            // 初始化
+            records = new ArrayList<>();
+            for (int j = 0; j < batchSize; j++) {
+                if (t >= totaolCount) {
+                    if (records.size() > 0) {
+                        tmpResultSize = batchSave(mClass,table.name(),records,batchSize);
+                        for (int i = 0; i < tmpResultSize.length; i++) {
+                            resultSize[tmpIdx] = tmpResultSize[i];
+                            tmpIdx++;
 
-            // 保存前的监听
-            if(eDbListener!=null){
-                // 忽略大小写
-                dataMap =  new CaseInsensitiveMap(record.getColumns());
-                // 执行对象方法
-                eDbListener.beforeSave(mClass,dataMap,coumns);
-                // 替换数据
-                record.setColumns(dataMap);
-            }
+                            m = saveList.get(rt);
+                            record = records.get(i);
+                            for(FieldAndColumn fieldAndColumn : coumns) {
+                                // 字段赋值 -- 反向赋予主键的键值
+                                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                            }
+                            rt++;
+                        }
+                        tmpResultSize = null;
+                        records = null; // 主动先清空1次内存
+                    }
+                    break fj;
+                }
+                m = saveList.get(t);
+                record = new Record();
+                for (FieldAndColumn fieldAndColumn : coumns) {
+                    // 字段赋值 -- 字段全小写
+                    record.set(fieldAndColumn.getColumn().name().toLowerCase(), JpaAnnotationUtil.getFieldValue(m, fieldAndColumn.getField()));
+                }
+                if (beforeSave == null) {
+                    // 保存前的方法事件
+                    beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbSave.class);
+                }
 
-            // 保存前的监听 -- 在统一监听之后执行
-            if(beforeSave != null){
-                // 替换成 忽略 大小写的 map
-                dataMap =  new CaseInsensitiveMap(record.getColumns());
-                // 执行对象方法
-                EReflectUtil.invoke(m, beforeSave, dataMap,coumns);
-                // 替换数据
-                record.setColumns(dataMap);
-            }
+                // 保存前的监听
+                if (eDbListener != null) {
+                    // 忽略大小写
+                    dataMap = new CaseInsensitiveMap(record.getColumns());
+                    // 执行对象方法
+                    eDbListener.beforeSave(mClass, dataMap, coumns);
+                    // 替换数据
+                    record.setColumns(dataMap);
+                }
 
-            // 区分是否是 postgresql -- 目前注释，正常情况下不会交错id提交，交由id自增，或者自己传入id
-            if(this.getConfig().getDialect() instanceof PostgreSqlDialect){
-                // 主键
-                for(FieldAndColumn fieldAndColumn : priCoumns){
-                    // 如果是主键，主键没有键值，则删除该字段 -- 兼容 pg 模式，mysql本身是不需要剔除
-                    if(record.get(fieldAndColumn.getColumn().name().toLowerCase()) == null ){
-                        // ? 模式无法添加
-                        record.remove(fieldAndColumn.getColumn().name().toLowerCase());
+                // 保存前的监听 -- 在统一监听之后执行
+                if (beforeSave != null) {
+                    // 替换成 忽略 大小写的 map
+                    dataMap = new CaseInsensitiveMap(record.getColumns());
+                    // 执行对象方法
+                    EReflectUtil.invoke(m, beforeSave, dataMap, coumns);
+                    // 替换数据
+                    record.setColumns(dataMap);
+                }
+
+                // 区分是否是 postgresql -- 目前注释，正常情况下不会交错id提交，交由id自增，或者自己传入id
+                if (this.getConfig().getDialect() instanceof PostgreSqlDialect) {
+                    // 主键
+                    for (FieldAndColumn fieldAndColumn : priCoumns) {
+                        // 如果是主键，主键没有键值，则删除该字段 -- 兼容 pg 模式，mysql本身是不需要剔除
+                        if (record.get(fieldAndColumn.getColumn().name().toLowerCase()) == null) {
+                            // ? 模式无法添加
+                            record.remove(fieldAndColumn.getColumn().name().toLowerCase());
+                        }
                     }
                 }
+                // 添加到保存记录集里
+                records.add(record);
+                t++; // 指标下钻
             }
+            tmpResultSize = batchSave(mClass,table.name(),records,batchSize); // 保存后有返回id
+            for (int i = 0; i < tmpResultSize.length; i++) {
+                resultSize[tmpIdx] = tmpResultSize[i];
+                tmpIdx++;
 
-
-            // 添加到保存记录集里
-            records.add(record);
+                m = saveList.get(rt);
+                record = records.get(i);
+                for(FieldAndColumn fieldAndColumn : coumns) {
+                    // 字段赋值 -- 反向赋予主键的键值
+                    JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                }
+                rt++;
+            }
+            tmpResultSize = null;
+            records = null; // 主动先清空内存
         }
 
-        int[] resultSize = batchSave(mClass,table.name(),records,batchSize);
+//        int[] resultSize = batchSave(mClass,table.name(),records,batchSize);
         // 获取主键字段
         //coumns = JpaAnnotationUtil.getIdFieldAndColumns(mClass);
-        M m = null;
-        // 反向赋予键值
-        for(int i=0;i<saveList.size();i++){
-            m = saveList.get(i);
-            record = records.get(i);
-            for(FieldAndColumn fieldAndColumn : coumns) {
-                // 字段赋值 -- 反向赋予主键的键值
-                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
-            }
-        }
+//        m = null;
+//        // 反向赋予键值
+//        for(int i=0;i<saveList.size();i++){
+//            m = saveList.get(i);
+//            record = records.get(i);
+//            for(FieldAndColumn fieldAndColumn : coumns) {
+//                // 字段赋值 -- 反向赋予主键的键值
+//                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+//            }
+//        }
 
 
         return resultSize;
@@ -323,64 +372,98 @@ public class EDbPro extends SpringDbPro {
         List<FieldAndColumn> priCoumns  = JpaAnnotationUtil.getIdFieldAndColumns(mClass);
         Record record = null;
         // 记录集合
-        List<Record> records = new ArrayList<>();
+        List<Record> records  = null;
         // 开始保存前
         Method beforeSave = null;
         // 对象集合
         Map<String,Object> dataMap = null;
-        //
-        for(M m:saveList){
-            record = new Record();
-            for(FieldAndColumn fieldAndColumn : coumns){
-                // 字段赋值 -- 字段全小写
-                record.set(fieldAndColumn.getColumn().name().toLowerCase(), JpaAnnotationUtil.getFieldValue(m,fieldAndColumn.getField()));
-            }
-            if(beforeSave == null){
-                // 保存前的方法事件
-                beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbSave.class);
-            }
-
-            // 保存前的监听
-            if(eDbListener!=null){
-                dataMap =  new CaseInsensitiveMap(record.getColumns());
-                // 执行对象方法
-                eDbListener.beforeSave(mClass,dataMap,coumns);
-                // 替换数据
-                record.setColumns(dataMap);
-            }
-
-            // 全局监听之后
-            if(beforeSave != null){
-                // 替换成 忽略 大小写的 map
-                dataMap =  new CaseInsensitiveMap(record.getColumns());
-                // 执行对象方法
-                EReflectUtil.invoke(m, beforeSave, dataMap,coumns);
-                // 替换数据
-                record.setColumns(dataMap);
-            }
-
-            // 反向赋予键值
-            for(int i=0;i<saveList.size();i++){
-                for(FieldAndColumn fieldAndColumn : coumns) {
-                    // 字段赋值 -- 反向赋予主键的键值
-                    JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+        // 总记录数
+        int totaolCount = saveList.size();
+        int t = 0;
+        int ct = totaolCount/batchSize + 1;
+        M m;
+        // 初始化结果数组长度
+        int[] resultSize = new int[totaolCount];
+        int[] tmpResultSize ;
+        int tmpIdx = 0;
+        fj : for(int jt=0;jt<ct;jt++){
+            // 初始化
+            records = new ArrayList<>();
+            for (int j=0; j<batchSize; j++){
+                if(t >= totaolCount){
+                    if(records.size()>0){
+                        tmpResultSize = batchSave(table.name(),records,batchSize);
+                        for (int i=0;i< tmpResultSize.length ;i++){
+                            resultSize[tmpIdx] = tmpResultSize[i];
+                            tmpIdx++;
+                        }
+                        tmpResultSize = null;
+                        records = null; // 主动先清空1次内存
+                    }
+                    break fj;
                 }
-            }
+                m = saveList.get(t);
+                record = new Record();
+                for(FieldAndColumn fieldAndColumn : coumns){
+                    // 字段赋值 -- 字段全小写
+                    record.set(fieldAndColumn.getColumn().name().toLowerCase(), JpaAnnotationUtil.getFieldValue(m,fieldAndColumn.getField()));
+                }
+                if(beforeSave == null){
+                    // 保存前的方法事件
+                    beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbSave.class);
+                }
 
-            if(this.getConfig().getDialect() instanceof PostgreSqlDialect) {
-                // 主键 -- 要嘛有主键，要嘛全无主键
-                for (FieldAndColumn fieldAndColumn : priCoumns) {
-                    // 如果是主键，主键没有键值，则删除该字段 -- 兼容 pg 模式，mysql本身是不需要剔除
-                    if (record.get(fieldAndColumn.getColumn().name().toLowerCase()) == null) {
-                        record.remove(fieldAndColumn.getColumn().name().toLowerCase());
+                // 保存前的监听
+                if(eDbListener!=null){
+                    dataMap =  new CaseInsensitiveMap(record.getColumns());
+                    // 执行对象方法
+                    eDbListener.beforeSave(mClass,dataMap,coumns);
+                    // 替换数据
+                    record.setColumns(dataMap);
+                }
+
+                // 全局监听之后
+                if(beforeSave != null){
+                    // 替换成 忽略 大小写的 map
+                    dataMap =  new CaseInsensitiveMap(record.getColumns());
+                    // 执行对象方法
+                    EReflectUtil.invoke(m, beforeSave, dataMap,coumns);
+                    // 替换数据
+                    record.setColumns(dataMap);
+                }
+
+                // 反向赋予键值
+                for(int i=0;i<saveList.size();i++){
+                    for(FieldAndColumn fieldAndColumn : coumns) {
+                        // 字段赋值 -- 反向赋予主键的键值
+                        JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
                     }
                 }
-            }
 
-            // 添加到保存记录集里
-            records.add(record);
+                if(this.getConfig().getDialect() instanceof PostgreSqlDialect) {
+                    // 主键 -- 要嘛有主键，要嘛全无主键
+                    for (FieldAndColumn fieldAndColumn : priCoumns) {
+                        // 如果是主键，主键没有键值，则删除该字段 -- 兼容 pg 模式，mysql本身是不需要剔除
+                        if (record.get(fieldAndColumn.getColumn().name().toLowerCase()) == null) {
+                            record.remove(fieldAndColumn.getColumn().name().toLowerCase());
+                        }
+                    }
+                }
+                // 添加到保存记录集里
+                records.add(record);
+                t++; // 指标下钻
+            }
+            // 执行1次
+            tmpResultSize = batchSave(table.name(),records,batchSize);
+            for (int i=0;i< tmpResultSize.length ;i++){
+                resultSize[tmpIdx] = tmpResultSize[i];
+                tmpIdx++;
+            }
+            tmpResultSize = null;
+            records = null; // 主动先清空1次内存
         }
-        int[] resultSize = batchSave(table.name(),records,batchSize);
+
+//        int[] resultSize = batchSave(table.name(),records,batchSize);
 
         return resultSize;
     }

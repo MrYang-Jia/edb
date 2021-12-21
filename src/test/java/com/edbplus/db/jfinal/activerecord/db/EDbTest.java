@@ -162,8 +162,9 @@ public class EDbTest extends BaseTest {
         vehicleType = new VehicleType();
         vehicleType.setVehicleTypeName("测试类型-无ID-2");
         saveList.add(vehicleType);
-        EDb.use().batchSave(VehicleType.class,saveList,100);
-
+        int[] result = EDb.use().batchSave(VehicleType.class,saveList,2);
+        System.out.println(result.length);
+        System.out.println(saveList.size());
     }
 
     /**

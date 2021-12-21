@@ -31,7 +31,8 @@ public class JpaUpdate  extends BaseTest {
         // 改
         vehicleType.setVehicleTypeName("改:小汽车");
         // 目前市面上用得最多的更新方式之一 ，全量提交，只提交 非null值的部分
-        EDb.update(vehicleType);        //
+        int updateReInt = EDb.updateReInt(vehicleType);        //
+        System.out.println("更新数:"+updateReInt);
 
         System.out.println(vehicleType.getCreateTime());
 

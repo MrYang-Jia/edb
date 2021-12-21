@@ -7,6 +7,7 @@ import com.jfinal.plugin.activerecord.Page;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,6 +38,32 @@ public class VoTest extends BaseTest {
                     System.out.println(obj);
                 });
 
+    }
+
+    @Test
+    public void test3(){
+        int totaolCount = 3;
+        int batchSize = 5;
+        List<Integer> integers = new ArrayList<>();
+        for (int j=0;j<100;j++){
+            integers.add(j);
+        }
+        if(totaolCount>0 && batchSize>0){
+            int t = 0;
+            int ct = totaolCount/batchSize + 1;
+            fj : for(int jt=0;jt<ct;jt++){
+                for (int j=0;j<batchSize;j++){
+                    if(t>=totaolCount){
+                        System.out.println("一批次");
+                        break fj;
+                    }
+                    System.out.println(integers.get(t));
+                    t++;
+                }
+                //
+                System.out.println("一批次");
+            }
+        }
     }
 
 }
