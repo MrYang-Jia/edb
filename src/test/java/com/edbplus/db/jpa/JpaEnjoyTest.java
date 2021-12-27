@@ -46,7 +46,7 @@ public class JpaEnjoyTest extends BaseTest {
         // 通过enjoySql 模板的方式
         SqlPara sqlPara = EDb.getSqlPara("test.findTf", 101);
         // pg 的问题是会出现全小写，用大写获取不到，除非是字段转移的时候，加上双引号 -> field as "FIELD"
-        System.out.println(EDb.use("pg").findFirst(sqlPara).getStr("tFid".toLowerCase()));
+        System.out.println(EDb.use("pg").findFirst(sqlPara)); // .getStr("tFid".toLowerCase())
 
     }
 

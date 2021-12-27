@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 
 import javax.persistence.Table;
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -45,7 +46,7 @@ import java.util.concurrent.Future;
 @JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
 public class EDb extends Db{
 
-    // 连接池
+    // 异步连接池 -- 大量使用的话，会影响其他地方的访问请求能力，异步之间的线程数量是恒定的，总数恒定则会相互之间产生影响
     public static final Map<String, ExecutorService> edbFutruePools = new SyncWriteMap<String, ExecutorService>(32, 0.25F);
 
     // 主要访问的对象 -- 私有可以避免对外暴露信息，尤其是转json时
@@ -76,9 +77,14 @@ public class EDb extends Db{
      * @param eDbPro
      */
     public static void initPool(String configName, EDbPro eDbPro){
-        DruidDataSource dataSource = (DruidDataSource) eDbPro.getConfig().getDataSource();
-        // 并发线程控制，预留 0.5 的连接数给予系统应用，避免大量并发导致线程堵塞
-        edbFutruePools.put(configName,   Executors.newFixedThreadPool((int) (dataSource.getMaxActive() * 0.5) ));
+        DataSource dataSource = eDbPro.getConfig().getDataSource();
+        if(dataSource instanceof DruidDataSource){
+            // 并发线程控制，预留 1 - 0.3 = 0.7 的连接数给予系统应用，避免大量并发导致线程堵塞
+            edbFutruePools.put(configName,   Executors.newFixedThreadPool((int) (((DruidDataSource)dataSource).getMaxActive() * 0.3) ));
+        }else{
+            // 并发线程控制，预留 0.5 的连接数给予系统应用，避免大量并发导致线程堵塞
+            edbFutruePools.put(configName,   Executors.newFixedThreadPool( 20 ));
+        }
     }
 
     /**

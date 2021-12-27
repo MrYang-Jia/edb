@@ -6,10 +6,9 @@
 
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
-    <!-- 每次deploy后必须调整版本号 , RELEASE -->
-    <!--<version>1.5.RELEASE</version>-->
-    <!--<version>1.5.SNAPSHOT</version>-->
-    <version>1.7.1</version>
+    <!-- 每次deploy后必须调整版本号 -->
+    <!-- 目前生产最新版本为 1.7.2 版本 -->
+    <version>1.7.2</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -18,8 +17,10 @@
 
     <properties>
 
-        <jfinal.version>4.9.14</jfinal.version>
-        <druid.version>1.1.21</druid.version>
+        <jfinal.version>4.9.16</jfinal.version>
+        <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
+        <druid.version>1.1.21_1</druid.version>
+<!--        <druid.version>1.2.8</druid.version>-->
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -89,8 +90,6 @@
         </dependency>
 
 
-
-
         <!-- === 必须依赖的jar包 end === -->
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -112,10 +111,11 @@
 
 
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <!-- https://jdbc.postgresql.org -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.11</version>
+            <version>42.3.1</version>
             <!-- 依赖时可选 -->
             <optional>true</optional>
             <!--<optional>true</optional>-->
@@ -276,11 +276,17 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- 必须引入 -->
+        <!-- 必须引入，然后剔除 activerecord 包，避免冲突，因为发现部分版本里并不兼容 -->
         <dependency>
             <groupId>com.edbplus</groupId>
             <artifactId>jfinal-spring-tx</artifactId>
             <version>1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.jfinal</groupId>
+                    <artifactId>activerecord</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -378,16 +384,34 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>2.1.2</version>
+                <configuration>
+                    <attach>true</attach>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>attach-sources</id>
-                        <phase>verify</phase>
+                        <phase>compile</phase>
                         <goals>
-                            <goal>jar-no-fork</goal>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+
+<!--            &lt;!&ndash; 安装源码到本地仓库 &ndash;&gt;-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-source-plugin</artifactId>-->
+<!--                <version>2.1.2</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>attach-sources</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>jar-no-fork</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
 
             <!-- gpg签名 -->
             <plugin>
@@ -404,6 +428,8 @@
                     </execution>
                 </executions>
             </plugin>
+
+
 
 
         </plugins>
