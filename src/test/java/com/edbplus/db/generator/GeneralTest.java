@@ -1,5 +1,6 @@
 package com.edbplus.db.generator;
 
+import com.edbplus.db.EDb;
 import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.generator.entity.GenTable;
@@ -55,6 +56,8 @@ public class GeneralTest extends BaseTest {
     @Test
     public void test(){
 
+//        EDbGenCode.edbPro = EDb.use();// 指定数据源对象
+        EDbGenCode.edbPro = EDb.use("pg");// 指定数据源对象
 
         // 子项目包路径名称
         projectModel = "mode";
@@ -150,11 +153,11 @@ public class GeneralTest extends BaseTest {
         String controllerProjectUrl = System.getProperty("user.dir") +"\\src\\main\\java\\" +GenTable.webUrlFormat(srcPre)+"/"+projectModel+"/";
         table.setControllerPackageName(srcPre+projectModel);
 //        // 输出Controller
-        EDbGenCode.generalEDbWeb("edb-template/java/web-controller.tpl",
-                controllerProjectUrl,
-                table.getClassName()+"Controller.java",
-                table,
-                columnList);
+//        EDbGenCode.generalEDbWeb("edb-template/java/web-controller.tpl",
+//                controllerProjectUrl,
+//                table.getClassName()+"Controller.java",
+//                table,
+//                columnList);
 
 
     }

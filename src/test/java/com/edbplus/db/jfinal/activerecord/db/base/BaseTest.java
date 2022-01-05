@@ -55,13 +55,17 @@ public class BaseTest {
         // 只打印真实日志 -- 因为有入参，建议还是开启
         //eDbDruidSqlLogFilter.setOnlyRealsql(true);
         List<Filter> filterList = new ArrayList<>();
-
         // 添加sql日志打印信息
         filterList.add(eDbDruidSqlLogFilter);
 
         // 初始化
         GenJdbc.initForEnjoy(null,jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList,filterList);
 
+        filterList = new ArrayList<>();
+        eDbDruidSqlLogFilter = new EDbDruidSqlLogFilter();
+        eDbDruidSqlLogFilter.setDbType(2); //pg类型的解析,但是 druid 对于日新月异的 druid sql支持，还是有点弱，例如特殊符号强转则无法格式化
+        // 添加sql日志打印信息
+        filterList.add(eDbDruidSqlLogFilter);
         GenJdbc.initForEnjoy("pg",jdbcUrl2,userName2,pwd2,sqlTplList,shareSqlTplList,filterList);
         JpaListener jpaListener = new JpaListener();
         // 初始化

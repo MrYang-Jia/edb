@@ -61,6 +61,7 @@ public class EDbModelTest extends BaseTest {
 
 
 
+
 //        crVehicleType =  new CrVehicleType(); // 定义新的数据对象
 //        crVehicleType.setCreator("小明"); // 保存小明的数据字段
 //        crVehicleType.save(); // 插入数据

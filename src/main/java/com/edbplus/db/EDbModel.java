@@ -20,6 +20,7 @@ import com.edbplus.db.util.hutool.map.CaseInsensitiveMap;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.jfinal.plugin.activerecord.*;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -34,7 +35,7 @@ import java.util.Map;
 //@JsonIgnoreType
 // 因为方法名以getxxx开头，如果没有参数的话，会被当作是属性对象返回给前端，所以接下来方法名命名要注意不能以get开头
 //@JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
-public abstract class EDbModel<M extends EDbModel> { // abstract 加上，可以避免直接强制使用 new EDbModel() 建立对象
+public abstract class EDbModel<M extends EDbModel> implements Serializable { // abstract 加上，可以避免直接强制使用 new EDbModel() 建立对象
     // 使用 transient 的目的是避免有些方法使用了 get ，导致json序列化的时候被序列化了，尤其是 fastJson的序列化模式，但是尽量避免普通方法用get导致该问题发生
     @JsonIgnore
     private transient  String configName; // 单数据源时指向,多数据源时，可通过 use 切换到另外一个数据库进行操作,一体多用

@@ -23,6 +23,7 @@ import com.edbplus.db.generator.entity.GenTable;
 import com.edbplus.db.generator.entity.GenTableColumn;
 import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.generator.jdbc.GenMysql;
+import com.edbplus.db.generator.jdbc.GenPg;
 import com.edbplus.db.util.hutool.bean.EBeanUtil;
 import com.edbplus.db.util.hutool.date.EDateUtil;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
@@ -30,6 +31,7 @@ import com.edbplus.db.util.hutool.str.EStrUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -70,7 +72,13 @@ public class EDbGenCode {
         String tableName = table.getTableName().trim();
 
         // 先获取表对象属性
-        Record tableRecord = getEDbPro().findFirst(GenMysql.getTableInfoSql(tableName));
+        Record tableRecord = null;
+        if(getEDbPro().getConfig().getDialect() instanceof MysqlDialect){
+            tableRecord = getEDbPro().findFirst(GenMysql.getTableInfoSql(tableName));
+        }else{
+            tableRecord = getEDbPro().findFirst(GenPg.getTableInfoSql(tableName));
+        }
+
         if(tableRecord==null){
             throw new  RuntimeException(" 数据库不存在该表： "+tableName);
         }
@@ -87,7 +95,12 @@ public class EDbGenCode {
         // 回填数据对象字段信息
         EBeanUtil.fillBeanWithMap(tableInfo,table,false);
 
-        List<Record> columns = getEDbPro().find(GenMysql.getTableColumnsSql(tableName));
+        List<Record> columns = null;
+        if(getEDbPro().getConfig().getDialect() instanceof MysqlDialect){
+            columns = getEDbPro().find(GenMysql.getTableColumnsSql(tableName));
+        }else{
+            columns = getEDbPro().find(GenPg.getTableColumnsSql(tableName));
+        }
 
         GenTableColumn genTableColumn ;
         String[] nums ;
