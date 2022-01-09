@@ -104,6 +104,17 @@ public class EDbTemplate extends DbTemplate {
 
     /**
      * 根据 预设的数据库总记录数 和 sqlPara查询对象，返回指定的对象分页列表
+     * @param pageNumber
+     * @param pageSize
+     * @param totalRow
+     * @return
+     */
+    public Page<Record> paginate(int pageNumber, int pageSize, long totalRow){
+        return this.db.paginate(pageNumber,pageSize,totalRow,this.sqlPara);
+    }
+
+    /**
+     * 根据 预设的数据库总记录数 和 sqlPara查询对象，返回指定的对象分页列表
      * @param mClass
      * @param pageNumber
      * @param pageSize

@@ -12,7 +12,7 @@ import #(genClass.entityPackageName).base.Base#(genClass.entityClassName);
  * @create:#(nowdatetime)
  **/
 @Table(name = "#(genClass.tableName)")
-public class #(genClass.entityClassName) extends Base#(genClass.entityClassName){
+public class #(genClass.entityClassName) extends Base#(genClass.entityClassName)<#(genClass.entityClassName)>{
 
     // 实现自定义枚举
 

@@ -1667,6 +1667,43 @@ public class EDbPro extends SpringDbPro {
 
     /**
      * 分页查询
+     * @param pageNumber -- 当前页
+     * @param pageSize -- 分页数量
+     * @param totalRow -- 记录总数
+     * @param sqlPara -- sql对象
+     * @return
+     */
+    public Page<Record> paginate(int pageNumber, int pageSize,long totalRow, SqlPara sqlPara) {
+        //
+        return this.doPaginate(pageNumber, pageSize, (Boolean)null,totalRow,new StringBuilder(sqlPara.getSql()), sqlPara.getPara());
+    }
+
+    /**
+     * 分页查询
+     * @param pageNumber
+     * @param pageSize
+     * @param isGroupBySql
+     * @param totalRow
+     * @param findSql
+     * @param paras
+     * @return
+     */
+    protected Page<Record> doPaginate(int pageNumber, int pageSize, Boolean isGroupBySql,long totalRow, StringBuilder findSql, Object... paras) {
+        Connection conn = null;
+        Page var10;
+        try {
+            conn = this.config.getConnection();
+            var10 = this.doPaginateByFullSql(this.config, conn, pageNumber, pageSize, isGroupBySql, totalRow, findSql, paras);
+        } catch (Exception var14) {
+            throw new ActiveRecordException(var14);
+        } finally {
+            this.config.close(conn);
+        }
+        return var10;
+    }
+
+    /**
+     * 分页查询
      * @param mClass
      * @param pageRequest
      * @param totalRow
@@ -1913,6 +1950,53 @@ public class EDbPro extends SpringDbPro {
                     String sql = config.getDialect().forPaginate(pageNumber, pageSize, findSql);
                     // 返回对象列表
                     List<M> list = this.find(mClass,config, conn, sql, paras);
+                    return new Page(list, pageNumber, pageSize, totalPage, (int)totalRow);
+                }
+            }
+        } else {
+            throw new ActiveRecordException("pageNumber and pageSize must more than 0");
+        }
+    }
+
+    /**
+     * 全sql语句的分页查询
+     * @param config
+     * @param conn
+     * @param pageNumber
+     * @param pageSize
+     * @param isGroupBySql
+     * @param totalRow -- 替代原来的分页统计语句
+     * @param findSql
+     * @param paras
+     * @return
+     * @throws SQLException
+     */
+    protected Page<Record> doPaginateByFullSql(Config config, Connection conn, int pageNumber, int pageSize, Boolean isGroupBySql, long totalRow, StringBuilder findSql, Object... paras) throws SQLException {
+        if (pageNumber >= 1 && pageSize >= 1) {
+            int size = 0;
+            if (isGroupBySql == null) {
+                isGroupBySql = size > 1;
+            }
+            // 如果数据量为 0
+            if (totalRow == 0L) {
+                return new Page(new ArrayList<Record>(0), pageNumber, pageSize, 0, 0);
+            } else {
+                // 计算分页逻辑
+                // 总页数
+                int totalPage = (int)(totalRow / (long)pageSize);
+                // 是否+1
+                if (totalRow % (long)pageSize != 0L) {
+                    ++totalPage;
+                }
+                // 如果当前页数大于总页数
+                if (pageNumber > totalPage) {
+                    // 直接归0
+                    return new Page(new ArrayList<Record>(0), pageNumber, pageSize, totalPage, (int)totalRow);
+                } else {
+                    // 返回查询的sql语句
+                    String sql = config.getDialect().forPaginate(pageNumber, pageSize, findSql);
+                    // 返回对象列表
+                    List<Record> list = this.find(config, conn, sql, paras);
                     return new Page(list, pageNumber, pageSize, totalPage, (int)totalRow);
                 }
             }

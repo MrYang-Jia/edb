@@ -7,6 +7,7 @@ import com.jfinal.plugin.activerecord.Page;
 import org.springframework.data.domain.PageRequest;
 import java.util.Map;
 import java.io.Serializable;
+import com.edbplus.db.EDbDao;
 
 
 /**
@@ -16,6 +17,8 @@ import java.io.Serializable;
  * @create: #(nowdatetime)
  **/
 public interface #(genClass.className)Service  extends Serializable {
+
+    EDbDao<#(genClass.className)> dao = new EDbDao(#(genClass.className).class);
 
     /**
      * 保存对象并返回自增ID

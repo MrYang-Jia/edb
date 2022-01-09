@@ -5,6 +5,8 @@ import lombok.Data;
 import javax.persistence.*;
 import java.util.Date;
 import java.math.BigDecimal;
+import com.edbplus.db.EDbModel;
+
 /**
  * @program: #(genClass.projectName)
  * @description: #(genClass.tableComment) - 实体
@@ -13,7 +15,7 @@ import java.math.BigDecimal;
  **/
 @Data
 @Table(name = "#(genClass.tableName)")
-public class Base#(genClass.entityClassName) implements Serializable{
+public class Base#(genClass.entityClassName) <M extends EDbModel> extends EDbModel<M>{
 
 #for(x : fields)
 #if("PRI".equals(x.columnKey))

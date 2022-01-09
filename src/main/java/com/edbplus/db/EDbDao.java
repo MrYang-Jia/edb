@@ -853,6 +853,12 @@ public class EDbDao<M> {
         return getEDbPro().getSqlParaByString(content, EDbBeanUtil.beanToMap(m));
     }
 
+    /**
+     * 模板查询
+     * @param key -- 模板名称
+     * @param data -- 建议使用 Kv.by("key",value)
+     * @return
+     */
     public EDbDaoTemplate<M> template(String key, Map data) {
         return new EDbDaoTemplate(this, key, data);
     }

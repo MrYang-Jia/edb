@@ -63,7 +63,7 @@ public class GeneralTest extends BaseTest {
         projectModel = "mode";
 
         // 去掉表前缀
-        GenJdbc.tablePreRemove = "cr_";
+//        GenJdbc.tablePreRemove = "cr_";
 
         // 加载项目路径
         loadCurrentUrl();

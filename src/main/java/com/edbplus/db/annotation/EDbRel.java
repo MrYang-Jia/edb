@@ -45,7 +45,7 @@ public @interface EDbRel {
     /**
      * 拼接其他字符串 ，以 and 或 or 开始拼接
      * 格式填充: select * from 子表 where 1=1 ${appendSql}
-     * 例如： appendSql =  and #(主对象驼峰字段名_1)
+     * 例如： appendSql =  and 子对象的数据库字段 = #(主对象驼峰字段名_1)
      * ps： 不支持 #para() 的写法，默认是将 主对象 bean 当作参数，key-value的模式，目前只支持1层对象的参数解析(有需要的场景后续可以再扩展)
      */
     String appendSql() default "";

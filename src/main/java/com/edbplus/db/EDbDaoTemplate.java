@@ -75,10 +75,34 @@ public class EDbDaoTemplate<M> {
         return this.dao.findOnlyOne(this.sqlPara);
     }
 
+    /**
+     * 给定数据总长度的分页查询
+     * @param pageNumber -- 当前页
+     * @param pageSize -- 分页数量
+     * @param totalRow -- 总记录数
+     * @return
+     */
+    public Page<M> paginate(int pageNumber, int pageSize,long totalRow) {
+        return this.dao.paginate(pageNumber, pageSize,totalRow, this.sqlPara);
+    }
+
+    /**
+     * 分页查询
+     * @param pageNumber -- 当前页
+     * @param pageSize  -- 分页数量
+     * @return
+     */
     public Page<M> paginate(int pageNumber, int pageSize) {
         return this.dao.paginate(pageNumber, pageSize, this.sqlPara);
     }
 
+    /**
+     * 分页查询
+     * @param pageNumber -- 当前页
+     * @param pageSize -- 分页数量
+     * @param isGroupBySql -- 是否groupBySql
+     * @return
+     */
     public Page<M> paginate(int pageNumber, int pageSize, boolean isGroupBySql) {
         return this.dao.paginate(pageNumber, pageSize, isGroupBySql, this.sqlPara);
     }
