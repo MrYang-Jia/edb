@@ -4,6 +4,7 @@ package com.edbplus.db;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.plugin.activerecord.*;
+import com.jfinal.plugin.activerecord.Record;
 
 import java.util.List;
 import java.util.Map;
