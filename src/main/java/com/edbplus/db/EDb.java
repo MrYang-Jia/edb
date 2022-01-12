@@ -77,14 +77,8 @@ public class EDb extends Db{
      * @param eDbPro
      */
     public static void initPool(String configName, EDbPro eDbPro){
-        DataSource dataSource = eDbPro.getConfig().getDataSource();
-        if(dataSource instanceof DruidDataSource){
-            // 并发线程控制，预留 1 - 0.3 = 0.7 的连接数给予系统应用，避免大量并发导致线程堵塞
-            edbFutruePools.put(configName,   Executors.newFixedThreadPool((int) (((DruidDataSource)dataSource).getMaxActive() * 0.3) ));
-        }else{
-            // 并发线程控制，预留 0.5 的连接数给予系统应用，避免大量并发导致线程堵塞
-            edbFutruePools.put(configName,   Executors.newFixedThreadPool( 20 ));
-        }
+        // 并发线程控制，预留 0.5 的连接数给予系统应用，避免大量并发导致线程堵塞 -- 一般默认最大空闲连接设置为 50 ，所以取一半左右，有需要再扩展
+        edbFutruePools.put(configName,   Executors.newFixedThreadPool( 20 ));
     }
 
     /**
