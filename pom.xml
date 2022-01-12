@@ -7,8 +7,8 @@
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
     <!-- 每次deploy后必须调整版本号 -->
-    <!-- 目前生产最新版本为 1.7.2 版本 -->
-    <version>1.7.2</version>
+    <!-- 目前生产最新版本为 1.7.3 版本 -->
+    <version>1.7.3</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -379,39 +379,39 @@
                 </executions>
             </plugin>
 
-            <!-- 安装源码到本地仓库 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
-                <configuration>
-                    <attach>true</attach>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-<!--            &lt;!&ndash; 安装源码到本地仓库 &ndash;&gt;-->
+<!--            &lt;!&ndash; 安装源码到本地仓库，发布到中央仓库时校验失败 &ndash;&gt;-->
 <!--            <plugin>-->
 <!--                <groupId>org.apache.maven.plugins</groupId>-->
 <!--                <artifactId>maven-source-plugin</artifactId>-->
 <!--                <version>2.1.2</version>-->
+<!--                <configuration>-->
+<!--                    <attach>true</attach>-->
+<!--                </configuration>-->
 <!--                <executions>-->
 <!--                    <execution>-->
-<!--                        <id>attach-sources</id>-->
-<!--                        <phase>verify</phase>-->
+<!--                        <phase>compile</phase>-->
 <!--                        <goals>-->
-<!--                            <goal>jar-no-fork</goal>-->
+<!--                            <goal>jar</goal>-->
 <!--                        </goals>-->
 <!--                    </execution>-->
 <!--                </executions>-->
 <!--            </plugin>-->
+
+<!--            &lt;!&ndash; 安装源码到本地仓库 &ndash;&gt;-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
             <!-- gpg签名 -->
             <plugin>
