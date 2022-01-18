@@ -161,6 +161,7 @@ public class EDbQueryUtil {
      */
     public static void baseQueryFun(EDbBaseQuery queryParams,StringBuffer andSqlStr,List<Object> paramsList){
         EDbFilter eDbFilter = null;
+        Boolean firstAnd = false;
         // and 部分
         for(int i = 0; i< queryParams.getAndEDbFilters().size(); i++){
             //
@@ -170,17 +171,26 @@ public class EDbQueryUtil {
             andSqlStr.append(eDbFilter.getProperty());
             // 加载过滤器生成sql部分
             loadFilter(eDbFilter,andSqlStr,paramsList);
+            if(!firstAnd){ // 左侧首位 1=1 and的模式必须有才行
+                firstAnd = true;
+            }
         }
 
         // or 部分
         for(int i = 0; i< queryParams.getOrEDbFilters().size(); i++){
             //
             eDbFilter =  queryParams.getOrEDbFilters().get(i);
-            andSqlStr.append(" or ");
+            if(!firstAnd){ // 1=1 左侧首位必须是and，否则会导致数据有误
+                andSqlStr.append(" and ");
+                firstAnd = true;
+            }else{
+                andSqlStr.append(" or ");
+            }
             andSqlStr.append(eDbFilter.getProperty());
             // 加载过滤器生成sql部分
             loadFilter(eDbFilter,andSqlStr,paramsList);
         }
+        firstAnd = null;
     }
 
     public static SqlPara getSqlParaForJpaQuery(String tableName, EDbQuery queryParams){
@@ -200,14 +210,14 @@ public class EDbQueryUtil {
         baseQueryFun(queryParams,andSqlStr,paramsList);
 
         // and ( filters ) 部分
-        if(queryParams.andCom().getAndEDbFilters().size()>0 ) {
+        if(queryParams.andCom().getQuerySize() >0 ) {
             andSqlStr.append(" and ( 1=1  ");
             baseQueryFun(queryParams.andCom(), andSqlStr, paramsList);
             andSqlStr.append(" )");
         }
 
         // or ( filters ) 部分
-        if(queryParams.orCom().getAndEDbFilters().size()>0 ){
+        if(queryParams.orCom().getQuerySize() >0 ){
             andSqlStr.append(" or (  1=1 ");
             baseQueryFun( queryParams.orCom(),andSqlStr,paramsList);
             andSqlStr.append(" )");

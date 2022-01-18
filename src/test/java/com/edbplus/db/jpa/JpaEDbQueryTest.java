@@ -64,6 +64,17 @@ public class JpaEDbQueryTest extends BaseTest {
 
     }
 
+    @Test
+    public void testOr(){
+        EDbQuery eDbQuery = new EDbQuery();
+        // 根据情况设置查询条件
+        eDbQuery.or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"));
+        eDbQuery.or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "2"));
+        eDbQuery.andCom().or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "3")).or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "4"));
+        eDbQuery.orCom().or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "5")).or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "6"));
+        List<VehicleType> vehicleTypes = EDb.use().find(VehicleType.class,eDbQuery);
+    }
+
     /**
      * 单表简单查询案例
      */
