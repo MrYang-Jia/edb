@@ -30,6 +30,10 @@ import java.util.List;
  * @Version V1.0
  **/
 public class EDbBaseQuery {
+    @Setter
+    @Getter
+    private int querySize = 0;
+
     /**
      * and条件
      */
@@ -51,6 +55,7 @@ public class EDbBaseQuery {
      */
     public  EDbBaseQuery and(EDbFilter EDbFilter){
         this.andEDbFilters.add(EDbFilter);
+        this.querySize++;
         return this;
     }
     /**
@@ -60,6 +65,7 @@ public class EDbBaseQuery {
      */
     public  EDbBaseQuery and(EDbFilter... EDbFilter){
         this.andEDbFilters.addAll(Arrays.asList(EDbFilter));
+        querySize += EDbFilter.length;
         return this;
     }
     /**
@@ -69,6 +75,7 @@ public class EDbBaseQuery {
      */
     public  EDbBaseQuery or(EDbFilter EDbFilter){
         this.orEDbFilters.add(EDbFilter);
+        this.querySize++;
         return this;
     }
     /**
@@ -78,6 +85,7 @@ public class EDbBaseQuery {
      */
     public  EDbBaseQuery or(EDbFilter... EDbFilter){
         this.orEDbFilters.addAll(Arrays.asList(EDbFilter));
+        querySize += EDbFilter.length;
         return this;
     }
 
