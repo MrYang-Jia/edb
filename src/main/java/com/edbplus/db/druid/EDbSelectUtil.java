@@ -67,7 +67,7 @@ public class EDbSelectUtil {
      * @return
      */
     public static boolean  checkSpecialCharacters(String leftIdxStr,String rightIdxStr){
-        // 回车 、 换行 、 制表符 、空格
+        // 回车 、 换行 、 制表符 、空格 (一般是不会有 \r 换行，避免万一，所以代入)
         if(leftIdxStr.equals("") || leftIdxStr.indexOf("\n")>-1 || leftIdxStr.indexOf("\r")>-1 || leftIdxStr.indexOf(" ")>-1 || leftIdxStr.indexOf("\t")>-1) {
             if (rightIdxStr.indexOf("\n") > -1 || leftIdxStr.indexOf("\r") > -1 || rightIdxStr.indexOf(" ") > -1 || rightIdxStr.indexOf("\t") > -1) {
                 return true;
@@ -79,7 +79,7 @@ public class EDbSelectUtil {
     /**
      * 修改原语句并返回limitSql
      * @param sql -- 原语句
-     * @param limitCount -- 返回条数，ps:当用户自己的sql结尾含有 limit xxx 时，以用户自己输入的为准
+     * @param limitCount -- 返回条数，ps:当用户自己的sql结尾含有 limit xxx 时，以用户自己输入的为准进行改写，例如 returnLimitSql(sql,5) 结尾则会改写成 limit 5
      * @return
      */
     public static String returnLimitSql(String sql,int limitCount){

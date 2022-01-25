@@ -64,6 +64,9 @@ public class JpaEDbQueryTest extends BaseTest {
 
     }
 
+    /**
+     * 关于or场景的各种场景测试补充
+     */
     @Test
     public void testOr(){
         EDbQuery eDbQuery = new EDbQuery();
