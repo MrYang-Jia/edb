@@ -254,7 +254,9 @@ public class GenJdbc {
         // 设置 edbpro 工厂
         arp.setDbProFactory(eDbProFactory);
         // 启动arp实例
-        arp.start();
+        arp.start(); // 启动，注入 config
+//        arp.stop(); // 关闭
+//        arp.start(); // 启动
 
         // 添加druid过滤器，需要重启
         addFilterList(filterList, (DruidDataSource) dp.getDataSource());

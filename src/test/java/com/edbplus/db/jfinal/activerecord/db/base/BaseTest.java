@@ -26,11 +26,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BaseTest {
 
     // useAffectedRows=true时，update语句执行多次时，只有修改成功时才会返回1，若记录的值没有变化，返回0.
-    String jdbcUrl = "jdbc:mysql://192.168.1.106:13306/tra_log?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&useCompression=true&useAffectedRows=true";
+    String jdbcUrl = "jdbc:mysql://192.168.1.106:13306/tra_log?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&useCompression=true&useAffectedRows=true&maxRows=5000";
     String userName = "root";
     String pwd = "dev-whbj@WHBJ";
     // 测试库 stringtype=unspecified -> 允许pg可以输入字符串类型的时间参数
-    String jdbcUrl2 = "jdbc:postgresql://192.168.1.208:15432/tra_log?stringtype=unspecified&currentSchema=public&reWriteBatchedInserts=true&useUnicode=true&characterEncoding=utf8";
+    // https://jdbc.postgresql.org/documentation/head/connect.html#connection-parameters
+    String jdbcUrl2 = "jdbc:postgresql://192.168.1.208:15432/tra_log?stringtype=unspecified&currentSchema=public&reWriteBatchedInserts=true&useUnicode=true&characterEncoding=utf8&defaultFetchSize=2"; // maxResultBuffer=100M 最大内存会溢出
     // 账号
     String userName2 = "postgres";
     String pwd2 = "whbj123456";

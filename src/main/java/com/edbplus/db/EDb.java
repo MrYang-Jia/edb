@@ -15,8 +15,6 @@
  */
 package com.edbplus.db;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.query.EDbQuery;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
@@ -26,8 +24,6 @@ import com.jfinal.plugin.activerecord.Record;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 
-import javax.persistence.Table;
-import javax.sql.DataSource;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -56,20 +52,52 @@ public class EDb extends Db{
     // 主要载体
     private static final Map<String, EDbPro> dbMap = new SyncWriteMap<String, EDbPro>(32, 0.25F);
 
+    /**
+     * 删除dbpro
+     * @param configName
+     */
+    public static void removeDbProWithConfig(String configName) {
+        if (MAIN != null && MAIN.getConfig().getName().equals(configName)) {
+            MAIN = null;
+        }
+        // 删除配置对象
+        edbFutruePools.remove(configName);
+    }
+
+    /**
+     * 停止db组件服务
+     */
+    public static void stop() {
+        stop(DbKit.MAIN_CONFIG_NAME);
+    }
+
+    /**
+     * 停止db组件服务
+     * @param configName
+     */
+    public static void stop(String configName) {
+        DbKit.removeConfig(configName); // but 自定义的单体对象 ActiveRecordPlugin 则无法直接回收，但是一般也不会用到这层次！！！
+        removeDbProWithConfig(configName);
+        edbFutruePools.remove(configName);
+    }
 
     /**
      * 初始化 dbPro 对象
      */
     public static void init(){
-        if(MAIN == null){
-            EDbPro eDbPro = new EDbPro();
-            // 加载主对象
-            dbMap.put(DbKit.MAIN_CONFIG_NAME,eDbPro);
-            // 加载主体对象
-            MAIN = eDbPro;
-            initPool(DbKit.MAIN_CONFIG_NAME,eDbPro);
+        if(MAIN != null){
+            if(MAIN.getConfig()==null){
+                MAIN =null;
+            }else{
+                return; // 如果已有数据源，不做替换
+            }
         }
-
+        EDbPro eDbPro = new EDbPro();
+        // 加载主对象
+        dbMap.put(DbKit.MAIN_CONFIG_NAME,eDbPro);
+        // 加载主体对象
+        MAIN = eDbPro;
+        initPool(DbKit.MAIN_CONFIG_NAME,eDbPro);
     }
 
     /**

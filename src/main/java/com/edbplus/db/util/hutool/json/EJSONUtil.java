@@ -19,7 +19,7 @@ import cn.hutool.json.JSONUtil;
 
 /**
  * @ClassName EJSONUtil
- * @Description: 继承 JSONUtil ，避免因为Hutool升级后导致类或方法无法正常使用
+ * @Description: 继承 JSONUtil ，避免因为Hutool升级后导致类或方法无法正常使用,但是 5.4.4 版本的 JSONUtil 是final,导致在quarkus里无法直接使用 EJSONUtil,后面缓存 5.7.1 就解决问题了
  * @Author 杨志佳
  * @Date 2021/6/28
  * @Version V1.0

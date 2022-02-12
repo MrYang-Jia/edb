@@ -1440,6 +1440,47 @@ public class EDbPro extends DbPro {
     }
 
     /**
+     * 原jfinal查询，需要改写才能支持一些查询服务的处理
+     * @param config
+     * @param conn
+     * @param sql
+     * @param paras
+     * @return
+     * @throws SQLException
+     */
+    protected List<Record> find(Config config, Connection conn, String sql, Object... paras) throws SQLException {
+        PreparedStatement pst = conn.prepareStatement(sql);
+//        pst.setMaxRows(10000); //todo:可以通过代码的方式注入，因为 postgresql 没有 maxRows 参数，但是实际上可以手工设置
+        Throwable var6 = null;
+        List var9;
+        try {
+            config.getDialect().fillStatement(pst, paras);
+            ResultSet rs = pst.executeQuery();
+            List<Record> result = config.getDialect().buildRecordList(config, rs);
+            this.close(rs);
+            var9 = result;
+        } catch (Throwable var18) {
+            var6 = var18;
+            throw var18;
+        } finally {
+            if (pst != null) {
+                if (var6 != null) {
+                    try {
+                        pst.close();
+                    } catch (Throwable var17) {
+                        var6.addSuppressed(var17);
+                    }
+                } else {
+                    pst.close();
+                }
+            }
+
+        }
+
+        return var9;
+    }
+
+    /**
      * 根据对象、数据库连接、查询语句、参数，返回对象列表
      * @param mClass
      * @param config
@@ -1468,7 +1509,7 @@ public class EDbPro extends DbPro {
         // 统一打开游标，便于快速返回计算结果
 //        pst = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
         pst = conn.prepareStatement(sql); // 默认不打开游标，以便提升本身的性能，还有节约内存开销
-
+//        pst.setMaxRows(10000); //todo:可以通过代码的方式注入，因为 postgresql 没有 maxRows 参数，但是实际上可以手工设置
         Throwable var6 = null;
 
         List var9;

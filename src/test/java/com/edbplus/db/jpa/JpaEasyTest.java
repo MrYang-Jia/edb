@@ -27,9 +27,28 @@ public class JpaEasyTest extends BaseTest {
     @BeforeTest
     public void initBefor(){
 //        eDbPro =  EDb.use();
-        eDbPro =  EDb.use();
+        eDbPro =  EDb.use("pg");
         // 做一次查询连接，减少起始jdbc首次执行的耗时偏高问题
         eDbPro.findById(VehicleType.class,1);
+    }
+
+    @Test
+    public void test2(){
+        int ct = eDbPro.findFirst("select count(1) ct from cr_vehicle_type").getInt("ct");
+        System.out.println("ct:"+ct);
+        int t =ct/3 + 1;
+        int offset = 0;
+        List<Record> records = null;
+        int readCt = 0;
+        for(int i=0;i<t;i++){
+//            records = eDbPro.find("select VEHICLE_TYPE_ID from cr_vehicle_type limit ?,3",offset);
+            records = eDbPro.find("select VEHICLE_TYPE_ID from cr_vehicle_type offset ? limit 3",offset);
+            System.out.println(records);
+            offset+=3;
+            readCt += records.size();
+        }
+        System.out.println("打印总数:"+readCt);
+        System.out.println(ct == readCt);
     }
 
     @Test
