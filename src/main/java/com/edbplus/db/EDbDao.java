@@ -837,6 +837,34 @@ public class EDbDao<M> {
         return edbPro().countSql(sql);
     }
 
+    /**
+     * 返回sql对应的总记录数
+     * @param sqlPara
+     * @return
+     */
+    public long count(SqlPara sqlPara){
+        return edbPro().count(sqlPara);
+    }
+
+    /**
+     * 返回sql对应的总记录数
+     * @param sql
+     * @return
+     */
+    public long count(String sql){
+        return edbPro().count(sql);
+    }
+
+
+    /**
+     * 返回统计的sql
+     * @param eDbQuery
+     * @param <T>
+     * @return
+     */
+    public <T> long count(EDbQuery eDbQuery){
+        return edbPro().count(this.mClass,eDbQuery);
+    }
 
     public SqlPara sqlPara(String key, Map data) {
         return edbPro().getConfig().getSqlKit().getSqlPara(key, data);

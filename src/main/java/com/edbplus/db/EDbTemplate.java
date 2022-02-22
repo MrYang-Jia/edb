@@ -58,6 +58,14 @@ public class EDbTemplate extends DbTemplate {
     }
 
     /**
+     * 返回sql对应的总记录数
+     * @return
+     */
+    public long count(){
+        return this.db.count(this.sqlPara);
+    }
+
+    /**
      * 获取1条记录
      * @return
      */

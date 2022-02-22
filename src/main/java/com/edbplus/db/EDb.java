@@ -1368,6 +1368,35 @@ public class EDb extends Db{
         return MAIN.countSql(sql);
     }
 
+    /**
+     * 返回统计结果
+     * @param sqlPara
+     * @return
+     */
+    public static long count(SqlPara sqlPara){
+        return MAIN.count(sqlPara);
+    }
+
+    /**
+     * 返回统计结果
+     * @param sql
+     * @return
+     */
+    public static long count(String sql){
+        return MAIN.count(sql);
+    }
+
+    /**
+     * 根据 EDbQuery 返回统计结果
+     * @param tClass
+     * @param eDbQuery
+     * @param <T>
+     * @return
+     */
+    public <T> long count(Class<T> tClass,EDbQuery eDbQuery){
+        return MAIN.count(tClass,eDbQuery);
+    }
+
     public static EDbTemplate template(String key, Map data) {
         return MAIN.template( key, data);
     }

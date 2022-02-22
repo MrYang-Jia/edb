@@ -3121,6 +3121,37 @@ public class EDbPro extends DbPro {
         return totalRowSql;
     }
 
+    /**
+     * 根据 EDbQuery 返回统计结果
+     * @param tClass
+     * @param eDbQuery
+     * @param <T>
+     * @return
+     */
+    public <T> long count(Class<T> tClass,EDbQuery eDbQuery){
+        // 解析 sqlpara
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery);
+        return sqlForCount(sqlPara);
+    }
+
+    /**
+     * 返回统计结果
+     * @param sqlPara
+     * @return
+     */
+    public long count(SqlPara sqlPara){
+        return sqlForCount(sqlPara);
+    }
+
+    /**
+     * 返回统计结果
+     * @param sql
+     * @return
+     */
+    public long count(String sql){
+        return sqlForCount(sql);
+    }
+
 
     public EDbTemplate template(String key, Map data) {
         return new EDbTemplate(this, key, data);
