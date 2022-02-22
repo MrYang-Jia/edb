@@ -2388,6 +2388,19 @@ public class EDbPro extends SpringDbPro {
         return find(tClass,sqlPara);
     }
 
+    /**
+     * 根据 EDbQuery 返回统计结果
+     * @param tClass
+     * @param eDbQuery
+     * @param <T>
+     * @return
+     */
+    public <T> long count(Class<T> tClass,EDbQuery eDbQuery){
+        // 解析 sqlpara
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery);
+        return sqlForCount(sqlPara);
+    }
+
 
     /**
      * 根据 EDbquery 返回查询结果，并设置返回的最大条数
@@ -2955,6 +2968,24 @@ public class EDbPro extends SpringDbPro {
             return result.get(0).getLong("ct");
         }
         return 0L;
+    }
+
+    /**
+     * 返回统计结果
+     * @param sqlPara
+     * @return
+     */
+    public long count(SqlPara sqlPara){
+        return sqlForCount(sqlPara);
+    }
+
+    /**
+     * 返回统计结果
+     * @param sql
+     * @return
+     */
+    public long count(String sql){
+        return sqlForCount(sql);
     }
 
 

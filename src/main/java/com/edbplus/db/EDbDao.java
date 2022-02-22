@@ -799,6 +799,15 @@ public class EDbDao<M> {
         return getEDbPro().sqlForCount(sqlPara);
     }
 
+    /**
+     * 返回sql对应的总记录数
+     * @param sqlPara
+     * @return
+     */
+    public long count(SqlPara sqlPara){
+        return getEDbPro().count(sqlPara);
+    }
+
 
     /**
      * 返回sql对应的总记录数
@@ -809,6 +818,19 @@ public class EDbDao<M> {
         return getEDbPro().sqlForCount(sql);
     }
 
+    /**
+     * 返回sql对应的总记录数
+     * @param sql
+     * @return
+     */
+    public long count(String sql){
+        return getEDbPro().count(sql);
+    }
+
+
+    public <T> long count(EDbQuery eDbQuery){
+        return getEDbPro().count(this.mClass,eDbQuery);
+    }
     /**
      * 返回统计sql
      * @param sql

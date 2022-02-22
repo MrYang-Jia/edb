@@ -76,6 +76,7 @@ public class JpaEDbQueryTest extends BaseTest {
         eDbQuery.andCom().or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "3")).or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "4"));
         eDbQuery.orCom().or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "5")).or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "6"));
         List<VehicleType> vehicleTypes = EDb.use().find(VehicleType.class,eDbQuery);
+        EDb.use().count(VehicleType.class,eDbQuery);//
     }
 
     /**
