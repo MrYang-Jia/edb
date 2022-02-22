@@ -1,6 +1,7 @@
 
 package com.edbplus.db;
 
+import com.edbplus.db.druid.EDbSelectUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.plugin.activerecord.*;
@@ -101,6 +102,27 @@ public class EDbTemplate extends DbTemplate {
      */
     public <M> List<M> find(Class<M> mClass){
         return this.db.find(mClass,this.sqlPara);
+    }
+
+    /**
+     * 重置查询sql的返回条数
+     * @param mClass
+     * @param limit
+     * @return
+     */
+    public <M> List<M> find(Class<M> mClass,int limit) {
+        return this.db.find(mClass,this.sqlPara,limit);
+    }
+
+    /**
+     * 重置查询sql的返回条数和起始位
+     * @param mClass
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public <M> List<M> find(Class<M> mClass,int limit,int offset) {
+        return this.db.find(mClass,this.sqlPara,limit,offset);
     }
 
     /**

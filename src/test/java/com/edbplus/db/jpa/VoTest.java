@@ -2,9 +2,14 @@ package com.edbplus.db.jpa;
 
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.jpa.view.VehicleView;
 import com.edbplus.db.jpa.vo.CrVehicleTypeVo;
+import com.edbplus.db.proxy.EDbProxyFactory;
+import com.edbplus.db.proxy.EDbProxyGenerator;
+import com.edbplus.db.proxy.jfinal.ProxyClass;
+import com.edbplus.db.util.code.MapToCode;
 import com.jfinal.plugin.activerecord.Page;
-import org.apache.commons.lang3.StringUtils;
+import com.jfinal.plugin.activerecord.Record;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -12,6 +17,45 @@ import java.util.Arrays;
 import java.util.List;
 
 public class VoTest extends BaseTest {
+
+
+    @Test
+    public void test6(){
+        EDbProxyFactory eDbProxyFactory = new EDbProxyFactory();
+//        EDbProxyGenerator eDbProxyGenerator = new EDbProxyGenerator();
+        VehicleView vehicleView = eDbProxyFactory.get(VehicleView.class);
+        System.out.println(vehicleView.getCrVehicleTypeView());
+    }
+
+//    @Test
+//    public void test5(){
+//        ClassLoader loader = VehicleView.class.getClassLoader();
+//        Class<?>[] interfaces = new Class[] { VehicleView.class };
+//
+//        InvocationHandler h = new InvocationHandler() {
+//            // proxyBuildColl是对ArrayList进行代理
+//            ArrayList target = new ArrayList();
+//
+//            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+//                System.out.println(method.getName() + "执行之前...");
+//                if (null != args) {
+//                    System.out.println("方法的参数：" + Arrays.asList(args));
+//                } else {
+//                    System.out.println("方法的参数：" + null);
+//                }
+//                Object result = method.invoke(target, args);
+//                System.out.println(method.getName() + "执行之后...");
+//                return result;
+//            }
+//        };
+//
+//        Collection proxyBuildCollection2 = (Collection) Proxy.newProxyInstance(loader, interfaces, h);
+//
+//        proxyBuildCollection2.add("abc");
+//        proxyBuildCollection2.size();
+//        proxyBuildCollection2.clear();
+//        proxyBuildCollection2.getClass().getName();
+//    }
 
     /**
      * vo对象赋值测试
@@ -64,6 +108,15 @@ public class VoTest extends BaseTest {
                 System.out.println("一批次");
             }
         }
+    }
+
+    /**
+     * 根据返回的数据生成code
+     */
+    @Test
+    public void createCode(){
+        Record record = EDb.use().findFirst("select * from cr_vehicle_type ");
+        MapToCode.toJavaCode(record.getColumns(),"VehicleType");
     }
 
 }

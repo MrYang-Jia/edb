@@ -1,29 +1,16 @@
 package com.edbplus.db.jpa;
 
-import com.alibaba.druid.sql.SQLUtils;
-import com.alibaba.druid.sql.ast.SQLOrderBy;
-import com.alibaba.druid.sql.ast.statement.SQLSelect;
-import com.alibaba.druid.sql.ast.statement.SQLSelectItem;
-import com.alibaba.druid.sql.ast.statement.SQLSelectQueryBlock;
-import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
-import com.alibaba.druid.sql.visitor.SQLASTOutputVisitor;
-import com.alibaba.druid.util.JdbcUtils;
 import com.edbplus.db.EDb;
-import com.edbplus.db.druid.EDbSelectUtil;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
-import com.jfinal.kit.Kv;
-import com.jfinal.plugin.activerecord.ICallback;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.springframework.data.domain.PageRequest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -56,7 +43,7 @@ public class JpaEDbQueryTest extends BaseTest {
                 "case when a.VEHICLE_TYPE_ID =100 then 1 else 0 end\n" +
                 ")\n" +
                 "desc ";
-        System.out.println("==>"+  EDb.getCountSql(sql));
+        System.out.println("==>"+  EDb.countSql(sql));
 
 //        System.out.println("==>"+  EDb.use().getFirstSql(sql));
 

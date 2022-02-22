@@ -53,11 +53,11 @@ public class CrVehicleTypeModeRel extends BaseCrVehicleTypeModeRel {
     @EDbRel(relKey= isDel , relColumn = {"VEHICLE_TYPE_ID"},appendSql = " and IS_DEL = 0 ")
     private Page<CrVehicleType> crVehicleTypePage;
 
-    @Setter
-    @Getter
-    // 关联两个键值 ，并且指定是 IS_DEL = 1 的部分，已删除的数据
-    @EDbRel(relKey= isDel , relColumn = {"VEHICLE_TYPE_ID"},appendSql = " and IS_DEL = 0 ")
-    private org.springframework.data.domain.Page<CrVehicleType> crVehicleTypeSpringPage;
+//    @Setter
+//    @Getter
+//    // 关联两个键值 ，并且指定是 IS_DEL = 1 的部分，已删除的数据
+//    @EDbRel(relKey= isDel , relColumn = {"VEHICLE_TYPE_ID"},appendSql = " and IS_DEL = 0 ")
+//    private org.springframework.data.domain.Page<CrVehicleType> crVehicleTypeSpringPage;
 
     // A to B ==》 获取 A 赋予 B
 //    edb.gerRel(dto.getRelObj,dto);

@@ -15,9 +15,9 @@
  */
 package com.edbplus.db;
 
+import com.edbplus.db.druid.EDbSelectUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import com.jfinal.plugin.activerecord.Model;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.SqlPara;
 
@@ -40,31 +40,50 @@ public class EDbDaoTemplate<M> {
 
     public EDbDaoTemplate(EDbDao dao, String key, Map<?, ?> data) {
         this.dao = dao;
-        this.sqlPara = dao.getSqlPara(key, data);
+        this.sqlPara = dao.sqlPara(key, data);
     }
 
     public EDbDaoTemplate(EDbDao dao, String key, Object... paras) {
         this.dao = dao;
-        this.sqlPara = dao.getSqlPara(key, paras);
+        this.sqlPara = dao.sqlPara(key, paras);
     }
 
     public EDbDaoTemplate(boolean byString, EDbDao dao, String content, Map<?, ?> data) {
         this.dao = dao;
-        this.sqlPara = dao.getSqlParaByString(content, data);
+        this.sqlPara = dao.sqlParaByString(content, data);
     }
 
     public EDbDaoTemplate(boolean byString, EDbDao dao, String content, Object... paras) {
         this.dao = dao;
-        this.sqlPara = dao.getSqlParaByString(content, paras);
+        this.sqlPara = dao.sqlParaByString(content, paras);
     }
 
 
-    public SqlPara getSqlPara() {
+    public SqlPara sqlPara() {
         return this.sqlPara;
     }
 
     public List<M> find() {
         return this.dao.find(this.sqlPara);
+    }
+
+    /**
+     * 重置查询sql的返回条数
+     * @param limit
+     * @return
+     */
+    public List<M> find(int limit) {
+        return this.dao.find(this.sqlPara,limit);
+    }
+
+    /**
+     * 重置查询sql的返回条数和起始位
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<M> find(int limit,int offset) {
+        return this.dao.find(this.sqlPara,limit,offset);
     }
 
     public M findFirst() {

@@ -36,8 +36,8 @@ public @interface EDbRel {
     // 指定关联字段，主表和子表必须一致
 
     /**
-     * 当前主对象字段和子对象字段的字段名一致的话，采用该方式指定字段名进行两表关联
-     * 例如： a.gid = b.gid ，这时 relColumn = {"gid"} ； 多字段则用逗号隔开，其他情况则使用  appendSql = " and #(字段参数)" 来进行数据关联
+     * 当前主对象的表字段和子对象表字段的表字段名一致的话，采用该方式指定字段名进行两表关联
+     * 例如： a.g_id = b.g_id ，这时 relColumn = {"g_id"} ； 多字段则用逗号隔开，其他情况则使用  appendSql = " and #(字段参数)" 来进行数据关联
      * @return
      */
     String[] relColumn() default {};

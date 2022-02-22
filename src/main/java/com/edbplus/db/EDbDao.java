@@ -15,13 +15,11 @@
  */
 package com.edbplus.db;
 
-import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
-import com.jfinal.kit.SyncWriteMap;
 import com.jfinal.plugin.activerecord.*;
 
 import javax.persistence.Table;
@@ -79,7 +77,7 @@ public class EDbDao<M> {
      * 私有方法，避免转json时暴露到外部
      * @return
      */
-    private EDbPro getEDbPro() {
+    private EDbPro edbPro() {
         if(configName == null){
             this.configName = DbKit.MAIN_CONFIG_NAME; // 默认库
             this.defaultConfigName = this.configName; // 默认数据源指定
@@ -121,8 +119,8 @@ public class EDbDao<M> {
      * 返回当前表对象名称
      * @return
      */
-    public String getTableName() {
-        return getEDbPro().getTableName(this.mClass);
+    public String tableName() {
+        return edbPro().tableName(this.mClass);
     }
 
     /**
@@ -130,15 +128,15 @@ public class EDbDao<M> {
      * @param ignoreNullValue - true -屏蔽 null , false - 包含null
      * @return
      */
-    public  Map<String,Object> getColumnsMap(boolean ignoreNullValue){
-        return getEDbPro().getColumnsMap(this,ignoreNullValue);
+    public  Map<String,Object> columnsMap(boolean ignoreNullValue){
+        return edbPro().columnsMap(this,ignoreNullValue);
     }
 
     /**
      * 获取真实的jpa对象实例 -- 如果没有直接指定申明 jpa 对象class 类型，则必须调用该方法，保证类型的准确性
      * @return
      */
-    public  Class<M> getRealJpaClass(){
+    public  Class<M> realJpaClass(){
         return this.mClass;
     }
 
@@ -149,7 +147,7 @@ public class EDbDao<M> {
      * @return
      */
     public M findByGroupId(Object... idValues ) {
-        return getEDbPro().findByGroupId(this.mClass,idValues);
+        return edbPro().findByGroupId(this.mClass,idValues);
     }
 
     /**
@@ -158,7 +156,7 @@ public class EDbDao<M> {
      * @return
      */
     public  M findById( Object idValue ){
-        return getEDbPro().findById(this.mClass,idValue);
+        return edbPro().findById(this.mClass,idValue);
     }
 
     /**
@@ -166,7 +164,7 @@ public class EDbDao<M> {
      * @return
      */
     public int saveReInt(M m){
-        return getEDbPro().saveReInt(m);
+        return edbPro().saveReInt(m);
     }
 
     /**
@@ -174,7 +172,7 @@ public class EDbDao<M> {
      * @return
      */
     public boolean save(M m){
-        return getEDbPro().save(m);
+        return edbPro().save(m);
     }
 
     /**
@@ -186,7 +184,7 @@ public class EDbDao<M> {
      */
     public int[] batchSaveRid(List<M> saveList, int batchSize){
         Class mClass = saveList.get(0).getClass(); // 如果保存列表是null，直接抛错就好，不然保存插入也是会报错
-        return getEDbPro().batchSaveRid(mClass,saveList,batchSize);
+        return edbPro().batchSaveRid(mClass,saveList,batchSize);
     }
 
     /**
@@ -199,7 +197,7 @@ public class EDbDao<M> {
      */
     public <M> int[] batchSave(List<M> saveList,int batchSize){
         Class mClass = saveList.get(0).getClass(); // 如果保存列表是null，直接抛错就好，不然保存插入也是会报错
-        return getEDbPro().batchSave(mClass,saveList,batchSize);
+        return edbPro().batchSave(mClass,saveList,batchSize);
     }
 
     /**
@@ -209,7 +207,7 @@ public class EDbDao<M> {
      */
     public  int  insertValues(List<M> saveList,int batchSize){
         Class mClass = saveList.get(0).getClass(); // 如果保存列表是null，直接抛错就好，不然保存插入也是会报错
-        return getEDbPro().insertValues(mClass,saveList,batchSize);
+        return edbPro().insertValues(mClass,saveList,batchSize);
     }
 
 
@@ -218,7 +216,7 @@ public class EDbDao<M> {
      * @return
      */
     public boolean update(M m){
-        return getEDbPro().update(m);
+        return edbPro().update(m);
     }
 
     /**
@@ -226,7 +224,7 @@ public class EDbDao<M> {
      * @return
      */
     public int update(SqlPara sqlPara){
-        return getEDbPro().update(sqlPara);
+        return edbPro().update(sqlPara);
     }
 
     /**
@@ -234,7 +232,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int updateReInt(M m){
-        return getEDbPro().updateReInt(m);
+        return edbPro().updateReInt(m);
     }
 
     /**
@@ -245,7 +243,7 @@ public class EDbDao<M> {
      * @return
      */
     public  boolean update(Map<String,Object> updateData,boolean isColumnName){
-        return getEDbPro().update(this.mClass,updateData,isColumnName);
+        return edbPro().update(this.mClass,updateData,isColumnName);
     }
 
     /**
@@ -255,7 +253,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int updateReInt(Map<String,Object> updateData){
-        return getEDbPro().updateReInt(this.mClass,updateData);
+        return edbPro().updateReInt(this.mClass,updateData);
     }
 
     /**
@@ -266,7 +264,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int updateReInt(Map<String,Object> updateData,boolean isColumnName){
-        return getEDbPro().updateReInt(this.mClass,updateData,isColumnName);
+        return edbPro().updateReInt(this.mClass,updateData,isColumnName);
     }
 
     /**
@@ -276,7 +274,7 @@ public class EDbDao<M> {
      * @return
      */
     public  boolean update(Map<String,Object> updateData){
-        return getEDbPro().update(this.mClass,updateData);
+        return edbPro().update(this.mClass,updateData);
     }
 
     /**
@@ -286,7 +284,7 @@ public class EDbDao<M> {
      * @return
      */
     public  boolean updateCompare(M oldM,M updateM){
-        return getEDbPro().updateCompare(oldM,updateM);
+        return edbPro().updateCompare(oldM,updateM);
     }
 
     /**
@@ -295,7 +293,7 @@ public class EDbDao<M> {
      * @return
      */
     public int updateReInt(M m ,boolean containsNullValue){
-        return getEDbPro().updateReInt(m,containsNullValue);
+        return edbPro().updateReInt(m,containsNullValue);
     }
 
     /**
@@ -304,7 +302,7 @@ public class EDbDao<M> {
      * @return
      */
     public  boolean update(M m,boolean containsNullValue){
-        return getEDbPro().update(m,containsNullValue);
+        return edbPro().update(m,containsNullValue);
     }
 
 
@@ -316,7 +314,7 @@ public class EDbDao<M> {
      * @return
      */
     public   int[] batchUpdate(List<M> updateList, int batchSize){
-        return getEDbPro().batchUpdate(this.mClass,updateList,batchSize);
+        return edbPro().batchUpdate(this.mClass,updateList,batchSize);
     }
 
     /**
@@ -327,7 +325,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int[] batchUpdate(List<M> updateList,List<String> updateFields, int batchSize){
-        return getEDbPro().batchUpdate(this.mClass,updateList,updateFields,batchSize);
+        return edbPro().batchUpdate(this.mClass,updateList,updateFields,batchSize);
     }
 
     /**
@@ -338,7 +336,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int[] batchUpdate(List<M> updateList, int batchSize,boolean containsNullValue){
-        return getEDbPro().batchUpdate(this.mClass,updateList,batchSize,containsNullValue);
+        return edbPro().batchUpdate(this.mClass,updateList,batchSize,containsNullValue);
     }
 
     /**
@@ -347,7 +345,7 @@ public class EDbDao<M> {
      * @return
      */
     public boolean delete(M m){
-        return getEDbPro().delete(m);
+        return edbPro().delete(m);
     }
 
     /**
@@ -356,7 +354,7 @@ public class EDbDao<M> {
      * @return
      */
     public boolean deleteByGroupIds(Object... ids){
-        return getEDbPro().deleteByGroupIds(this.mClass,ids);
+        return edbPro().deleteByGroupIds(this.mClass,ids);
     }
 
     /**
@@ -367,9 +365,9 @@ public class EDbDao<M> {
     public boolean deleteById(Object id){
         Table table = EAnnotationUtil.getAnnotation(id.getClass(), Table.class);
         if(table!=null){ // 如果传入的是jpa对象，则直接操作即可
-            return getEDbPro().deleteById(id);
+            return edbPro().deleteById(id);
         }
-        return getEDbPro().deleteById(this.mClass,id);
+        return edbPro().deleteById(this.mClass,id);
     }
 
 
@@ -382,7 +380,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int deleteByJpaList(List<M> jpaList){
-        return getEDbPro().deleteByIds(jpaList);
+        return edbPro().deleteByIds(jpaList);
     }
 
     /**
@@ -391,7 +389,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int deleteByIds(List<Object> deleteIds){
-        return getEDbPro().deleteByIds(this.mClass,deleteIds);
+        return edbPro().deleteByIds(this.mClass,deleteIds);
     }
 
     /**
@@ -400,7 +398,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int deleteByIds(String deleteIds) {
-        return getEDbPro().deleteByIds(this.mClass,deleteIds);
+        return edbPro().deleteByIds(this.mClass,deleteIds);
     }
 
     /**
@@ -410,7 +408,7 @@ public class EDbDao<M> {
      * @return
      */
     public  int deleteByIds(String deleteIds,String splitStr){
-        return getEDbPro().deleteByIds(this.mClass,deleteIds,splitStr);
+        return edbPro().deleteByIds(this.mClass,deleteIds,splitStr);
     }
 
 
@@ -422,7 +420,7 @@ public class EDbDao<M> {
      * @return
      */
     public  M findByGroupId(String tableName, String primaryKey, Object... idValues){
-        return getEDbPro().findByGroupId(this.mClass,tableName,primaryKey,idValues);
+        return edbPro().findByGroupId(this.mClass,tableName,primaryKey,idValues);
     }
 
     /**
@@ -433,7 +431,7 @@ public class EDbDao<M> {
      * @return
      */
     public  M findById(String tableName, String primaryKey, Object idValue){
-        return  getEDbPro().findById(this.mClass,tableName,primaryKey,idValue);
+        return  edbPro().findById(this.mClass,tableName,primaryKey,idValue);
     }
 
     /**
@@ -442,7 +440,7 @@ public class EDbDao<M> {
      * @return
      */
     public List<M> findByIds(List<Object> ids){
-        return getEDbPro().findByIds(this.mClass,ids);
+        return edbPro().findByIds(this.mClass,ids);
     }
 
     /**
@@ -452,7 +450,7 @@ public class EDbDao<M> {
      * @return
      */
     public List<M> findByIds( String idsStr,String splitStr){
-        return getEDbPro().findByIds(this.mClass,idsStr,splitStr);
+        return edbPro().findByIds(this.mClass,idsStr,splitStr);
     }
 
     /**
@@ -461,7 +459,7 @@ public class EDbDao<M> {
      * @return
      */
     public List<M> find(String finalSql){
-        return getEDbPro().find(this.mClass,finalSql);
+        return edbPro().find(this.mClass,finalSql);
     }
 
     /**
@@ -470,7 +468,28 @@ public class EDbDao<M> {
      * @return
      */
     public  List<M> find( SqlPara sqlPara){
-        return getEDbPro().find(this.mClass,sqlPara);
+        return edbPro().find(this.mClass,sqlPara);
+    }
+
+    /**
+     * 重置查询sql的返回条数
+     * @param sqlPara
+     * @param limit
+     * @return
+     */
+    public  List<M> find( SqlPara sqlPara,int limit){
+        return edbPro().find(this.mClass,sqlPara,limit);
+    }
+
+    /**
+     * 重置查询sql的返回条数和起始位
+     * @param sqlPara
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public  List<M> find( SqlPara sqlPara,int limit,int offset){
+        return edbPro().find(this.mClass,sqlPara,limit,offset);
     }
 
     /**
@@ -480,7 +499,7 @@ public class EDbDao<M> {
      * @return
      */
     public  List<M> find(String sql, Object... paras){
-        return getEDbPro().find(this.mClass,sql,paras);
+        return edbPro().find(this.mClass,sql,paras);
     }
 
     /**
@@ -491,7 +510,7 @@ public class EDbDao<M> {
      * @return
      */
     public Page<M> paginate( int pageNumber, int pageSize, String findSql){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,findSql);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,findSql);
     }
 
     /**
@@ -503,7 +522,7 @@ public class EDbDao<M> {
      * @return
      */
     public  Page<M> paginate(int pageNumber, int pageSize, String findSql,Object... paras){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,findSql,paras);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,findSql,paras);
     }
 
     /**
@@ -515,7 +534,7 @@ public class EDbDao<M> {
      * @return
      */
     public Page<M> paginate(int pageNumber, int pageSize,long totalRow, String findSql){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,totalRow,findSql);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,totalRow,findSql);
     }
 
     /**
@@ -528,7 +547,7 @@ public class EDbDao<M> {
      * @return
      */
     public Page<M> paginate(int pageNumber, int pageSize,long totalRow, String findSql,Object... paras){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,totalRow,findSql,paras);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,totalRow,findSql,paras);
     }
 
     /**
@@ -539,7 +558,7 @@ public class EDbDao<M> {
      * @return
      */
     public Page<M> paginate(int pageNumber, int pageSize,long totalRow, SqlPara sqlPara){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,totalRow,sqlPara);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,totalRow,sqlPara);
     }
 
     /**
@@ -550,7 +569,7 @@ public class EDbDao<M> {
      * @return
      */
     public  Page<M> paginate(int pageNumber, int pageSize, SqlPara sqlPara){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,sqlPara);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,sqlPara);
     }
 
     /**
@@ -562,7 +581,7 @@ public class EDbDao<M> {
      * @return
      */
     public  Page<M> paginate(int pageNumber, int pageSize, boolean isGroupBySql, SqlPara sqlPara){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,isGroupBySql,sqlPara);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,isGroupBySql,sqlPara);
     }
 
     /**
@@ -575,7 +594,7 @@ public class EDbDao<M> {
      * @return
      */
     public  Page<M> paginate(int pageNumber, int pageSize, String select, String sqlExceptSelect, Object... paras){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,select,sqlExceptSelect,paras);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,select,sqlExceptSelect,paras);
     }
 
     /**
@@ -587,7 +606,7 @@ public class EDbDao<M> {
      * @return
      */
     public Page<M> paginate(int pageNumber, int pageSize, String select, String sqlExceptSelect){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,select,sqlExceptSelect);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,select,sqlExceptSelect);
     }
 
     /**
@@ -601,7 +620,7 @@ public class EDbDao<M> {
      * @return
      */
     public Page<M> paginate(int pageNumber, int pageSize, boolean isGroupBySql, String select, String sqlExceptSelect, Object... paras){
-        return getEDbPro().paginate(this.mClass,pageNumber,pageSize,isGroupBySql,select,sqlExceptSelect,paras);
+        return edbPro().paginate(this.mClass,pageNumber,pageSize,isGroupBySql,select,sqlExceptSelect,paras);
     }
 
     /**
@@ -611,7 +630,7 @@ public class EDbDao<M> {
      * @return
      */
     public M findFirst(String sql, Object... paras){
-        return  getEDbPro().findFirst(this.mClass,sql,paras);
+        return  edbPro().findFirst(this.mClass,sql,paras);
     }
 
     /**
@@ -620,7 +639,7 @@ public class EDbDao<M> {
      * @return
      */
     public  M findFirst(String sql){
-        return  getEDbPro().findFirst(this.mClass,sql);
+        return  edbPro().findFirst(this.mClass,sql);
     }
 
     /**
@@ -629,7 +648,7 @@ public class EDbDao<M> {
      * @return
      */
     public M findFirst(SqlPara sqlPara){
-        return  getEDbPro().findFirst(this.mClass,sqlPara);
+        return  edbPro().findFirst(this.mClass,sqlPara);
     }
 
     /**
@@ -638,7 +657,7 @@ public class EDbDao<M> {
      * @return
      */
     public  M findFirst(EDbQuery eDbQuery){
-        return (M) getEDbPro().findFirst(this.mClass,eDbQuery);
+        return (M) edbPro().findFirst(this.mClass,eDbQuery);
     }
 
     /**
@@ -647,7 +666,7 @@ public class EDbDao<M> {
      * @return
      */
     public  M findOnlyOne(SqlPara sqlPara){
-        return  getEDbPro().findOnlyOne(this.mClass,sqlPara);
+        return  edbPro().findOnlyOne(this.mClass,sqlPara);
     }
 
     /**
@@ -656,7 +675,7 @@ public class EDbDao<M> {
      * @return
      */
     public M findOnlyOne(EDbQuery eDbQuery){
-        return getEDbPro().findOnlyOne(this.mClass,eDbQuery);
+        return edbPro().findOnlyOne(this.mClass,eDbQuery);
     }
 
     /**
@@ -665,7 +684,7 @@ public class EDbDao<M> {
      * @return
      */
     public M findOnlyOne(String sql){
-        return getEDbPro().findOnlyOne(this.mClass,sql);
+        return edbPro().findOnlyOne(this.mClass,sql);
     }
 
     /**
@@ -674,7 +693,7 @@ public class EDbDao<M> {
      * @return
      */
     public List<M> find(EDbQuery eDbQuery){
-        return getEDbPro().find(this.mClass,eDbQuery);
+        return edbPro().find(this.mClass,eDbQuery);
     }
 
     /**
@@ -684,7 +703,7 @@ public class EDbDao<M> {
      * @return
      */
     public List<M> find(EDbQuery eDbQuery,int limit){
-        return  getEDbPro().find(this.mClass,eDbQuery,limit);
+        return  edbPro().find(this.mClass,eDbQuery,limit);
     }
 
     /**
@@ -695,7 +714,7 @@ public class EDbDao<M> {
      * @return
      */
     public List<M> find(EDbQuery eDbQuery,int limit,Integer offset){
-        return  getEDbPro().find(this.mClass,eDbQuery,limit,offset);
+        return  edbPro().find(this.mClass,eDbQuery,limit,offset);
     }
 
     /**
@@ -706,7 +725,7 @@ public class EDbDao<M> {
      * @return
      */
     public Page<M> paginate(int pageNumber, int pageSize, EDbQuery eDbQuery){
-        return  getEDbPro().paginate(this.mClass,pageNumber,pageSize,eDbQuery);
+        return  edbPro().paginate(this.mClass,pageNumber,pageSize,eDbQuery);
     }
 
     /**
@@ -718,7 +737,7 @@ public class EDbDao<M> {
      * @return
      */
     public Page<M> paginate(int pageNumber, int pageSize,long totalRow, EDbQuery eDbQuery){
-        return  getEDbPro().paginate(this.mClass,pageNumber,pageSize,totalRow,eDbQuery);
+        return  edbPro().paginate(this.mClass,pageNumber,pageSize,totalRow,eDbQuery);
     }
 
     /**
@@ -726,8 +745,8 @@ public class EDbDao<M> {
      * @param m - jpa 对象
      * @return
      */
-    public M rel(M m){
-        return getEDbPro().rel(m);
+    public M rel(M m,String fieldName){
+        return edbPro().rel(m,fieldName);
     }
 
     /**
@@ -737,8 +756,8 @@ public class EDbDao<M> {
      * @param pageSize
      * @return
      */
-    public M rel(M m,Integer pageNo,Integer pageSize){
-        return getEDbPro().rel(m,pageNo,pageSize);
+    public M rel(M m,String fieldName,Integer pageNo,Integer pageSize){
+        return edbPro().rel(m,fieldName,pageNo,pageSize);
     }
 
     /**
@@ -748,25 +767,25 @@ public class EDbDao<M> {
      * @param pageSize
      * @return
      */
-    public  M rel(M m,String fields,Integer pageNo,Integer pageSize){
-        return getEDbPro().rel(m,fields,pageNo,pageSize);
+    public  M rel(M m,String fieldName,String fields,Integer pageNo,Integer pageSize){
+        return edbPro().rel(m,fieldName,fields,pageNo,pageSize);
     }
 
-    /**
-     * 返回数据对象本身
-     * @returnt
-     */
-    public M getAllRel(M m){
-        getEDbPro().getAllRel(m);
-        return m;
-    }
+//    /**
+//     * 返回数据对象本身
+//     * @returnt
+//     */
+//    public M getAllRel(M m){
+//        getEDbPro().getAllRel(m);
+//        return m;
+//    }
 
     /**
      * 获取视图对象
      * @return
      */
-    public M view(M m){
-        return getEDbPro().view(m);
+    public M view(M m,String fieldName){
+        return edbPro().view(m,fieldName);
     }
 
 
@@ -776,8 +795,8 @@ public class EDbDao<M> {
      * @param pageSize
      * @return
      */
-    public M view(M m,int pageNo,int pageSize){
-        return getEDbPro().view(m,pageNo,pageSize);
+    public M view(M m,String fieldName,int pageNo,int pageSize){
+        return edbPro().view(m,fieldName,pageNo,pageSize);
     }
 
     /**
@@ -787,7 +806,7 @@ public class EDbDao<M> {
      * @return
      */
     public Long templateForCount(String key,Map data){
-        return getEDbPro().templateForCount(key,data);
+        return edbPro().templateForCount(key,data);
     }
 
     /**
@@ -796,7 +815,7 @@ public class EDbDao<M> {
      * @return
      */
     public Long sqlForCount(SqlPara sqlPara){
-        return getEDbPro().sqlForCount(sqlPara);
+        return edbPro().sqlForCount(sqlPara);
     }
 
 
@@ -806,7 +825,7 @@ public class EDbDao<M> {
      * @return
      */
     public Long sqlForCount(String sql){
-        return getEDbPro().sqlForCount(sql);
+        return edbPro().sqlForCount(sql);
     }
 
     /**
@@ -814,17 +833,17 @@ public class EDbDao<M> {
      * @param sql
      * @return
      */
-    public String getCountSql(String sql){
-        return getEDbPro().getCountSql(sql);
+    public String countSql(String sql){
+        return edbPro().countSql(sql);
     }
 
 
-    public SqlPara getSqlPara(String key, Map data) {
-        return getEDbPro().getConfig().getSqlKit().getSqlPara(key, data);
+    public SqlPara sqlPara(String key, Map data) {
+        return edbPro().getConfig().getSqlKit().getSqlPara(key, data);
     }
 
-    public SqlPara getSqlPara(String key, Object... paras) {
-        return getEDbPro().getConfig().getSqlKit().getSqlPara(key, paras);
+    public SqlPara sqlPara(String key, Object... paras) {
+        return edbPro().getConfig().getSqlKit().getSqlPara(key, paras);
     }
 
     /**
@@ -832,16 +851,16 @@ public class EDbDao<M> {
      * @param key
      * @return
      */
-    public SqlPara getSqlPara(String key,M m) {
-        return this.getSqlPara(key, EDbBeanUtil.beanToMap(m));
+    public SqlPara sqlPara(String key, M m) {
+        return this.sqlPara(key, EDbBeanUtil.beanToMap(m));
     }
 
-    public SqlPara getSqlParaByString(String content, Map data) {
-        return getEDbPro().getConfig().getSqlKit().getSqlParaByString(content, data);
+    public SqlPara sqlParaByString(String content, Map data) {
+        return edbPro().getConfig().getSqlKit().getSqlParaByString(content, data);
     }
 
-    public SqlPara getSqlParaByString(String content, Object... paras) {
-        return getEDbPro().getConfig().getSqlKit().getSqlParaByString(content, paras);
+    public SqlPara sqlParaByString(String content, Object... paras) {
+        return edbPro().getConfig().getSqlKit().getSqlParaByString(content, paras);
     }
 
     /**
@@ -849,8 +868,8 @@ public class EDbDao<M> {
      * @param content
      * @return
      */
-    public SqlPara getSqlParaByString(String content,M m) {
-        return getEDbPro().getSqlParaByString(content, EDbBeanUtil.beanToMap(m));
+    public SqlPara sqlParaByString(String content, M m) {
+        return edbPro().getSqlParaByString(content, EDbBeanUtil.beanToMap(m));
     }
 
     /**

@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.edbplus</groupId>
-    <artifactId>spring-jf-edb</artifactId>
+    <artifactId>quarkus-edb</artifactId>
     <!-- 每次deploy后必须调整版本号 -->
-    <version>1.8.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -20,7 +20,7 @@
         <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
         <druid.version>1.1.21_1</druid.version>
         <!--        <druid.version>1.2.8</druid.version>-->
-        <java.version>16</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
@@ -70,7 +70,6 @@
 
 
     <dependencies>
-
         <!-- jpa注解规范工具类 -->
         <dependency>
             <groupId>javax.persistence</groupId>
@@ -90,6 +89,10 @@
 
 
         <!-- === 必须依赖的jar包 end === -->
+
+
+
+        <!-- 需要时引入，本项目为测试代码时使用 -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
@@ -98,6 +101,7 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- 需要时引入，本项目为测试代码时使用 -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -109,6 +113,7 @@
         </dependency>
 
 
+        <!-- 需要时引入，本项目为测试代码时使用 -->
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <!-- https://jdbc.postgresql.org -->
         <dependency>
@@ -121,6 +126,7 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- graalvm 是无法使用的，需要调整方案 -->
         <!-- cglib 扩展 CglibProxyFactory extends ProxyFactory -->
         <dependency>
             <groupId>cglib</groupId>
@@ -198,23 +204,23 @@
 
 
 
-        <!-- HikariCP 数据源连接池 -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>2.3.13</version>
-            <scope>provided</scope>
-        </dependency>
+        <!-- HikariCP 数据源连接池，非必要 -->
+        <!--        <dependency>-->
+        <!--            <groupId>com.zaxxer</groupId>-->
+        <!--            <artifactId>HikariCP</artifactId>-->
+        <!--            <version>2.3.13</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
 
-        <!-- c3p0 数据源连接池 -->
-        <dependency>
-            <groupId>com.mchange</groupId>
-            <artifactId>c3p0</artifactId>
-            <version>0.9.5.3</version>
-            <scope>provided</scope>
-        </dependency>
+        <!-- c3p0 数据源连接池，非必要，0.9.5.3之前的版本包含漏洞 -->
+        <!--        <dependency>-->
+        <!--            <groupId>com.mchange</groupId>-->
+        <!--            <artifactId>c3p0</artifactId>-->
+        <!--            <version>0.9.5.4</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
 
-        <!-- fastjson json 转换 -->
+        <!-- fastjson json 转换，非必要 -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
@@ -222,18 +228,16 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- ehcache 缓存 -->
-        <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache-core</artifactId>
-            <version>2.6.11</version>
-            <scope>provided</scope>
-        </dependency>
+        <!-- ehcache 缓存，非必要 -->
+        <!--        <dependency>-->
+        <!--            <groupId>net.sf.ehcache</groupId>-->
+        <!--            <artifactId>ehcache-core</artifactId>-->
+        <!--            <version>2.6.11</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
 
-
-
-
-
+        <!-- ============ 不需依赖的jar包，只是引入作为脚手架生成时测试使用 ============ -->
+        <!-- 非必要 -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
@@ -241,17 +245,13 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- zxing 二维码生成 -->
-        <dependency>
-            <groupId>com.google.zxing</groupId>
-            <artifactId>javase</artifactId>
-            <version>3.2.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-
-
-        <!-- ============ 不需依赖的jar包，只是引入作为脚手架生成时测试使用 ============ -->
+        <!-- zxing 二维码生成,非必要  -->
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.zxing</groupId>-->
+        <!--            <artifactId>javase</artifactId>-->
+        <!--            <version>3.2.1</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
         <!-- 改成4.2.0版本即可,私有版本 4.2.1 修复了一些视图展示的bug -->
         <dependency>
             <groupId>cn.afterturn</groupId>
@@ -275,7 +275,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- 必须引入，然后剔除 activerecord 包，避免冲突，因为发现部分版本里并不兼容 -->
+        <!--        &lt;!&ndash; 必须引入，然后剔除 activerecord 包，避免冲突，因为发现部分版本里并不兼容 &ndash;&gt;-->
         <dependency>
             <groupId>com.edbplus</groupId>
             <artifactId>jfinal-spring-tx</artifactId>
@@ -396,21 +396,6 @@
                 </executions>
             </plugin>
 
-            <!--            &lt;!&ndash; 安装源码到本地仓库 &ndash;&gt;-->
-            <!--            <plugin>-->
-            <!--                <groupId>org.apache.maven.plugins</groupId>-->
-            <!--                <artifactId>maven-source-plugin</artifactId>-->
-            <!--                <version>2.1.2</version>-->
-            <!--                <executions>-->
-            <!--                    <execution>-->
-            <!--                        <id>attach-sources</id>-->
-            <!--                        <phase>verify</phase>-->
-            <!--                        <goals>-->
-            <!--                            <goal>jar-no-fork</goal>-->
-            <!--                        </goals>-->
-            <!--                    </execution>-->
-            <!--                </executions>-->
-            <!--            </plugin>-->
 
             <!-- gpg签名 -->
             <plugin>

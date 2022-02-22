@@ -204,9 +204,9 @@ public class EDb extends Db{
      * @param <M>
      * @return
      */
-    public static  <M> String getTableName(Class<M> mClass)
+    public static  <M> String tableName(Class<M> mClass)
     {
-        return MAIN.getTableName(mClass);
+        return MAIN.tableName(mClass);
     }
 
     /**
@@ -216,8 +216,8 @@ public class EDb extends Db{
      * @param <M>
      * @return
      */
-    public static <M> Map<String,Object> getColumnsMap(M m,boolean ignoreNullValue){
-        return MAIN.getColumnsMap(m,ignoreNullValue);
+    public static <M> Map<String,Object> columnsMap(M m, boolean ignoreNullValue){
+        return MAIN.columnsMap(m,ignoreNullValue);
     }
 
 
@@ -567,6 +567,28 @@ public class EDb extends Db{
         return MAIN.find(mClass,finalSql);
     }
 
+
+    /**
+     * 返回查询对象和设置返回的条数
+     * @param sqlPara
+     * @param limit
+     * @return
+     */
+    public static List<Record> find(SqlPara sqlPara,int limit){
+        return MAIN.find(sqlPara,limit);
+    }
+
+    /**
+     * 返回查询对象和设置返回的条数与起始位
+     * @param sqlPara
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public static List<Record> find(SqlPara sqlPara,int limit,int offset){
+        return MAIN.find(sqlPara,limit,offset);
+    }
+
     /**
      * 通过对象和sqlpara对象返回查询结果
      * @param mClass
@@ -576,6 +598,31 @@ public class EDb extends Db{
      */
     public static  <M> List<M> find(Class<M> mClass, SqlPara sqlPara) {
         return MAIN.find(mClass,sqlPara);
+    }
+
+    /**
+     * 通过对象和sqlpara对象返回查询结果并设置返回条数
+     * @param mClass
+     * @param sqlPara
+     * @param limit
+     * @param <M>
+     * @return
+     */
+    public static  <M> List<M> find(Class<M> mClass, SqlPara sqlPara,int limit) {
+        return MAIN.find(mClass,sqlPara,limit);
+    }
+
+    /**
+     * 通过对象和sqlpara对象返回查询结果并设置返回条数和返回起始位
+     * @param mClass
+     * @param sqlPara
+     * @param limit
+     * @param offset
+     * @param <M>
+     * @return
+     */
+    public static  <M> List<M> find(Class<M> mClass, SqlPara sqlPara,int limit,int offset) {
+        return MAIN.find(mClass,sqlPara,limit,offset);
     }
 
 
@@ -1128,32 +1175,32 @@ public class EDb extends Db{
      * @param <T>
      * @return
      */
-    public static  <T> T getRel(T t){
-        return MAIN.rel(t);
+    public static  <T> T rel(T t, String fieldName){
+        return MAIN.rel(t,fieldName);
     }
 
-    /**
-     * 通过relKey直接返回对象
-     * @param t
-     * @param relKey
-     * @param pageNo
-     * @param pageSize
-     * @return
-     */
-    public static Object getRelKey(Object t,String relKey,Integer pageNo,Integer pageSize) {
-        return MAIN.getRelKey(t,relKey,pageNo,pageSize);
-    }
-
-    /**
-     * 通过relKey直接返回指定对象
-     * @param t
-     * @param relKey
-     * @return
-     */
-    public static  Object getRelKey(Object t,String relKey)
-    {
-        return MAIN.getRelKey(t,relKey);
-    }
+//    /**
+//     * 通过relKey直接返回对象
+//     * @param t
+//     * @param relKey
+//     * @param pageNo
+//     * @param pageSize
+//     * @return
+//     */
+//    public static Object getRelKey(Object t,String relKey,Integer pageNo,Integer pageSize) {
+//        return MAIN.getRelKey(t,relKey,pageNo,pageSize);
+//    }
+//
+//    /**
+//     * 通过relKey直接返回指定对象
+//     * @param t
+//     * @param relKey
+//     * @return
+//     */
+//    public static  Object getRelKey(Object t,String relKey)
+//    {
+//        return MAIN.getRelKey(t,relKey);
+//    }
 
     /**
      * 获取关系对象，并可控制对象的其实和结束节点，以便控制返回更多的结果
@@ -1163,8 +1210,8 @@ public class EDb extends Db{
      * @param <T> -- 这类方法一般返回的是list对象，不排除多个里取一个结果集
      * @return
      */
-    public static  <T> T getRel(T t,Integer pageNo,Integer pageSize){
-        return MAIN.rel(t,pageNo,pageSize);
+    public static  <T> T rel(T t, String fieldName, Integer pageNo, Integer pageSize){
+        return MAIN.rel(t,fieldName,pageNo,pageSize);
     }
 
     /**
@@ -1176,76 +1223,76 @@ public class EDb extends Db{
      * @param <T>
      * @return
      */
-    public static <T> T getRel(T t,String fields,Integer pageNo,Integer pageSize){
-        return MAIN.rel(t,fields,pageNo,pageSize);
+    public static <T> T rel(T t, String fieldName, String fields, Integer pageNo, Integer pageSize){
+        return MAIN.rel(t,fieldName,fields,pageNo,pageSize);
     }
 
+//
+//
+//    /**
+//     * 异步获取关系对象
+//     * @param t
+//     * @param relKey -- 指定relKey对象
+//     * @return
+//     */
+//    public static List<Future<Object>> getRelForFutrue(Object t,String relKey){
+//        return MAIN.getRelKeyForFutrue(t,relKey);
+//    }
+//
+//    /**
+//     * 异步获取对象
+//     * @param t
+//     * @param relKey -- 指定relKey对象
+//     * @param pageNo -- 起始页
+//     * @param pageSize -- 返回页数
+//     * @return
+//     */
+//    public static List<Future<Object>> getRelForFutrue(Object t,String relKey,Integer pageNo,Integer pageSize){
+//        return MAIN.getRelKeyForFutrue(t,relKey,pageNo,pageSize);
+//    }
+//
+//
+//    /**
+//     * 异步获取对象
+//     * @param t
+//     * @param relKey
+//     * @param fields
+//     * @param pageNo
+//     * @param pageSize
+//     * @return
+//     */
+//    public static List<Future<Object>> getRelForFutrue(Object t,String relKey,String fields,Integer pageNo,Integer pageSize){
+//        return MAIN.getRelKeyForFutrue(t,relKey,fields,pageNo,pageSize);
+//    }
+
+//    /**
+//     * 返回数据对象本身
+//     * @param t
+//     * @param <T>
+//     * @returnt
+//     */
+//    public static  <T> T getAllRel(T t){
+//        return MAIN.getAllRel(t);
+//    }
+
+//    /**
+//     * 获取所有数据对象，以异步回调的方式获取，能大量缩短等待时间
+//     * @param object
+//     */
+//    public static List<Future<Object>> getAllRelForFutrue(Object object){
+//        return MAIN.getAllRelForFutrue(object);
+//    }
 
 
-    /**
-     * 异步获取关系对象
-     * @param t
-     * @param relKey -- 指定relKey对象
-     * @return
-     */
-    public static List<Future<Object>> getRelForFutrue(Object t,String relKey){
-        return MAIN.getRelKeyForFutrue(t,relKey);
-    }
-
-    /**
-     * 异步获取对象
-     * @param t
-     * @param relKey -- 指定relKey对象
-     * @param pageNo -- 起始页
-     * @param pageSize -- 返回页数
-     * @return
-     */
-    public static List<Future<Object>> getRelForFutrue(Object t,String relKey,Integer pageNo,Integer pageSize){
-        return MAIN.getRelKeyForFutrue(t,relKey,pageNo,pageSize);
-    }
-
-
-    /**
-     * 异步获取对象
-     * @param t
-     * @param relKey
-     * @param fields
-     * @param pageNo
-     * @param pageSize
-     * @return
-     */
-    public static List<Future<Object>> getRelForFutrue(Object t,String relKey,String fields,Integer pageNo,Integer pageSize){
-        return MAIN.getRelKeyForFutrue(t,relKey,fields,pageNo,pageSize);
-    }
-
-    /**
-     * 返回数据对象本身
-     * @param t
-     * @param <T>
-     * @returnt
-     */
-    public static  <T> T getAllRel(T t){
-        return MAIN.getAllRel(t);
-    }
-
-    /**
-     * 获取所有数据对象，以异步回调的方式获取，能大量缩短等待时间
-     * @param object
-     */
-    public static List<Future<Object>> getAllRelForFutrue(Object object){
-        return MAIN.getAllRelForFutrue(object);
-    }
-
-
-    /**
-     * 通过relKey直接返回对象异步列表
-     * @param t
-     * @param relKey
-     * @return
-     */
-    public static List<Future<Object>> getRelKeyForFutrue(Object t,String relKey){
-        return MAIN.getRelKeyForFutrue(t,relKey);
-    }
+//    /**
+//     * 通过relKey直接返回对象异步列表
+//     * @param t
+//     * @param relKey
+//     * @return
+//     */
+//    public static List<Future<Object>> getRelKeyForFutrue(Object t,String relKey){
+//        return MAIN.getRelKeyForFutrue(t,relKey);
+//    }
 
     /**
      * 获取视图对象
@@ -1253,8 +1300,8 @@ public class EDb extends Db{
      * @param <T>
      * @return
      */
-    public static <T> T view(T t){
-        return MAIN.view(t);
+    public static <T> T view(T t,String fieldName){
+        return MAIN.view(t,fieldName);
     }
 
     /**
@@ -1265,8 +1312,8 @@ public class EDb extends Db{
      * @param <T>
      * @return
      */
-    public static <T> T view(T t,int pageNo,int pageSize){
-        return MAIN.view(t,pageNo,pageSize);
+    public static <T> T view(T t,String fieldName,int pageNo,int pageSize){
+        return MAIN.view(t,fieldName,pageNo,pageSize);
     }
 
     /**
@@ -1278,8 +1325,8 @@ public class EDb extends Db{
      * @param <T>
      * @return
      */
-    public static <T> T view(T t,int pageNo,int pageSize,long totalRow){
-        return MAIN.view(t,pageNo,pageSize,totalRow);
+    public static <T> T view(T t,String fieldName,int pageNo,int pageSize,long totalRow){
+        return MAIN.view(t,fieldName,pageNo,pageSize,totalRow);
     }
 
     /**
@@ -1317,8 +1364,8 @@ public class EDb extends Db{
      * @param sql
      * @return
      */
-    public static String getCountSql(String sql){
-        return MAIN.getCountSql(sql);
+    public static String countSql(String sql){
+        return MAIN.countSql(sql);
     }
 
     public static EDbTemplate template(String key, Map data) {

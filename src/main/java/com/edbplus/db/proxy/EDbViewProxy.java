@@ -42,7 +42,7 @@ import java.util.Map;
 
 /**
  * @ClassName EDbViewProxy
- * @Description: view视图对象
+ * @Description: view视图对象 ，由于 graalvm 无法支持cglib，所以放弃了该实现模式
  * @Author 杨志佳
  * @Date 2020/12/11
  * @Version V1.0
@@ -103,6 +103,8 @@ public class EDbViewProxy implements MethodInterceptor {
 
     //2-实现MethodInterceptor的intercept方法
     public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+
+        // intercept(this,methodName,Object[] args)
 //        System.out.println("before: " + method);
         //调用proxy.invoke()方法，会报java.lang.StackOverflowError错误，原因是invoke()内部会一直被反复调用
         //Object object = proxy.invoke(obj, args);

@@ -26,6 +26,9 @@ import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
  **/
 public class EDbPostgreSqlDialect extends PostgreSqlDialect {
 
+    // 有值时将会触发调用 EDbRro.setRowMaxs(PreparedStatement) 方法，然后设置 PreparedStatement.setMaxRows 方法，以此控制返回的最大row条数
+    public Integer maxRows = null;
+
     /**
      * 改写sql统计语句，避免内部包含除了 order By 外未被优化后影响统计性能和结果相关的关键字
      * @param select

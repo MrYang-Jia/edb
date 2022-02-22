@@ -77,6 +77,56 @@ public class EDbSelectUtil {
     }
 
     /**
+     * offset 下标设置
+     * @param sql
+     * @param offsetIdx
+     * @return
+     */
+    public static String returnOffsetSql(String sql,int offsetIdx){
+        String sqlLower = sql.toLowerCase();
+        int lastIdx = sqlLower.lastIndexOf("offset");
+        if(lastIdx > -1){ // 可能存在 offset 关键字
+            String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
+            String rightIdxStr = sqlLower.substring(lastIdx + 6,lastIdx + 7); // offset 长度为6,关键字右侧字符串
+            // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
+            if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 确认存在 offset 关键字
+                String lastSql =  sqlLower.substring(lastIdx,sql.length()); // 最后尾部 offset(包含) 右侧的字符串
+                // 内部 offset 函数，则都会在右侧嵌套 ) 以表示结束，所以只要判断这个，就可以在外围加 limit
+                if(lastSql.indexOf(")") > -1){
+                    return sql + " offset " + offsetIdx;
+                }else{
+                    int limitIdx =  lastSql.indexOf("limit"); // 最后一个 offset 右侧首个 limit 结尾的情况，可能存在换行符等 -> offset 0 limit 10\n
+                    if(limitIdx > -1){// 可能存在 limit 关键字
+                        leftIdxStr = lastSql.substring(limitIdx-1,limitIdx);// 关键字左侧字符串
+                        rightIdxStr = lastSql.substring(limitIdx + 5,limitIdx + 6); // offset 长度为6,关键字右侧字符串
+                        // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
+                        if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 确认是否存在 offset 关键字
+                            String limitSql = lastSql.substring(limitIdx,lastSql.length());
+                            return sql.substring(0,lastIdx) + " offset " + offsetIdx +" " + limitSql;
+                        }
+                    }
+                    return sql.substring(0,lastIdx) + " offset " + offsetIdx;
+                }
+            }
+        }
+        lastIdx = sqlLower.lastIndexOf("limit"); // 针对mysql的 limit offset,10 的特殊情况 --> 其实正常来说，尽量去避免这种写法会好点
+        if(lastIdx > -1) {
+            String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
+            String rightIdxStr = sqlLower.substring(lastIdx + 5,lastIdx + 6); // limit 长度为5,关键字右侧字符串
+            // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
+            if(checkSpecialCharacters(leftIdxStr,rightIdxStr)) { // 确认存在limit关键字
+                String lastSql = sqlLower.substring(lastIdx, sql.length()); // 最后尾部 limit(包含) 右侧的字符串
+                int limitFilterIdx = lastSql.indexOf(",");//特殊符号，一般是不会有什么特殊的场景，所以直接切割即可
+                if (limitFilterIdx > -1) { // mysql 之 limit 0,10 转为 limit offset,10
+                    String limitFilterPreSql = lastSql.substring(limitFilterIdx + 1, lastSql.length());
+                    return sql.substring(0, lastIdx) + " limit " + offsetIdx + "," + limitFilterPreSql;
+                }
+            }
+        }
+        return sql + " offset " + offsetIdx; // 不存在limit则直接拼接
+    }
+
+    /**
      * 修改原语句并返回limitSql
      * @param sql -- 原语句
      * @param limitCount -- 返回条数，ps:当用户自己的sql结尾含有 limit xxx 时，以用户自己输入的为准
@@ -95,7 +145,7 @@ public class EDbSelectUtil {
                 if(lastSql.indexOf(")") > -1){
                     return sql + " limit " + limitCount;
                 }else{
-                    int offsetIdx =  lastSql.indexOf("offset"); // 最后一个 limit 右侧首个 offset 结尾的情况，可能存在换行符等
+                    int offsetIdx =  lastSql.indexOf("offset"); // 最后一个 limit 右侧首个 offset 结尾的情况，可能存在换行符等 -> limit 10 offset 0\n
                     if(offsetIdx > -1){// 可能存在 offset 关键字
                         leftIdxStr = lastSql.substring(offsetIdx-1,offsetIdx);// 关键字左侧字符串
                         rightIdxStr = lastSql.substring(offsetIdx + 6,offsetIdx + 7); // offset 长度为6,关键字右侧字符串

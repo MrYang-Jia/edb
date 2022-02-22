@@ -27,7 +27,7 @@ import java.lang.reflect.Type;
 
 /**
  * @ClassName EDbRelProxy
- * @Description: Jpa关系对象
+ * @Description: EDbRel代理类，由于cglib无法使用，废弃
  * @Author 杨志佳
  * @Date 2020/11/18
  * @Version V1.0

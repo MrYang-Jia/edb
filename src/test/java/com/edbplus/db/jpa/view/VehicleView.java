@@ -32,8 +32,8 @@ public class VehicleView {
     @EDbView(name = "test.EDbViewTest")
     private Page<CrVehicleType> crVehicleTypePageView;
 
-    @EDbView(name = "test.EDbViewTest")
-    private org.springframework.data.domain.Page<CrVehicleType> crVehicleTypeSpringPageView;
+//    @EDbView(name = "test.EDbViewTest")
+//    private org.springframework.data.domain.Page<CrVehicleType> crVehicleTypeSpringPageView;
 
 
 }

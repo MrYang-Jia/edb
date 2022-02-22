@@ -57,7 +57,7 @@ public class EDbModelTest extends BaseTest {
         crVehicleType = CrVehicleType.dao.findById(100); // 查询主库信息
         System.out.println("==>"+crVehicleType.getCreator()); // 切换回主库，并打印信息
 
-        crVehicleType.rel().getCrVehicleTypeModesRel(); // 关联查询,思考 view 和 rel 很容易混淆，相似，但是用途又不一样
+        crVehicleType.rel("crVehicleTypeModesRel").getCrVehicleTypeModesRel(); // 关联查询,思考 view 和 rel 很容易混淆，相似，但是用途又不一样
 
 
 

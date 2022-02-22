@@ -1,21 +1,37 @@
 package com.edbplus.db.jpa;
 
 
+import cn.hutool.core.util.ReflectUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
+import com.edbplus.db.EDbTemplate;
+import com.edbplus.db.annotation.EDbRel;
+import com.edbplus.db.annotation.EDbView;
+import com.edbplus.db.dto.FieldAndColValue;
+import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.jpa.model.CrVehicleType;
 import com.edbplus.db.jpa.model.CrVehicleTypeModeRel;
+import com.edbplus.db.util.EDbRelUtil;
+import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
+import com.edbplus.db.util.hutool.map.CaseInsensitiveMap;
 import com.edbplus.db.util.hutool.rul.EReUtil;
 import com.jfinal.kit.Kv;
+import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.SqlPara;
 import com.jfinal.template.Engine;
 import com.jfinal.template.Template;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
+import javax.persistence.Table;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 /**
@@ -42,7 +58,7 @@ public class JpaRelTest extends BaseTest {
         CrVehicleTypeModeRel crVehicleTypeModeRel = eDbPro.findById(CrVehicleTypeModeRel.class,1);
         System.out.println("当前对象信息:"+ EJSONUtil.toJsonStr(crVehicleTypeModeRel));
         // 查询该对象的所有关联对象信息
-        eDbPro.getAllRel(crVehicleTypeModeRel);
+//        eDbPro.getAllRel(crVehicleTypeModeRel);
         System.out.println("当前对象信息已扩展关联对象信息:"+EJSONUtil.toJsonStr(crVehicleTypeModeRel));
     }
 
@@ -58,7 +74,7 @@ public class JpaRelTest extends BaseTest {
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         start = System.currentTimeMillis();
         // 通过已查询到的对象，关联查询子对象 CrVehicleTypeModeRels
-        List<CrVehicleTypeModeRel> crVehicleTypeModeRels = eDbPro.rel(crVehicleType).getCrVehicleTypeModesRel();
+        List<CrVehicleTypeModeRel> crVehicleTypeModeRels = eDbPro.rel(crVehicleType,"crVehicleTypeModesRel").getCrVehicleTypeModesRel();
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         start = System.currentTimeMillis();
         System.out.println("==>查询到的关联子对象集: " + crVehicleTypeModeRels.size());
@@ -70,18 +86,18 @@ public class JpaRelTest extends BaseTest {
         System.out.println("==>当前子对象:"+crVehicleTypeModeRels.get(0).getCrVehicleTypeMode());
         start = System.currentTimeMillis();
         // 同时，也可单独对子对象做业务对象的扩展关联获取，这种模式适合在后台独立模块独立操作时使用，节省内存节省开销，逐渐释放不需要的资源，比较轻量
-        System.out.println("==>关联获取子对象:"+eDbPro.rel(crVehicleTypeModeRels.get(0)).getCrVehicleTypeMode());
+        System.out.println("==>关联获取子对象:"+eDbPro.rel(crVehicleTypeModeRels.get(0),"crVehicleTypeMode").getCrVehicleTypeMode());
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         start = System.currentTimeMillis();
         // 通过方法标记获取已删除标记的数据
-        System.out.println("指向删除数据：" + eDbPro.rel(crVehicleTypeModeRels.get(0)).getDelCrVehicleType());
+        System.out.println("指向删除数据：" + eDbPro.rel(crVehicleTypeModeRels.get(0),"delCrVehicleType").getDelCrVehicleType());
         // 如果用这种方式获取已删除的对象，会出现错误的返回结果
-        System.out.println("指向@EDbRel的key:"+eDbPro.getRelKey(crVehicleTypeModeRels.get(0),CrVehicleTypeModeRel.noDel));
+//        System.out.println("指向@EDbRel的key:"+eDbPro.getRelKey(crVehicleTypeModeRels.get(0),CrVehicleTypeModeRel.noDel));
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
         start = System.currentTimeMillis();
 
         System.out.println("=== 不触发查询 ===");
-        System.out.println(eDbPro.rel(crVehicleTypeModeRels.get(0)).getIsDel());
+        System.out.println(eDbPro.rel(crVehicleTypeModeRels.get(0),"isDel").getIsDel());
 
     }
 
@@ -99,16 +115,16 @@ public class JpaRelTest extends BaseTest {
         // 异步结果集
         List<Future<Object>> resultFutrues = new ArrayList<>();
         // 模型关系
-        for(CrVehicleTypeModeRel crVehicleTypeModeRel : crVehicleTypeModeRels){
-            // 循环获取所有的列表信息 -- 使用异步的方式
-            resultFutrues.addAll(eDbPro.getAllRelForFutrue(crVehicleTypeModeRel));
-        }
+//        for(CrVehicleTypeModeRel crVehicleTypeModeRel : crVehicleTypeModeRels){
+//            // 循环获取所有的列表信息 -- 使用异步的方式
+//            resultFutrues.addAll(eDbPro.getAllRelForFutrue(crVehicleTypeModeRel));
+//        }
         // 模型关系
-        for(CrVehicleTypeModeRel crVehicleTypeModeRel : otherModelRels){
-            // 循环获取所有的列表信息 -- 使用异步的方式
-            // 只获取已删除的部分
-            resultFutrues.addAll(eDbPro.getRelKeyForFutrue(crVehicleTypeModeRel,CrVehicleTypeModeRel.isDel));
-        }
+//        for(CrVehicleTypeModeRel crVehicleTypeModeRel : otherModelRels){
+//            // 循环获取所有的列表信息 -- 使用异步的方式
+//            // 只获取已删除的部分
+//            resultFutrues.addAll(eDbPro.getRelKeyForFutrue(crVehicleTypeModeRel,CrVehicleTypeModeRel.isDel));
+//        }
         // 如果是使用异步加载，则必须等待异步加载完成后，再获取对象值
         if(resultFutrues!=null && resultFutrues.size()>0){
             for(Future future : resultFutrues){
@@ -167,10 +183,25 @@ public class JpaRelTest extends BaseTest {
         System.out.println("================= 分割线1 ====================");
         CrVehicleTypeModeRel crVehicleTypeModeRel = eDbPro.findById(CrVehicleTypeModeRel.class,1);
         System.out.println("================= 分割线2 -jfinalPage ====================");
-        System.out.println(eDbPro.rel(crVehicleTypeModeRel).getCrVehicleTypePage());
+        System.out.println(eDbPro.rel(crVehicleTypeModeRel,"crVehicleTypePage").getCrVehicleTypePage());
         System.out.println("================= 分割线3 -springPage ====================");
-        System.out.println(eDbPro.rel(crVehicleTypeModeRel).getCrVehicleTypeSpringPage());
+//        System.out.println(eDbPro.rel(crVehicleTypeModeRel).getCrVehicleTypeSpringPage());
 
+    }
+
+
+    @Test
+    public void testRelUtil(){
+        CrVehicleTypeModeRel crVehicleTypeModeRel = eDbPro.findById(CrVehicleTypeModeRel.class,1);
+
+        String fieldName = "crVehicleTypePage";
+        Object object = crVehicleTypeModeRel;
+        int pageNo = 1;
+        int pageSize = 10;
+        long totalRow = 0;
+        String fields = null;
+        EDbRelUtil.loadRel(object,fieldName,fields,eDbPro,pageNo,pageSize,totalRow);
+        System.out.println(crVehicleTypeModeRel.getCrVehicleTypePage());
     }
 
 

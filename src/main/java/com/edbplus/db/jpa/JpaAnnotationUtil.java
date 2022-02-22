@@ -141,6 +141,25 @@ public class JpaAnnotationUtil {
     }
 
     /**
+     * 获取表对象的字段和驼峰字段映射值
+     * @param mClass
+     * @return Map --> key = columnName,value = fieldName
+     */
+    public static CaseInsensitiveMap<String,String> getColumnFieldMap(Class mClass){
+        // 设置返回的column集合
+        CaseInsensitiveMap<String,String> columnMap = null;
+        // 初始化 columns 对象
+        List<FieldAndColumn> columns = getCoumns(mClass);
+        if(columns!=null && columns.size()>0){
+            columnMap = new CaseInsensitiveMap<>(); // 无视key的大小写
+            for (FieldAndColumn fieldAndColumn:columns){
+                columnMap.put(fieldAndColumn.getColumn().name(),fieldAndColumn.getField().getName());
+            }
+        }
+        return columnMap;
+    }
+
+    /**
      * 返回以 column 的字段明为主的字段对象
      * @param mClass
      * @return CaseInsensitiveMap --> key = fieldName,value = FieldAndColumn

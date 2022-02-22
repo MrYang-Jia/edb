@@ -119,7 +119,7 @@ public abstract class EDbModel<M extends EDbModel> implements Serializable { // 
      * @return
      */
     public String tableName() {
-        return eDbPro().getTableName(this.getClass());
+        return eDbPro().tableName(this.getClass());
     }
 
     /**
@@ -129,7 +129,7 @@ public abstract class EDbModel<M extends EDbModel> implements Serializable { // 
      * @return
      */
     public <M> Map<String,Object> columnsMap(boolean ignoreNullValue){
-        return eDbPro().getColumnsMap(this,ignoreNullValue);
+        return eDbPro().columnsMap(this,ignoreNullValue);
     }
 
     /**
@@ -285,8 +285,8 @@ public abstract class EDbModel<M extends EDbModel> implements Serializable { // 
      * 创建当前对象的关系代理对象
      * @return
      */
-    public M rel(){
-        return (M) eDbPro().rel(this);
+    public M rel(String fieldName){
+        return (M) eDbPro().rel(this,fieldName);
     }
 
     /**
@@ -295,8 +295,8 @@ public abstract class EDbModel<M extends EDbModel> implements Serializable { // 
      * @param pageSize
      * @return
      */
-    public M rel(Integer pageNo,Integer pageSize){
-        return (M) eDbPro().rel(this,pageNo,pageSize);
+    public M rel(String fieldName,Integer pageNo,Integer pageSize){
+        return (M) eDbPro().rel(this,fieldName,pageNo,pageSize);
     }
 
     /**
@@ -306,25 +306,26 @@ public abstract class EDbModel<M extends EDbModel> implements Serializable { // 
      * @param pageSize
      * @return
      */
-    public  M rel(String fields,Integer pageNo,Integer pageSize){
-        return (M) eDbPro().rel(this,fields,pageNo,pageSize);
+    public  M rel(String fields,String fieldName,Integer pageNo,Integer pageSize){
+        return (M) eDbPro().rel(this,fieldName,fields,pageNo,pageSize);
     }
 
-    /**
-     * 返回数据对象本身
-     * @returnt
-     */
-    public M allRel(){
-        eDbPro().getAllRel(this);
-        return (M) this;
-    }
+//    /**
+//     * 返回数据对象本身
+//     * @returnt
+//     */
+//    public M allRel(){
+//        eDbPro().getAllRel(this);
+//        return (M) this;
+//    }
 
     /**
      * 获取视图对象
+     * @param fieldName 字段名
      * @return
      */
-    public M view(){
-        return (M) eDbPro().view(this);
+    public M view(String fieldName){
+        return (M) eDbPro().view(this,fieldName);
     }
 
 
@@ -334,8 +335,8 @@ public abstract class EDbModel<M extends EDbModel> implements Serializable { // 
      * @param pageSize
      * @return
      */
-    public M view(int pageNo,int pageSize){
-        return (M) eDbPro().view(this,pageNo,pageSize);
+    public M view(String fieldName,int pageNo,int pageSize){
+        return (M) eDbPro().view(this,fieldName,pageNo,pageSize);
     }
 
 

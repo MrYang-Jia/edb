@@ -20,18 +20,18 @@ import cn.hutool.core.map.CaseInsensitiveMap;
 
 import com.edbplus.db.annotation.EDbSave;
 import com.edbplus.db.annotation.EDbUpdate;
+import com.edbplus.db.dialect.EDbPostgreSqlDialect;
 import com.edbplus.db.druid.EDbSelectUtil;
 import com.edbplus.db.dto.EDBListenerResult;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.jpa.JpaBuilder;
-import com.edbplus.db.proxy.EDbRelProxy;
-import com.edbplus.db.jpa.util.JpaRelUtil;
 import com.edbplus.db.listener.EDbListener;
-import com.edbplus.db.proxy.EDbViewProxy;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
+import com.edbplus.db.util.EDbRelUtil;
+import com.edbplus.db.util.EDbViewUitl;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
 import com.edbplus.db.util.hutool.array.EArrayUtil;
 import com.edbplus.db.util.hutool.date.EDateUtil;
@@ -52,7 +52,6 @@ import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
-import java.util.concurrent.Future;
 
 /**
  * @ClassName EDbPro
@@ -85,7 +84,7 @@ public class EDbPro extends DbPro {
      * @param <M>
      * @return
      */
-    public <M> String getTableName(Class<M> mClass) {
+    public <M> String tableName(Class<M> mClass) {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         return table.name();
@@ -149,7 +148,7 @@ public class EDbPro extends DbPro {
         if(m instanceof String){
             throw new RuntimeException(" 直接执行sql请使用 EDb.update(sql) ");
         }
-        Class<M> mClass = getRealJpaClass(m);
+        Class<M> mClass = realJpaClass(m);
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
         String keys = JpaAnnotationUtil.getPriKeys(mClass);
@@ -572,11 +571,11 @@ public class EDbPro extends DbPro {
      * @param <M>
      * @return
      */
-    public <M> Map<String,Object> getColumnsMap(M m,boolean ignoreNullValue){
+    public <M> Map<String,Object> columnsMap(M m, boolean ignoreNullValue){
         if(m instanceof String){
             throw new RuntimeException(" 直接执行sql请使用 EDb.update(sql) ");
         }
-        Class<M> mClass = getRealJpaClass(m);
+        Class<M> mClass = realJpaClass(m);
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         if(table==null){
             // 以后再给成英文 -- 中文国际通用 ^_^
@@ -591,7 +590,7 @@ public class EDbPro extends DbPro {
      * @param <M>
      * @return
      */
-    public <M> Class<M> getRealJpaClass(M m){
+    public <M> Class<M> realJpaClass(M m){
 //        Class mClass = null;
 //        JpaProxy jpaProxy = JpaProxy.getCglibForJpaUpdate(m);
 //        if(jpaProxy == null){
@@ -1129,7 +1128,7 @@ public class EDbPro extends DbPro {
      */
     public <T> boolean deleteById(T t) {
         // 获取真实的jpa实例对象类型，避免是获取到代理类，导致异常错误
-        Class<T> tClass = getRealJpaClass(t);
+        Class<T> tClass = realJpaClass(t);
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(tClass);
         // 获取主键键值
@@ -1170,7 +1169,7 @@ public class EDbPro extends DbPro {
      */
     public <T> int deleteByIds(List<T> jpaList) {
         // 获取真实的jpa实例对象类型，避免是获取到代理类，导致异常错误
-        Class<T> tClass = getRealJpaClass(jpaList.get(0));
+        Class<T> tClass = realJpaClass(jpaList.get(0));
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(tClass);
         // 获取主键键值
@@ -1402,6 +1401,30 @@ public class EDbPro extends DbPro {
     }
 
     /**
+     * 查询sql，并设置返回条数
+     * @param sqlPara
+     * @param limit
+     * @return
+     */
+    public List<Record> find(SqlPara sqlPara,int limit) {
+        sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
+        return this.find(sqlPara.getSql(), sqlPara.getPara());
+    }
+
+    /**
+     * 查询sql，并设置返回条数和起始位
+     * @param sqlPara
+     * @param limit
+     * @param offset
+     * @return
+     */
+    public List<Record> find(SqlPara sqlPara,int limit,int offset) {
+        sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
+        sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
+        return this.find(sqlPara.getSql(), sqlPara.getPara());
+    }
+
+    /**
      * 通过对象和sqlpara对象返回查询结果
      * @param mClass
      * @param sqlPara
@@ -1409,6 +1432,36 @@ public class EDbPro extends DbPro {
      * @return
      */
     public <M> List<M> find(Class<M> mClass,SqlPara sqlPara) {
+        // 返回查询结果
+        return find(mClass,sqlPara.getSql(),sqlPara.getPara());
+    }
+
+    /**
+     * 重置查询sql的返回条数
+     * @param mClass
+     * @param sqlPara
+     * @param limit
+     * @param <M>
+     * @return
+     */
+    public <M> List<M> find(Class<M> mClass,SqlPara sqlPara,int limit) {
+        sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
+        // 返回查询结果
+        return find(mClass,sqlPara.getSql(),sqlPara.getPara());
+    }
+
+    /**
+     * 重置查询sql的返回条数和起始位
+     * @param mClass
+     * @param sqlPara
+     * @param limit
+     * @param offset
+     * @param <M>
+     * @return
+     */
+    public <M> List<M> find(Class<M> mClass,SqlPara sqlPara,int limit,int offset) {
+        sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
+        sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
         // 返回查询结果
         return find(mClass,sqlPara.getSql(),sqlPara.getPara());
     }
@@ -1440,6 +1493,84 @@ public class EDbPro extends DbPro {
     }
 
     /**
+     * 设置 PreparedStatement 的 RowMaxs 属性
+     * @param pst
+     */
+    public void setRowMaxs(PreparedStatement pst){
+        try { // 由于postgresql 无法通过jdbcUrl 设置 maxRows 保护系统运行时返回的系统内存，然后使用
+            if(this.config.getDialect() instanceof EDbPostgreSqlDialect){
+                EDbPostgreSqlDialect eDbPostgreSqlDialect = ((EDbPostgreSqlDialect) this.config.getDialect());
+                if(eDbPostgreSqlDialect.maxRows!=null){
+                    pst.setMaxRows(eDbPostgreSqlDialect.maxRows);
+                }
+            }
+        } catch (Throwable throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    /**
+     * 执行查询
+     * @param config
+     * @param conn
+     * @param sql
+     * @param paras
+     * @param <T>
+     * @return
+     * @throws SQLException
+     */
+    protected <T> List<T> query(Config config, Connection conn, String sql, Object... paras) throws SQLException {
+        List result = new ArrayList();
+        PreparedStatement pst = conn.prepareStatement(sql);
+        setRowMaxs(pst); // 设置返回条数的最大值，可以保护系统运行时避免内存溢出
+        Throwable var7 = null;
+        List var21;
+        try {
+            config.getDialect().fillStatement(pst, paras);
+            ResultSet rs = pst.executeQuery();
+            int colAmount = rs.getMetaData().getColumnCount();
+            if (colAmount <= 1) {
+                if (colAmount == 1) {
+                    while(rs.next()) {
+                        result.add(rs.getObject(1));
+                    }
+                }
+            } else {
+                while(rs.next()) {
+                    Object[] temp = new Object[colAmount];
+
+                    for(int i = 0; i < colAmount; ++i) {
+                        temp[i] = rs.getObject(i + 1);
+                    }
+
+                    result.add(temp);
+                }
+            }
+
+            this.close(rs);
+            var21 = result;
+        } catch (Throwable var19) {
+            var7 = var19;
+            throw var19;
+        } finally {
+            if (pst != null) {
+                if (var7 != null) {
+                    try {
+                        pst.close();
+                    } catch (Throwable var18) {
+                        var7.addSuppressed(var18);
+                    }
+                } else {
+                    pst.close();
+                }
+            }
+
+        }
+
+        return var21;
+    }
+
+    /**
      * 原jfinal查询，需要改写才能支持一些查询服务的处理
      * @param config
      * @param conn
@@ -1450,7 +1581,7 @@ public class EDbPro extends DbPro {
      */
     protected List<Record> find(Config config, Connection conn, String sql, Object... paras) throws SQLException {
         PreparedStatement pst = conn.prepareStatement(sql);
-//        pst.setMaxRows(10000); //todo:可以通过代码的方式注入，因为 postgresql 没有 maxRows 参数，但是实际上可以手工设置
+        setRowMaxs(pst); // 设置返回条数的最大值，可以保护系统运行时避免内存溢出
         Throwable var6 = null;
         List var9;
         try {
@@ -1509,7 +1640,7 @@ public class EDbPro extends DbPro {
         // 统一打开游标，便于快速返回计算结果
 //        pst = conn.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
         pst = conn.prepareStatement(sql); // 默认不打开游标，以便提升本身的性能，还有节约内存开销
-//        pst.setMaxRows(10000); //todo:可以通过代码的方式注入，因为 postgresql 没有 maxRows 参数，但是实际上可以手工设置
+        setRowMaxs(pst); // 设置返回条数的最大值，可以保护系统运行时避免内存溢出
         Throwable var6 = null;
 
         List var9;
@@ -2237,7 +2368,7 @@ public class EDbPro extends DbPro {
      */
     public Record findFirst(String sql) {
         // 由于sql语句，人为的可能会导致拉取大批量的数据，全表的话，会引起不可挽回的内存消耗，所以基于mysql or pg or oracle ，末尾添加 limit 2
-        sql = getFirstSql(sql);
+        sql = firstSql(sql);
         return this.findFirst(sql, new Object[0]);
     }
 
@@ -2246,7 +2377,7 @@ public class EDbPro extends DbPro {
      * @param sql
      * @return
      */
-    public String getFirstSql(String sql){
+    public String firstSql(String sql){
         // 获取返回limit 1 sql的语句
         return EDbSelectUtil.returnLimitSql(sql,1);
     }
@@ -2264,7 +2395,7 @@ public class EDbPro extends DbPro {
             return findFirst(tClass,sqlPara);
         }else{
             // 改写sql语句
-            sql = getFirstSql(sql);
+            sql = firstSql(sql);
             // 获取记录集
             List<T> result = find(tClass,sql,paras);
             return result.size() > 0 ? result.get(0) : null;
@@ -2280,7 +2411,7 @@ public class EDbPro extends DbPro {
      */
     public <T> T findFirst(Class<T> tClass,String sql) {
         // 改写sql语句
-        sql = getFirstSql(sql);
+        sql = firstSql(sql);
         // 获取记录集
         List<T> result = find(tClass,sql,new Object[0]);
         return result.size() > 0 ? result.get(0) : null;
@@ -2293,7 +2424,7 @@ public class EDbPro extends DbPro {
      * @return
      */
     public Record findFirst(SqlPara sqlPara) {
-        String sql = getFirstSql(sqlPara.getSql());
+        String sql = firstSql(sqlPara.getSql());
         return this.findFirst(sql, sqlPara.getPara());
     }
 
@@ -2306,7 +2437,7 @@ public class EDbPro extends DbPro {
      */
     public <T> T findFirst(Class<T> tClass,SqlPara sqlPara) {
         // 改写sql语句
-        String sql = getFirstSql(sqlPara.getSql());
+        String sql = firstSql(sqlPara.getSql());
         // 获取记录集
         List<T> result = find(tClass,sql,sqlPara.getPara());
         return result.size() > 0 ? result.get(0) : null;
@@ -2456,10 +2587,12 @@ public class EDbPro extends DbPro {
         // 解析 sqlpara
         SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery);
         if(offset == null){
-            sqlPara.setSql(sqlPara.getSql() + " limit " + limit);
+            sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
         }else{
-            // todo:需要根据不同数据库做不同的sql拼接，不然分页会有bug(暂时懒得写，后续改进)
-            sqlPara.setSql(sqlPara.getSql() + " limit " + limit + " offset " + offset);
+            // 先处理 offset
+            sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
+            // 再处理 limit
+            sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
         }
 
         return find(tClass,sqlPara);
@@ -2753,8 +2886,8 @@ public class EDbPro extends DbPro {
      * @param <T>
      * @return
      */
-    public <T> T rel(T t){
-        return rel(t,null,1,10);
+    public <T> T rel(T t,String fieldName){
+        return rel(t,fieldName,null,1,10);
     }
 
     /**
@@ -2765,8 +2898,8 @@ public class EDbPro extends DbPro {
      * @param <T> -- 这类方法一般返回的是list对象，不排除多个里取一个结果集
      * @return
      */
-    public <T> T rel(T t,Integer pageNo,Integer pageSize){
-        return rel(t,null,pageNo,pageSize);
+    public <T> T rel(T t,String fieldName,Integer pageNo,Integer pageSize){
+        return rel(t,fieldName,null,pageNo,pageSize);
     }
 
 
@@ -2780,125 +2913,108 @@ public class EDbPro extends DbPro {
      * @param <T>
      * @return
      */
-    public <T> T rel(T t,String fields,Integer pageNo,Integer pageSize){
-        if(t == null){
-            throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
-        }
-        // 已被代理则返回自身，不做二次代理
-        if (t.getClass().getSimpleName().indexOf("$$Enhancer") > 0){
-            // 存在奇葩的代理情况，则暂不做考虑，因为这种情况会比较少，否则直接抛错
-            return t;
-        }
-        EDbRelProxy eDbRelProxy = new EDbRelProxy();
-        eDbRelProxy.setFields(fields);
-        eDbRelProxy.setPageNo(pageNo);
-        eDbRelProxy.setPageSize(pageSize);
-        return eDbRelProxy.createProcy(t,this);
-    }
-
-
-    /**
-     * 通过relKey直接返回对象
-     * @param t
-     * @param relKey
-     * @param pageNo
-     * @param pageSize
-     * @return
-     */
-    public Object getRelKey(Object t,String relKey,Integer pageNo,Integer pageSize){
-        return  JpaRelUtil.getRelObject(relKey,null,pageNo,pageSize,this,t,null,null,true,false);
-    }
-
-    /**
-     * 通过relKey直接返回 object 对象
-     * @param t
-     * @param relKey
-     * @return
-     */
-    public Object getRelKey(Object t,String relKey){
-        return  JpaRelUtil.getRelObject(relKey,null,null,null,this,t,null,null,true,false);
-    }
-
-
-    /**
-     * 通过relKey直接返回对象异步列表
-     * @param t
-     * @param relKey
-     * @return
-     */
-    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey){
-        return getRelKeyForFutrue(t,relKey,null,null,null);
-    }
-
-
-
-    /**
-     * 异步获取对象
-     * @param t
-     * @param relKey
-     * @param pageNo
-     * @param pageSize
-     * @return
-     */
-    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey,Integer pageNo,Integer pageSize){
-        return getRelKeyForFutrue(t,relKey,null,pageNo,pageSize);
-    }
-
-
-
-
-    /**
-     * 异步获取对象
-     * @param t
-     * @param relKey
-     * @param fields
-     * @param pageNo
-     * @param pageSize
-     * @return
-     */
-    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey,String fields,Integer pageNo,Integer pageSize){
-        return (List<Future<Object>>) JpaRelUtil.getRelObject(relKey,fields,pageNo,pageSize,this,t,null,null,true,true);
-    }
-
-
-    /**
-     * 返回数据对象本身
-     * @param t
-     * @param <T>
-     * @returnt
-     */
-    public <T> T getAllRel(T t){
-        // 由于该方法映射的时候，会有一个问题点，就是返回的对象可能是List类型，导致循环匹配时，类型无法正确转换
-        JpaRelUtil.getRelObject(null,null,null,null,this,t,null,null,true,false);
+    public <T> T rel(T t,String fieldName,String fields,Integer pageNo,Integer pageSize){
+        EDbRelUtil.loadRel(t,fieldName,fields,this,pageNo,pageSize,0);
         return t;
     }
 
-    /**
-     * 获取所有数据对象，以异步回调的方式获取，能大量缩短等待时间
-     * @param object
-     */
-    public List<Future<Object>> getAllRelForFutrue(Object object){
-        return (List<Future<Object>>) JpaRelUtil.getRelObject(null,null,null,null,this,object,null,null,true,true);
-    }
+
+//    /**
+//     * 通过relKey直接返回对象
+//     * @param t
+//     * @param relKey
+//     * @param pageNo
+//     * @param pageSize
+//     * @return
+//     */
+//    public Object getRelKey(Object t,String relKey,Integer pageNo,Integer pageSize){
+//        return  JpaRelUtil.getRelObject(relKey,null,pageNo,pageSize,this,t,null,null,true,false);
+//    }
+//
+//    /**
+//     * 通过relKey直接返回 object 对象
+//     * @param t
+//     * @param relKey
+//     * @return
+//     */
+//    public Object getRelKey(Object t,String relKey){
+//        return  JpaRelUtil.getRelObject(relKey,null,null,null,this,t,null,null,true,false);
+//    }
+
+
+//    /**
+//     * 通过relKey直接返回对象异步列表
+//     * @param t
+//     * @param relKey
+//     * @return
+//     */
+//    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey){
+//        return getRelKeyForFutrue(t,relKey,null,null,null);
+//    }
+//
+//
+//
+//    /**
+//     * 异步获取对象
+//     * @param t
+//     * @param relKey
+//     * @param pageNo
+//     * @param pageSize
+//     * @return
+//     */
+//    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey,Integer pageNo,Integer pageSize){
+//        return getRelKeyForFutrue(t,relKey,null,pageNo,pageSize);
+//    }
+
+
+
+
+//    /**
+//     * 异步获取对象
+//     * @param t
+//     * @param relKey
+//     * @param fields
+//     * @param pageNo
+//     * @param pageSize
+//     * @return
+//     */
+//    public List<Future<Object>> getRelKeyForFutrue(Object t,String relKey,String fields,Integer pageNo,Integer pageSize){
+//        return (List<Future<Object>>) JpaRelUtil.getRelObject(relKey,fields,pageNo,pageSize,this,t,null,null,true,true);
+//    }
+
+
+//    /**
+//     * 返回数据对象本身
+//     * @param t
+//     * @param <T>
+//     * @returnt
+//     */
+//    public <T> T getAllRel(T t){
+//        // 由于该方法映射的时候，会有一个问题点，就是返回的对象可能是List类型，导致循环匹配时，类型无法正确转换
+//        JpaRelUtil.getRelObject(null,null,null,null,this,t,null,null,true,false);
+//        return t;
+//    }
+
+//    /**
+//     * 获取所有数据对象，以异步回调的方式获取，能大量缩短等待时间
+//     * @param object
+//     */
+//    public List<Future<Object>> getAllRelForFutrue(Object object){
+//        return (List<Future<Object>>) JpaRelUtil.getRelObject(null,null,null,null,this,object,null,null,true,true);
+//    }
+
+
 
     /**
      * 获取视图对象
      * @param t
+     * @param fieldName 需要根据@View里的模板sql获取数据回填的字段
      * @param <T>
      * @return
      */
-    public <T> T view(T t){
-        if(t == null){
-            throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
-        }
-        // 已被代理则返回自身，不做二次代理
-        if (t.getClass().getSimpleName().indexOf("$$Enhancer") > 0){
-            // 存在奇葩的代理情况，则暂不做考虑，因为这种情况会比较少，否则直接抛错
-            return t;
-        }
-        // 生成视图对象
-        EDbViewProxy eDbViewProxy = new EDbViewProxy();
-        return eDbViewProxy.createProcy(t,this);
+    public <T> T view(T t,String fieldName){
+        EDbViewUitl.loadView(t,fieldName,this,1,10);
+        return t;
     }
 
     /**
@@ -2909,20 +3025,9 @@ public class EDbPro extends DbPro {
      * @param <T>
      * @return
      */
-    public <T> T view(T t,int pageNo,int pageSize){
-        if(t == null){
-            throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
-        }
-        // 已被代理则返回自身，不做二次代理
-        if (t.getClass().getSimpleName().indexOf("$$Enhancer") > 0){
-            // 存在奇葩的代理情况，则暂不做考虑，因为这种情况会比较少，否则直接抛错
-            return t;
-        }
-        // 生成视图对象
-        EDbViewProxy eDbViewProxy = new EDbViewProxy();
-        // 设置翻页参数
-        eDbViewProxy.pageOf(pageNo,pageSize);
-        return eDbViewProxy.createProcy(t,this);
+    public <T> T view(T t,String fieldName,int pageNo,int pageSize){
+        EDbViewUitl.loadView(t,fieldName,this,pageNo,pageSize);
+        return t;
     }
 
     /**
@@ -2934,20 +3039,9 @@ public class EDbPro extends DbPro {
      * @param <T>
      * @return
      */
-    public <T> T view(T t,int pageNo,int pageSize,long totalRow){
-        if(t == null){
-            throw new RuntimeException("传入的对象为NULL，无法关联数据，请做判断再做调用");
-        }
-        // 已被代理则返回自身，不做二次代理
-        if (t.getClass().getSimpleName().indexOf("$$Enhancer") > 0){
-            // 存在奇葩的代理情况，则暂不做考虑，因为这种情况会比较少，否则直接抛错
-            return t;
-        }
-        // 生成视图对象
-        EDbViewProxy eDbViewProxy = new EDbViewProxy();
-        // 设置翻页参数
-        eDbViewProxy.pageOf(pageNo,pageSize,totalRow);
-        return eDbViewProxy.createProcy(t,this);
+    public <T> T view(T t,String fieldName,int pageNo,int pageSize,long totalRow){
+        EDbViewUitl.loadView(t,fieldName,this,pageNo,pageSize,totalRow);
+        return t;
     }
 
 
@@ -2966,7 +3060,7 @@ public class EDbPro extends DbPro {
             sqlPara = this.template(key).getSqlPara();
         }
         // 定义获取的sql
-        String totalRowSql = getCountSql(sqlPara.getSql());
+        String totalRowSql = countSql(sqlPara.getSql());
         // 定义返回列表
         List<Record> result = null;
         if(data != null){
@@ -2991,7 +3085,7 @@ public class EDbPro extends DbPro {
         //
 //        String[] sqls = PageSqlKit.parsePageSql(sqlPara.getSql());
         //
-        String totalRowSql = getCountSql(sqlPara.getSql());
+        String totalRowSql = countSql(sqlPara.getSql());
         List<Record> result = this.find(totalRowSql,sqlPara.getPara());
         if(result!=null && result.size()>0){
             return result.get(0).getLong("ct");
@@ -3007,7 +3101,7 @@ public class EDbPro extends DbPro {
      */
     public Long sqlForCount(String sql){
         //
-        String totalRowSql = getCountSql(sql);
+        String totalRowSql = countSql(sql);
         List<Record> result = this.find(totalRowSql);
         if(result!=null && result.size()>0){
             return result.get(0).getLong("ct");
@@ -3020,7 +3114,7 @@ public class EDbPro extends DbPro {
      * @param sql
      * @return
      */
-    public String getCountSql(String sql){
+    public String countSql(String sql){
         String[] sqls = PageSqlKit.parsePageSql(sql);
         String totalRowSql = this.config.getDialect().forPaginateTotalRow(sqls[0], sqls[1], (Object)null);
         sqls = null;

@@ -369,7 +369,7 @@ public class JpaRelUtil {
             // 读取数据的位置
             tableData.put(JpaRelPip.offset,offset);
         }
-        // sql对象 -- 因为还要指定模板加载，对于构建组件来说步骤太麻烦，所以去除
+        // sql对象 -- 因为还要指定模板加载，对于构建组件来说步骤太麻烦，所以去除(已经不存在任何引用)
         sqlPara.setSql(eDbPro.getSqlPara(EDbRelProxy.jpaEdbRelKey,tableData).getSql());
         return sqlPara;
     }
