@@ -861,6 +861,171 @@ public class EDbPro extends DbPro {
         return update(m,false);
     }
 
+
+    /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
+     * @param updateData -- 更新的数据库字段
+     * @param fkData -- 外键数据字段集
+     * @param <M>
+     * @return
+     */
+    public <M> boolean updateByFk(Class<M> mClass,Map<String,Object> updateData,Map<String,Object> fkData){
+        // 返回表对象 -- 便于获取表名称
+        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        // 获取主键键值 -- 小写
+        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        Record record = new Record();
+        // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
+        Map<String,Object> dataMap = new HashMap<>();
+        // 必须有更新条件，所以不用判断null
+        if(updateData.size() > 0){
+            for(Map.Entry<String, Object> entry : updateData.entrySet()){
+                // 由于使用工具类取出来的数据库字段命名是小写，所以统一转小写 ，这点是因为你永远无法知道用户到底是小写还是大写的命名规则决定的
+                dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
+            }
+        }
+        // 初始化对象
+        record.setColumns(dataMap);
+        // 获取所有字段列表
+        List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(mClass);
+        // 更新前的方法事件
+        Method beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbUpdate.class);
+        Map<String,Object> updateDataMap = null;
+        // 保存前的监听
+        if(eDbListener!=null){
+            updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            // 执行对象方法
+            eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
+            // 替换数据
+            record.setColumns(updateDataMap);
+        }
+
+        //
+        if(beforeSave != null){
+            Object ojb = null;
+            try {
+                ojb = mClass.newInstance();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+            // 替换成 忽略 大小写的 map
+            updateDataMap =  new CaseInsensitiveMap(dataMap);
+            // 执行对象方法
+            EReflectUtil.invoke(ojb, beforeSave, updateDataMap,coumns);
+            // 替换数据
+            record.setColumns(updateDataMap);
+        }
+        return this.updateFk(table.name(),keys,record,fkData);
+    }
+
+    /**
+     *
+     * @param tableName
+     * @param primaryKey
+     * @param record
+     * @return
+     */
+    public boolean updateFk(String tableName, String primaryKey, Record record,Map<String,Object> fkData) {
+        Connection conn = null;
+
+        boolean var5;
+        try {
+            conn = this.config.getConnection();
+            var5 = this.updateFk(this.config, conn, tableName, primaryKey, record,fkData);
+        } catch (Exception var9) {
+            throw new ActiveRecordException(var9);
+        } finally {
+            this.config.close(conn);
+        }
+
+        return var5;
+    }
+
+    /**
+     * 通过外键键值来更新数据
+     * @param config
+     * @param conn
+     * @param tableName
+     * @param primaryKey
+     * @param record
+     * @return
+     * @throws SQLException
+     */
+    protected boolean updateFk(Config config, Connection conn, String tableName, String primaryKey, Record record,Map<String,Object> fkData) throws SQLException {
+        String[] pKeys = primaryKey.split(",");
+
+        StringBuilder sql = new StringBuilder();
+        List<Object> paras = new ArrayList();
+        // 支持外键查询的扩展
+        forDbUpdateFk(tableName, pKeys, record, sql, paras,fkData);
+        if (paras.size() <= 1) {
+            return false;
+        } else {
+            return this.update(config, conn, sql.toString(), paras.toArray()) >= 1;
+        }
+    }
+
+
+    public void forDbUpdateFk(String tableName, String[] pKeys,  Record record, StringBuilder sql, List<Object> paras,Map<String,Object> fkData) {
+        tableName = tableName.trim();
+        this.config.getDialect().trimPrimaryKeys(pKeys);
+        sql.append("update ").append(tableName).append(" set ");
+        Iterator var7 = record.getColumns().entrySet().iterator();
+
+        while(var7.hasNext()) {
+            Map.Entry<String, Object> e = (Map.Entry)var7.next();
+            String colName = (String)e.getKey();
+            if (!this.config.getDialect().isPrimaryKey(colName, pKeys)) { // 非主键键值更新防御
+                if (paras.size() > 0) {
+                    sql.append(", ");
+                }
+                sql.append(colName).append(" = ? ");
+                paras.add(e.getValue());
+            }
+        }
+
+        sql.append(" where 1=1 ");
+
+//        for(int i = 0; i < pKeys.length; ++i) {
+//            if (i > 0) {
+//                sql.append(" and ");
+//            }
+//            sql.append(pKeys[i]).append(" = ?");
+//            paras.add(ids[i]);
+//        }
+
+
+        if(fkData!=null){
+            if(fkData.size() == 0){
+                throw new RuntimeException(" fkData size must be greater than 0 ");
+            }
+            for (Map.Entry<String, Object> m : fkData.entrySet()) {
+                // 前面主键一定有值
+                sql.append(" and ");
+                sql.append(m.getKey());
+                if(m.getValue() instanceof List){
+                    List<Object> fkKeys = (List<Object>) m.getValue();
+                    sql.append(" in(");
+                    for(int i = 0; i < fkKeys.size(); ++i){
+                        sql.append("?");
+                        if (i+1 < fkKeys.size()) {
+                            sql.append(",");
+                        }
+                        paras.add(fkKeys.get(i));
+                    }
+                    sql.append(")");
+                }else{
+                    sql.append(" =?");
+                    paras.add(m.getValue());
+                }
+            }
+        }else{
+            throw new RuntimeException(" fkData size must be greater than 0 ");
+        }
+
+    }
+
     /**
      * 更新对象 -- 剔除null值，成功返回1，失败返回0
      * @param m
