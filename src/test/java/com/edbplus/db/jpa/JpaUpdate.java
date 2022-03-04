@@ -5,10 +5,7 @@ import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.util.hutool.bean.EBeanUtil;
 import org.testng.annotations.Test;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName JpaUpdate
@@ -84,6 +81,27 @@ public class JpaUpdate  extends BaseTest {
         updateMap.put("CREATOR",null);
         updateMap.put("MODIFY_TIME",new Date());
         EDb.update(VehicleType.class,updateMap);
+    }
+
+
+    /**
+     * 通过外键键值来更新数据
+     */
+    @Test
+    public void testUpdateFunByFk(){
+        Map<String,Object> updateMap = new HashMap<>();
+        Map<String,Object> fkMap = new HashMap<>();
+        List<Object> list = new ArrayList<>();
+        list.add("1");
+//        list.add("天哪");
+        //
+        fkMap.put("VEHICLE_TYPE_NAME",list);
+        // 必须指定数据库的主键
+        updateMap.put("VEHICLE_TYPE_ID",1);
+        // 需要更新的字段 ，可以允许为null或其他对象类型
+        updateMap.put("CREATOR",null);
+        updateMap.put("MODIFY_TIME",new Date());
+        EDb.updateByFk(VehicleType.class,updateMap,fkMap);
     }
 
     /**

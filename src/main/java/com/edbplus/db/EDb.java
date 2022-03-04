@@ -320,6 +320,18 @@ public class EDb extends Db{
     }
 
     /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
+     * @param updateData -- 更新的数据库字段
+     * @param fkData -- 外键数据字段集
+     * @param <M>
+     * @return
+     */
+    public static <M> boolean updateByFk(Class<M> mClass,Map<String,Object> updateData,Map<String,Object> fkData){
+        return MAIN.updateByFk(mClass,updateData,fkData);
+    }
+
+    /**
      * 更新对象 -- 包含null值的变更情况 ,成功返回1 ，失败返回 0
      * @param mClass -- 数据库表对象
      * @param updateData  -- 数据库表字段(非驼峰对象)
