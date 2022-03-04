@@ -25,11 +25,20 @@ package com.edbplus.db.generator.jdbc;
 public class GenMysql {
 
     /**
-     * 识别用 , 分割的多表语句，并改写语句
+     * 识别用 , 分割的多表或多字段语句，并改写语句
      * @param tableName
      * @return
      */
     public static String getTablesSql(String tableName){
+        return splitSqlParams(tableName);
+    }
+
+    /**
+     * 拆分属性字段，形成sql参数
+     * @param tableName
+     * @return
+     */
+    public static String splitSqlParams(String tableName){
 
         // 如果已经包含了单引号，则不需要再进行一次改写
         if(tableName.contains("'")){
@@ -95,14 +104,34 @@ public class GenMysql {
         return getTableColumnsSql(tableName,false);
     }
 
+    /**
+     * 根据传入的
+     * @param tableName
+     * @param isOnlyAutoIncrement -- 是否只获取自增键值的语句
+     * @return
+     */
+    public static String getTableColumnsSql(String tableName,boolean isOnlyAutoIncrement ){
+        return getTableColumnsSql(tableName,null,isOnlyAutoIncrement);
+    }
+
+    /**
+     * 根据传入的表名和字段查询表字段信息
+     * @param tableName
+     * @param columnName
+     * @return
+     */
+    public static String getTableColumnsSql(String tableName,String columnName ){
+        return getTableColumnsSql(tableName,columnName,false);
+    }
 
     /**
      * 根据传入的
      * @param tableName
-     * @param isOnlyAutoIncrement
+     * @param columnName -- 传递查询字段
+     * @param isOnlyAutoIncrement -- 是否只获取自增键值的语句
      * @return
      */
-    public static String getTableColumnsSql(String tableName,boolean isOnlyAutoIncrement ){
+    public static String getTableColumnsSql(String tableName,String columnName,boolean isOnlyAutoIncrement ){
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
         // 添加顺序
@@ -142,6 +171,16 @@ public class GenMysql {
         {
             sql.append("  1=1 ");
         }
+        // 根据传入的字段过滤掉其他信息
+        if(columnName!=null && columnName.length()>0)//column_name
+        {
+            if(columnName.contains(",")){
+                sql.append(" and column_name in (").append(splitSqlParams(columnName)).append(") ");
+            }else{
+                sql.append(" and column_name = '").append(columnName).append("' ");
+            }
+        }
+
         // 查询指定的当前库
         sql.append(" AND table_schema = (SELECT DATABASE()) ");
         // 只获取自增键值的语句

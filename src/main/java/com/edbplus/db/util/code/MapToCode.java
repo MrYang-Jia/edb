@@ -19,6 +19,7 @@ import cn.hutool.core.map.CamelCaseMap;
 import cn.hutool.core.util.StrUtil;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.Map;
 
@@ -40,13 +41,14 @@ public class MapToCode {
         CamelCaseMap<String,Object> camelCaseMap = new CamelCaseMap(dataMap); // 转换成驼峰map
         StringBuilder codeStr = new StringBuilder("\n");
         codeStr.append("import java.util.Date;\n");
+        codeStr.append("import java.io.File;\n");
         codeStr.append("import java.math.BigDecimal;\n");
         codeStr.append("import io.quarkus.runtime.annotations.RegisterForReflection;\n");
         codeStr.append("import lombok.Data;\n");
         codeStr.append("import java.io.Serializable;\n");
+        codeStr.append("\n\n"); // 换行
         codeStr.append("@RegisterForReflection\n");
         codeStr.append("@Data\n");
-        codeStr.append("\n\n");
         codeStr.append("public class ").append(StrUtil.upperFirst(beanName)).append(" implements Serializable {\n");
         String fieldCode = "";
         for (Map.Entry<String, Object> m : camelCaseMap.entrySet()) {
@@ -71,6 +73,9 @@ public class MapToCode {
             if(m.getValue() instanceof BigDecimal){
                 fieldCode = "private BigDecimal "+m.getKey()+";";
             }else
+            if(m.getValue() instanceof BigInteger){
+                fieldCode = "private Long "+m.getKey()+";";
+            }else
             if(m.getValue() instanceof Boolean){ // 遇到boolean类型，一般都转换成 Integer
                 fieldCode = "private Integer "+m.getKey()+";";
             }else
@@ -78,8 +83,8 @@ public class MapToCode {
                 if(m.getValue() != null){
                     fieldCode = "private "+m.getValue().getClass().getName()+" "+m.getKey()+";";
                 }else{// 识别不出来的，默认都同意转换成 String 类型
-                    codeStr.append("\t").append("//todo:回填正确的属性和示意\n");
-                    fieldCode = "private String "+m.getKey()+";";
+                    //codeStr.append("\t").append("//todo:回填正确的属性和示意\n");
+                    fieldCode = "private 999 "+m.getKey()+";";
                 }
             }
             codeStr.append("\t").append(fieldCode).append("\n");
