@@ -82,7 +82,6 @@ public class SelectParser {
                 SQLTableSource sqlTableSource;
                 SQLTableSource subSqlTableSource;
                 SQLPropertyExpr sqlPropertyExpr = null;
-                SQLQueryExpr sqlQueryExpr;
                 SQLObject sqlObject;
                 SQLSelectQueryBlock sqlSelectQueryBlock;
                 SQLSelect subQuerySelect;
@@ -122,62 +121,65 @@ public class SelectParser {
                                 sqlTableSource = ((SQLSelectQueryBlock) sqlObject).getFrom();
                                 if(sqlTableSource!=null && sqlTableSource instanceof SQLJoinTableSource){
                                     // 获取表对象
-                                    tableSource = loadTableSource(sqlTableSource,sqlPropertyExpr);
+                                    tableSource = loadTableSource(selectItems,sqlTableSource,sqlPropertyExpr);
                                 }else{
                                     tableSource = (SQLExprTableSource) sqlTableSource;
                                 }
-                                tableName =  tableSource.getName().getSimpleName();
-                                columnName = sqlPropertyExpr.getName();
-                                // 实际表名+表字段
+                                if(tableSource !=null ){ // 如果存在表的情况则分配字段与表的关系
+                                    tableName =  tableSource.getName().getSimpleName();
+                                    columnName = sqlPropertyExpr.getName();
+                                    // 实际表名+表字段
 //                                System.out.println("=1=>"+ tableName + "." + columnName +"==>"+aliasName);
-                                loadSelectItmes(selectItems,tableName,columnName,aliasName);
+                                    loadSelectItmes(selectItems,tableName,columnName,aliasName);
+                                }
 
                             }
                         }else if(s.getExpr() instanceof SQLQueryExpr){
-                            sqlQueryExpr = (SQLQueryExpr) s.getExpr();
-                            SQLSelect sqlSelect = sqlQueryExpr.subQuery;
-                            if(sqlSelect!=null && sqlSelect.getQuery() instanceof SQLSelectQueryBlock){ // 这是一个内部 select
-                                sqlSelectQueryBlock = (SQLSelectQueryBlock) sqlSelect.getQuery();
-                                sqlTableSource = sqlSelectQueryBlock.getFrom();
-                                if(sqlTableSource instanceof SQLExprTableSource){
-                                    tableSource = (SQLExprTableSource) sqlTableSource;
-                                    selectItem = sqlSelectQueryBlock.getSelectList();
-                                    SQLExpr sqlExpr =selectItem.get(0).getExpr();
-
-                                    if(sqlExpr instanceof SQLIdentifierExpr){
-                                        columnName = ((SQLIdentifierExpr) sqlExpr).getName();
-                                    }else if(sqlExpr instanceof SQLMethodInvokeExpr){
-                                        sqlExprList = ((SQLMethodInvokeExpr) sqlExpr).getArguments();
-                                        for (SQLExpr sqlExpr1:sqlExprList){
-                                            if(sqlExpr1 instanceof SQLPropertyExpr){
-                                                columnName = ((SQLPropertyExpr) sqlExpr1).getName();
-                                                break;
-                                            }
-                                        }
-//                                        System.out.println("columnName->"+columnName);
-                                    }else if(sqlExpr instanceof SQLPropertyExpr){
-                                        columnName = ((SQLPropertyExpr) sqlExpr).getName();
-                                    }else{
-                                        System.out.println("===不支持==="+sqlExpr.getClass().getSimpleName());
-                                    }
-                                    tableName =  tableSource.getName().getSimpleName();
-//                                    System.out.println("=21=>"+ tableName + "."+ columnName+"==>"+aliasName);
-                                    loadSelectItmes(selectItems,tableName,columnName,aliasName);
-                                }else if(sqlTableSource instanceof SQLSubqueryTableSource){ // 复合sql，内部不止定义了一个select
-                                    subQuerySelect = ((SQLSubqueryTableSource) sqlTableSource).getSelect();
-                                    sqlSelectQueryBlock = (SQLSelectQueryBlock) subQuerySelect.getQuery(); // 内部的一个select查询
-                                    subSelectItem = sqlSelectQueryBlock.getSelectList(); // 复合查询对应的字段
-                                    subSqlTableSource = sqlSelectQueryBlock.getFrom(); // form 主体对象，可能内部也是复合查询!!!
-                                    // 获取表字段，但是如果sql的表别名，子查询的表别名与外部表重叠，将会发生错误信息！！！ 所以目前只处理相对比较简单的模式
-                                    tableSource = loadTableSource(subSqlTableSource, (SQLPropertyExpr) subSelectItem.get(0).getExpr());
-                                    tableName = tableSource.getTableName();
-                                    columnName = ((SQLPropertyExpr) subSelectItem.get(0).getExpr()).getName();
-//                                    System.out.println("=22=>"+tableName + "." + columnName+"==>"+aliasName);
-                                    loadSelectItmes(selectItems,tableName,columnName,aliasName);
-                                }
-                            }else{
-                                System.out.println("=23=>"+s.getClass().getSimpleName()+"==>"+aliasName);
-                            }
+                            doSQLQueryExpr(selectItems, (SQLQueryExpr) s.getExpr(),aliasName);
+//                            SQLQueryExpr sqlQueryExpr = (SQLQueryExpr) s.getExpr();
+//                            SQLSelect sqlSelect = sqlQueryExpr.subQuery;
+//                            if(sqlSelect!=null && sqlSelect.getQuery() instanceof SQLSelectQueryBlock){ // 这是一个内部 select
+//                                sqlSelectQueryBlock = (SQLSelectQueryBlock) sqlSelect.getQuery();
+//                                sqlTableSource = sqlSelectQueryBlock.getFrom();
+//                                if(sqlTableSource instanceof SQLExprTableSource){
+//                                    tableSource = (SQLExprTableSource) sqlTableSource;
+//                                    selectItem = sqlSelectQueryBlock.getSelectList();
+//                                    SQLExpr sqlExpr =selectItem.get(0).getExpr();
+//
+//                                    if(sqlExpr instanceof SQLIdentifierExpr){
+//                                        columnName = ((SQLIdentifierExpr) sqlExpr).getName();
+//                                    }else if(sqlExpr instanceof SQLMethodInvokeExpr){
+//                                        sqlExprList = ((SQLMethodInvokeExpr) sqlExpr).getArguments();
+//                                        for (SQLExpr sqlExpr1:sqlExprList){
+//                                            if(sqlExpr1 instanceof SQLPropertyExpr){
+//                                                columnName = ((SQLPropertyExpr) sqlExpr1).getName();
+//                                                break;
+//                                            }
+//                                        }
+////                                        System.out.println("columnName->"+columnName);
+//                                    }else if(sqlExpr instanceof SQLPropertyExpr){
+//                                        columnName = ((SQLPropertyExpr) sqlExpr).getName();
+//                                    }else{
+//                                        System.out.println("===不支持==="+sqlExpr.getClass().getSimpleName());
+//                                    }
+//                                    tableName =  tableSource.getName().getSimpleName();
+////                                    System.out.println("=21=>"+ tableName + "."+ columnName+"==>"+aliasName);
+//                                    loadSelectItmes(selectItems,tableName,columnName,aliasName);
+//                                }else if(sqlTableSource instanceof SQLSubqueryTableSource){ // 复合sql，内部不止定义了一个select
+//                                    subQuerySelect = ((SQLSubqueryTableSource) sqlTableSource).getSelect();
+//                                    sqlSelectQueryBlock = (SQLSelectQueryBlock) subQuerySelect.getQuery(); // 内部的一个select查询
+//                                    subSelectItem = sqlSelectQueryBlock.getSelectList(); // 复合查询对应的字段
+//                                    subSqlTableSource = sqlSelectQueryBlock.getFrom(); // form 主体对象，可能内部也是复合查询!!!
+//                                    // 获取表字段，但是如果sql的表别名，子查询的表别名与外部表重叠，将会发生错误信息！！！ 所以目前只处理相对比较简单的模式
+//                                    tableSource = loadTableSource(selectItems,subSqlTableSource, (SQLPropertyExpr) subSelectItem.get(0).getExpr());
+//                                    tableName = tableSource.getTableName();
+//                                    columnName = ((SQLPropertyExpr) subSelectItem.get(0).getExpr()).getName();
+////                                    System.out.println("=22=>"+tableName + "." + columnName+"==>"+aliasName);
+//                                    loadSelectItmes(selectItems,tableName,columnName,aliasName);
+//                                }
+//                            }else{
+//                                System.out.println("=23=>"+s.getClass().getSimpleName()+"==>"+aliasName);
+//                            }
 
 //                            System.out.println("=2=>"+s.getAlias() +"->" + s.getClass().getSimpleName());
                         }else if(s.getExpr() instanceof SQLCaseExpr){
@@ -200,7 +202,10 @@ public class SelectParser {
 //                                System.out.println("=31=>"+ tableName+"."+columnName+"==>"+aliasName);
                                             loadSelectItmes(selectItems,tableName,columnName,aliasName);
                                             break;
-                                        }else{
+                                        }else  if(item.getValueExpr() instanceof SQLQueryExpr){
+                                            doSQLQueryExpr(selectItems, (SQLQueryExpr) item.getValueExpr(),aliasName);
+                                        }
+                                        else{
                                             System.out.println("-313->"+item.getValueExpr().getClass().getSimpleName());
                                         }
                                     }
@@ -262,6 +267,60 @@ public class SelectParser {
     }
 
     /**
+     * 加载子查询字段
+     * @param selectItems
+     * @param sqlQueryExpr
+     * @param aliasName
+     */
+    public static void doSQLQueryExpr(SelectItems selectItems,SQLQueryExpr sqlQueryExpr ,String aliasName){
+        SQLSelect sqlSelect = sqlQueryExpr.subQuery;
+        String columnName = null;
+        String tableName = null;
+        if(sqlSelect!=null && sqlSelect.getQuery() instanceof SQLSelectQueryBlock){ // 这是一个内部 select
+            SQLSelectQueryBlock sqlSelectQueryBlock = (SQLSelectQueryBlock) sqlSelect.getQuery();
+            SQLTableSource sqlTableSource = sqlSelectQueryBlock.getFrom();
+            if(sqlTableSource instanceof SQLExprTableSource){
+                SQLExprTableSource tableSource = (SQLExprTableSource) sqlTableSource;
+                List<SQLSelectItem> selectItem = sqlSelectQueryBlock.getSelectList();
+                SQLExpr sqlExpr =selectItem.get(0).getExpr();
+
+                if(sqlExpr instanceof SQLIdentifierExpr){
+                    columnName = ((SQLIdentifierExpr) sqlExpr).getName();
+                }else if(sqlExpr instanceof SQLMethodInvokeExpr){
+                    List<SQLExpr> sqlExprList = ((SQLMethodInvokeExpr) sqlExpr).getArguments();
+                    for (SQLExpr sqlExpr1:sqlExprList){
+                        if(sqlExpr1 instanceof SQLPropertyExpr){
+                            columnName = ((SQLPropertyExpr) sqlExpr1).getName();
+                            break;
+                        }
+                    }
+//                                        System.out.println("columnName->"+columnName);
+                }else if(sqlExpr instanceof SQLPropertyExpr){
+                    columnName = ((SQLPropertyExpr) sqlExpr).getName();
+                }else{
+                    System.out.println("===不支持==="+sqlExpr.getClass().getSimpleName());
+                }
+                tableName =  tableSource.getName().getSimpleName();
+//                                    System.out.println("=21=>"+ tableName + "."+ columnName+"==>"+aliasName);
+                loadSelectItmes(selectItems,tableName,columnName,aliasName);
+            }else if(sqlTableSource instanceof SQLSubqueryTableSource){ // 复合sql，内部不止定义了一个select
+                SQLSelect subQuerySelect = ((SQLSubqueryTableSource) sqlTableSource).getSelect();
+                sqlSelectQueryBlock = (SQLSelectQueryBlock) subQuerySelect.getQuery(); // 内部的一个select查询
+                List<SQLSelectItem> subSelectItem = sqlSelectQueryBlock.getSelectList(); // 复合查询对应的字段
+                SQLTableSource subSqlTableSource = sqlSelectQueryBlock.getFrom(); // form 主体对象，可能内部也是复合查询!!!
+                // 获取表字段，但是如果sql的表别名，子查询的表别名与外部表重叠，将会发生错误信息！！！ 所以目前只处理相对比较简单的模式
+                SQLExprTableSource tableSource = loadTableSource(selectItems,subSqlTableSource, (SQLPropertyExpr) subSelectItem.get(0).getExpr());
+                tableName = tableSource.getTableName();
+                columnName = ((SQLPropertyExpr) subSelectItem.get(0).getExpr()).getName();
+//                                    System.out.println("=22=>"+tableName + "." + columnName+"==>"+aliasName);
+                loadSelectItmes(selectItems,tableName,columnName,aliasName);
+            }
+        }else{
+            System.out.println("=23=>"+sqlSelect.getParent().getClass().getSimpleName()+"==>"+aliasName);
+        }
+    }
+
+    /**
      * 加载表字段属性集
      * @param selectItems
      * @param tableName
@@ -278,9 +337,9 @@ public class SelectParser {
      * @param tableName
      * @param columnName
      * @param aliasName
-     * @param sqlValuableExpr -- 字段的数据类型
+     * @param objExpr -- 字段的数据类型
      */
-    public static void loadSelectItmes(SelectItems selectItems,String tableName,String columnName,String aliasName,SQLValuableExpr sqlValuableExpr){
+    public static void loadSelectItmes(SelectItems selectItems,String tableName,String columnName,String aliasName,Object objExpr){
         tableName = tableName.toLowerCase(Locale.ROOT); // 全部转小写
         columnName =  columnName.toLowerCase(Locale.ROOT); // 全转小写
         SelectItemInfo selectItemInfo = new SelectItemInfo();
@@ -296,6 +355,11 @@ public class SelectParser {
                 aliasName = aliasName.toLowerCase(Locale.ROOT); // 全转小写
             }
             selectItemInfo.setJavaCodeName(EStrUtil.toCamelCase(aliasName));
+        }
+        // 数据类型处理 ======
+        SQLValuableExpr sqlValuableExpr = null;
+        if(objExpr instanceof  SQLValuableExpr){
+            sqlValuableExpr = (SQLValuableExpr) objExpr;
         }
         if(sqlValuableExpr!=null){ // 这个如果不是null的话，则可以提前赋予java的属性类型，这种一般是自定义一种固定属性的类型赋予前端
             // number char bigint 主要是这三类
@@ -314,6 +378,11 @@ public class SelectParser {
             }else{// 其他情况
                 System.out.println("-0->"+tableName+"."+columnName+"->"+columnType);
             }
+        }
+        // 统计复合类型
+        if(objExpr instanceof SQLAggregateExpr){
+//            SQLAggregateExpr sqlAggregateExpr = (SQLAggregateExpr) objExpr;
+            selectItemInfo.setJavaType("BigDecimal");
         }
 
         Map<String,SelectItemInfo> selectItemInfoMap =  null;
@@ -337,26 +406,39 @@ public class SelectParser {
      * @param sqlPropertyExpr
      * @return
      */
-    public static SQLExprTableSource loadTableSource(SQLTableSource sqlTableSource, SQLPropertyExpr sqlPropertyExpr){
+    public static SQLExprTableSource loadTableSource(SelectItems selectItems,SQLTableSource sqlTableSource, SQLPropertyExpr sqlPropertyExpr){
         SQLExprTableSource tableSource = null;
         if(sqlTableSource instanceof SQLJoinTableSource){
             SQLTableSource leftTable = ((SQLJoinTableSource) sqlTableSource).getLeft();
             SQLTableSource rightTable = ((SQLJoinTableSource) sqlTableSource).getRight();
             tableSource =  null;
             if(leftTable instanceof SQLJoinTableSource){
-                tableSource = loadTableSource(leftTable,sqlPropertyExpr);
+                tableSource = loadTableSource(selectItems,leftTable,sqlPropertyExpr);
             }
             if(rightTable instanceof SQLJoinTableSource){
-                tableSource = loadTableSource(rightTable,sqlPropertyExpr);
+                tableSource = loadTableSource(selectItems,rightTable,sqlPropertyExpr);
             }
+
             if(tableSource!=null){
                 return tableSource; // 如果已获取到实际数据则返回
             }
-            if(leftTable!=null && sqlPropertyExpr!=null && leftTable.getAlias()!=null && leftTable.getAlias().equals(sqlPropertyExpr.getOwnerName())){
+
+
+            if(leftTable!=null && sqlPropertyExpr!=null && leftTable.getAlias()!=null && leftTable.getAlias().equals(sqlPropertyExpr.getOwnerName())
+            && leftTable instanceof SQLExprTableSource
+            ){
                 tableSource = ((SQLExprTableSource)leftTable);
             }
-            if(rightTable!=null && sqlPropertyExpr!=null && rightTable.getAlias()!=null && rightTable.getAlias().equals(sqlPropertyExpr.getOwnerName())){
+
+            if(rightTable!=null && sqlPropertyExpr!=null && rightTable.getAlias()!=null && rightTable.getAlias().equals(sqlPropertyExpr.getOwnerName())
+                    && rightTable instanceof SQLExprTableSource
+            ){
                 tableSource = ((SQLExprTableSource)rightTable);
+            }
+
+            // 外部子查询对象
+            if(tableSource==null && leftTable instanceof SQLSubqueryTableSource ){
+                tableSource = loadSQLSubqueryTableSource(selectItems,leftTable,sqlPropertyExpr);
             }
         }else{
             tableSource = (SQLExprTableSource) sqlTableSource;
@@ -364,8 +446,38 @@ public class SelectParser {
         return tableSource;
     }
 
+    public static SQLExprTableSource loadSQLSubqueryTableSource(SelectItems selectItems,SQLTableSource sqlTableSource, SQLPropertyExpr sqlPropertyExpr){
+        SQLExprTableSource tableSource=null;
+        SQLSelect subQuerySelect = ((SQLSubqueryTableSource) sqlTableSource).getSelect();
+        SQLSelectQueryBlock sqlSelectQueryBlock = (SQLSelectQueryBlock) subQuerySelect.getQuery(); // 内部的一个select查询
+        List<SQLSelectItem> subSelectItems = sqlSelectQueryBlock.getSelectList(); // 复合查询对应的字段（可能有好几个）
+        SQLTableSource subSqlTableSource = sqlSelectQueryBlock.getFrom(); // form 主体对象，可能内部也是复合查询!!!
+        String ownerName = sqlPropertyExpr.getOwnerName(); // 外部别名
+        String propertyName = sqlPropertyExpr.getName();
+
+        for(SQLSelectItem sqlSelectItem:subSelectItems){
+//            System.out.println(sqlSelectItem.getExpr().getClass().getName());
+            if(sqlSelectItem.getExpr() instanceof SQLPropertyExpr){
+                SQLPropertyExpr sqlPropertyExpr1 = (SQLPropertyExpr) sqlSelectItem.getExpr();
+                if(propertyName.equals(sqlPropertyExpr1.getName())){
+//                    System.out.println("-->"+sqlPropertyExpr1.getName());  // 别名
+                    tableSource = loadTableSource(selectItems,subSqlTableSource, sqlPropertyExpr1);
+                }
+            }else if(sqlSelectItem.getExpr() instanceof SQLAggregateExpr){ // 聚合函数，所以返回的是数字类型
+                SQLAggregateExpr sqlAggregateExpr =   (SQLAggregateExpr) sqlSelectItem.getExpr();
+//                System.out.println(sqlSelectItem.getAlias());  // 别名
+                loadSelectItmes(selectItems,"null",sqlSelectItem.getAlias(),sqlSelectItem.getAlias(), sqlAggregateExpr);
+            }
+        }
+//        System.out.println("list:"+subSelectItems);
+//        System.out.println(sqlPropertyExpr.toString());
+        return tableSource;
+    }
+
+
+
     /**
-     *
+     * 加载表别名资源
      * @param sqlTableSource
      * @param aliasTables
      */
@@ -377,7 +489,10 @@ public class SelectParser {
             tableSource =  null;
             if(leftTable instanceof SQLJoinTableSource){
                 loadTableSourceAlias(leftTable,aliasTables);
-            }else{
+            }else if(leftTable instanceof SQLSubqueryTableSource){
+                System.out.println("-501-SQLSubqueryTableSource");
+            }
+            else{
                 tableSource = (SQLExprTableSource) leftTable;
                 if(aliasTables.get(tableSource.getAlias())==null){
                     aliasTables.put(tableSource.getAlias(),tableSource);
@@ -385,6 +500,8 @@ public class SelectParser {
             }
             if(rightTable instanceof SQLJoinTableSource){
                 loadTableSourceAlias(rightTable,aliasTables);
+            }else if(leftTable instanceof SQLSubqueryTableSource){
+                System.out.println("-502-SQLSubqueryTableSource");
             }else{
                 tableSource = (SQLExprTableSource) rightTable;
                 if(aliasTables.get(tableSource.getAlias())==null){
@@ -399,4 +516,5 @@ public class SelectParser {
         }
 
     }
+
 }

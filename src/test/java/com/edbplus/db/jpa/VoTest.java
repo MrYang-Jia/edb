@@ -8,6 +8,7 @@ import com.edbplus.db.jpa.vo.CrVehicleTypeVo;
 import com.edbplus.db.proxy.EDbProxyFactory;
 import com.edbplus.db.util.code.MapToCode;
 import com.edbplus.db.util.code.SqlToCode;
+import com.edbplus.db.util.code.TableToCode;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import org.testng.annotations.Test;
@@ -263,64 +264,58 @@ public class VoTest extends BaseTest {
 
         String javaCode = SqlToCode.javaCode(sql,"appGoodSourceVo",EDb.use("pg"),DbType.postgresql);
         System.out.println(javaCode);
+    }
 
-//
-//        SelectItems selectItems = SelectParser.getSelectNames(sql, DbType.mysql.name());
-////        System.out.println(JSONUtil.toJsonPrettyStr(selectItems));
-//        sql = GenMysql.getTableColumnsSql(SelectItems.splitSqlParams(selectItems.tables),SelectItems.splitSqlParams(selectItems.columns));
-//        // 从数据库里获取所有表的字段，并回填到对应的结构体上
-//        List<TableColumnInfo> list = EDb.find(TableColumnInfo.class,sql);
-//        System.out.println(JSONUtil.toJsonPrettyStr(list));
-//        Map<String,SelectItemInfo> selectItemInfoMap = null;
-//        SelectItemInfo selectItemInfo = null;
-//        for(TableColumnInfo tableColumnInfo:list){
-//            selectItemInfoMap = selectItems.get(tableColumnInfo.getTableName().toLowerCase(Locale.ROOT));
-//            if(selectItemInfoMap != null){ // 存在表
-//                selectItemInfo = selectItemInfoMap.get(tableColumnInfo.getColumnName().toLowerCase(Locale.ROOT));
-//                if(selectItemInfo !=null ){ // 存在字段
-//                    selectItemInfo.setColumnType(tableColumnInfo.getDataType()); // 数据库的字段类型
-//                    selectItemInfo.setJavaType(MysqlToJava.filedTypeMap.get(tableColumnInfo.getDataType())); // java 对用的数据类型
-//                    selectItemInfo.setMaxL(tableColumnInfo.getMaxL()); // 字段的最大长度，如果没有的话为null ，存在 单精度和双精度两类长度，例如  11 或 11,2
-//                    if(tableColumnInfo.getMaxL()!=null && tableColumnInfo.getMaxL().length()>0  ){
-//                        if(tableColumnInfo.getMaxL().contains(",")){
-//                            selectItemInfo.setJavaLength(Integer.valueOf(tableColumnInfo.getMaxL().split(",")[0])); // 例如 11,2 ，只需要获取左侧第一个位置即可
-//                        }else{
-//                            selectItemInfo.setJavaLength(Integer.valueOf(tableColumnInfo.getMaxL()));
-//                        }
-//                    }
-//                }else{
-//                    System.out.println("未匹配字段->"+tableColumnInfo.getTableName()+"."+tableColumnInfo.getColumnName());
-//                }
-//            }
-//        }
-//        System.out.println(JSONUtil.toJsonPrettyStr(selectItems));
-//
-//
-//        String beanName = "appGoodSourceVo";
-//        StringBuilder codeStr = new StringBuilder("\n");
-//        codeStr.append("import java.util.Date;\n");
-//        codeStr.append("import java.io.File;\n");
-//        codeStr.append("import java.math.BigDecimal;\n");
-//        codeStr.append("import io.quarkus.runtime.annotations.RegisterForReflection;\n");
-//        codeStr.append("import lombok.Data;\n");
-//        codeStr.append("import java.io.Serializable;\n");
-//        codeStr.append("\n\n"); // 换行
-//        codeStr.append("@RegisterForReflection\n");
-//        codeStr.append("@Data\n");
-//        codeStr.append("public class ").append(StrUtil.upperFirst(beanName)).append(" implements Serializable {\n");
-//        // 迭代字段
-//        selectItems.forEach((tableName, tableColumn) -> {
-////            System.out.println(tableName + "：" + tableColumn);
-//            // 第一层是表
-//            // 第二层是表字段映射
-//            tableColumn.forEach((column,item)->{
-//                codeStr.append("\t").append("private ").append(item.getJavaType()).append(" ").append(item.getJavaCodeName()).append(";\n");
-//            });
-//        });
-//        codeStr.append("}\n");
-//
-//        System.out.println(codeStr);
-        //        System.out.println(GenMysql.getTableColumnsSql("cr_vehicle_type","vehicle_type_id"));
+    @Test
+    public void createCode2(){
+        String sql = "SELECT\n" +
+                "\tvdr.ID,\n" +
+                "\tvdr.UC_CONTACT,\n" +
+                "\tvdr.UC_TYPE,\n" +
+                "\tvdr.source_type,\n" +
+                "\tvdr.source_id,\n" +
+                "\tvdr.allow_source_types,\n" +
+                "\tvdr.UC_VEHICLE_NUMBER,\n" +
+                "\tvdr.UC_VEHICLE_TYPE_NAME,\n" +
+                "\tvdr.UC_VEHICLE_LENGTH,\n" +
+                "\tvdr.UC_VEHICLE_WEIGHT,\n" +
+                "\tvdr.UC_COMPANY,\n" +
+                "\tvdr.UC_NAME,\n" +
+                "\tvdr.START_LC,\n" +
+                "\tvdr.END_LC,\n" +
+                "\tvdr.CM_LC,\n" +
+                "\tvdr.TEL_LC,\n" +
+                "\tvdr.CREATE_TIME,\n" +
+                "\t( SELECT LABEL_NAME FROM sys_pre_user WHERE USER_NAME = UC_CONTACT LIMIT 1 ) LABEL_NAME,\n" +
+                "\t( SELECT USER_ID FROM sys_pre_user WHERE USER_NAME = UC_CONTACT LIMIT 1 ) USER_ID,\n" +
+                "\t( SELECT AREA FROM cr_user_last_location WHERE USER_NAME = UC_CONTACT LIMIT 1 ) LOCATION,\n" +
+                "\t( SELECT LOCATE_TIME FROM cr_user_last_location WHERE USER_NAME = UC_CONTACT LIMIT 1 ) LOCATE_TIME,\n" +
+                "\t( CASE WHEN SOURCE_TYPE = '30' THEN ( SELECT VS_NO FROM tra_vehicle_source WHERE VSID = vdr.SOURCE_ID ) END ) AS sourceNo,\n" +
+                "\tvdrjoin.childs AS childs \n" +
+                "FROM\n" +
+                "\t(\n" +
+                "\tSELECT\n" +
+                "\t\tvdrtem.ID,\n" +
+                "\t\tCOUNT ( 1 ) AS childs \n" +
+                "\tFROM\n" +
+                "\t\tVW_DRIVER_ROUTE vdrtem\n" +
+                "\t\tLEFT JOIN SYS_PRE_USER spu ON vdrtem.UC_CONTACT = spu.USER_NAME\n" +
+                "\t\tLEFT JOIN CR_USER_LAST_LOCATION cull ON vdrtem.UC_CONTACT = cull.USER_NAME \n" +
+                "\tWHERE\n" +
+                "\t\t1 = 1 \n" +
+                "\t\tAND UC_CONTACT IN ( SELECT user_name FROM cr_user_last_location WHERE AREA ~ '云南省,昆明市' ) \n" +
+                "\tGROUP BY\n" +
+                "\t\tvdrtem.UC_CONTACT,vdrtem.ID\n" +
+                "\tORDER BY\n" +
+                "\t\tvdrtem.create_time DESC \n" +
+                "\t\tLIMIT 10\n" +
+                "\t\toffset 0\n" +
+                "\t) vdrjoin\n" +
+                "\tJOIN vw_driver_route AS vdr ON vdr.ID = vdrjoin.ID\n" +
+                "\t";
+//        System.out.println(JSONUtil.toJsonStr(SelectParser.getSelectNames(sql, DbType.postgresql.name())));
+        String javaCode = SqlToCode.javaCode(sql,"appGoodSourceVo", EDb.use("pg"),DbType.postgresql);
+        System.out.println(javaCode);
     }
 
 
@@ -340,6 +335,12 @@ public class VoTest extends BaseTest {
         String prePath ="sql";
         String sqlPre = prePath.split("/")[0];
         System.out.println(sqlPre);
+    }
+
+
+    @Test
+    public void tableToCode(){
+        TableToCode.javaCode("cr_vehicle_type","CrVehicleType",EDb.use());
     }
 
 }

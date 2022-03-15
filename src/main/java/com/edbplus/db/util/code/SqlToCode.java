@@ -26,6 +26,8 @@ import com.edbplus.db.generator.entity.TableColumnInfo;
 import com.edbplus.db.generator.jdbc.GenMysql;
 import com.edbplus.db.generator.jdbc.GenPg;
 import com.edbplus.db.generator.util.SqlToJava;
+import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
+import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 
 import java.util.List;
 import java.util.Locale;
@@ -39,6 +41,23 @@ import java.util.Map;
  * @Version V1.0
  **/
 public class SqlToCode {
+
+    /**
+     * 获取javaCode
+     * @param sql
+     * @param edbPro
+     * @return
+     */
+    public static String javaCode(String sql,String beanName, EDbPro edbPro){
+        if(edbPro.getConfig().getDialect() instanceof MysqlDialect){
+            return javaCode(sql,beanName,edbPro,DbType.mysql);
+        }
+        if(edbPro.getConfig().getDialect() instanceof PostgreSqlDialect){
+            return javaCode(sql,beanName,edbPro,DbType.postgresql);
+        }
+        return javaCode(sql,beanName,edbPro,DbType.mysql);
+    }
+
     /**
      * 获取javaCode
      * @param sql
@@ -117,8 +136,10 @@ public class SqlToCode {
             // 第二层是表字段映射
             tableColumn.forEach((column,item)->{
                 //
-                if(item.getJavaType().contains("Date")){
-                    codeStr.append("\t").append("@JsonFormat(pattern = \"yyyy-MM-dd HH:mm:ss\")\n"); // 得加上时间转换的格式
+                if(item.getJavaType()!=null){ // 可能存在类型获取不到的情况，所以这里需要做下判断才进行特殊类型的转换
+                    if(item.getJavaType().contains("Date")){
+                        codeStr.append("\t").append("@JsonFormat(pattern = \"yyyy-MM-dd HH:mm:ss\")\n"); // 得加上时间转换的格式
+                    }
                 }
                 if(item.getJavaLength()!=null){
                     // 加长度限制
@@ -128,6 +149,7 @@ public class SqlToCode {
                     codeStr.append("\t").append("@Schema(description = \"").append(item.getColumnComment()).append("\")\n");
                 }
                 codeStr.append("\t").append("private ").append(item.getJavaType()).append(" ").append(item.getJavaCodeName()).append(";\n");
+                codeStr.append("\n");// 换行好看点
             });
         });
         codeStr.append("}\n");

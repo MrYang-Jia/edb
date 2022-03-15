@@ -1,5 +1,7 @@
 package com.edbplus.db.druid;
 
+import cn.hutool.json.JSONUtil;
+import com.alibaba.druid.DbType;
 import com.alibaba.druid.sql.ast.SQLLimit;
 import com.alibaba.druid.sql.ast.SQLStatement;
 import com.alibaba.druid.sql.ast.statement.SQLSelectStatement;
@@ -8,6 +10,7 @@ import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlSchemaStatVisitor;
 import com.alibaba.druid.sql.parser.SQLStatementParser;
 import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.TableStat;
+import com.edbplus.db.druid.sql.parser.SelectParser;
 import com.edbplus.db.util.hutool.exception.EExceptionUtil;
 import com.edbplus.db.util.hutool.str.EStrUtil;
 import org.testng.annotations.Test;
@@ -125,6 +128,56 @@ public class SqlParser {
         sql = EStrUtil.removeAllLineBreaks(sql);
 
         System.out.println(sql);
+    }
+
+    @Test
+    public void test2(){
+        String sql = "SELECT\n" +
+                "\tvdr.ID,\n" +
+                "\tvdr.UC_CONTACT,\n" +
+                "\tvdr.UC_TYPE,\n" +
+                "\tvdr.source_type,\n" +
+                "\tvdr.source_id,\n" +
+                "\tvdr.allow_source_types,\n" +
+                "\tvdr.UC_VEHICLE_NUMBER,\n" +
+                "\tvdr.UC_VEHICLE_TYPE_NAME,\n" +
+                "\tvdr.UC_VEHICLE_LENGTH,\n" +
+                "\tvdr.UC_VEHICLE_WEIGHT,\n" +
+                "\tvdr.UC_COMPANY,\n" +
+                "\tvdr.UC_NAME,\n" +
+                "\tvdr.START_LC,\n" +
+                "\tvdr.END_LC,\n" +
+                "\tvdr.CM_LC,\n" +
+                "\tvdr.TEL_LC,\n" +
+                "\tvdr.CREATE_TIME,\n" +
+                "\t( SELECT LABEL_NAME FROM sys_pre_user WHERE USER_NAME = UC_CONTACT LIMIT 1 ) LABEL_NAME,\n" +
+                "\t( SELECT USER_ID FROM sys_pre_user WHERE USER_NAME = UC_CONTACT LIMIT 1 ) USER_ID,\n" +
+                "\t( SELECT AREA FROM cr_user_last_location WHERE USER_NAME = UC_CONTACT LIMIT 1 ) LOCATION,\n" +
+                "\t( SELECT LOCATE_TIME FROM cr_user_last_location WHERE USER_NAME = UC_CONTACT LIMIT 1 ) LOCATE_TIME,\n" +
+                "\t( CASE WHEN SOURCE_TYPE = '30' THEN ( SELECT VS_NO FROM tra_vehicle_source WHERE VSID = vdr.SOURCE_ID ) END ) AS sourceNo,\n" +
+                "\tvdrjoin.childs AS childs \n" +
+                "FROM\n" +
+                "\t(\n" +
+                "\tSELECT\n" +
+                "\t\tvdrtem.ID,\n" +
+                "\t\tCOUNT ( 1 ) AS childs \n" +
+                "\tFROM\n" +
+                "\t\tVW_DRIVER_ROUTE vdrtem\n" +
+                "\t\tLEFT JOIN SYS_PRE_USER spu ON vdrtem.UC_CONTACT = spu.USER_NAME\n" +
+                "\t\tLEFT JOIN CR_USER_LAST_LOCATION cull ON vdrtem.UC_CONTACT = cull.USER_NAME \n" +
+                "\tWHERE\n" +
+                "\t\t1 = 1 \n" +
+                "\t\tAND UC_CONTACT IN ( SELECT user_name FROM cr_user_last_location WHERE AREA ~ '云南省,昆明市' ) \n" +
+                "\tGROUP BY\n" +
+                "\t\tvdrtem.UC_CONTACT,vdrtem.ID\n" +
+                "\tORDER BY\n" +
+                "\t\tvdrtem.create_time DESC \n" +
+                "\t\tLIMIT 10\n" +
+                "\t\toffset 0\n" +
+                "\t) vdrjoin\n" +
+                "\tJOIN vw_driver_route AS vdr ON vdr.ID = vdrjoin.ID\n" +
+                "\t";
+        System.out.println(JSONUtil.toJsonStr(SelectParser.getSelectNames(sql, DbType.postgresql.name())));
     }
 
 
