@@ -16,6 +16,7 @@
 package com.edbplus.db;
 
 // 这种对象map非Util不需要扩展
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.map.CaseInsensitiveMap;
 
 import com.edbplus.db.annotation.EDbSave;
@@ -71,6 +72,9 @@ public class EDbPro extends DbPro {
     // jpa 监听
     @Setter
     private EDbListener eDbListener;
+
+    @Setter// 保存后自动重新根据主键再查询1次
+    private boolean saveAndFlush = false;
 
     // sql 连接监听，用于统计耗时，解析sql处理时使用
     @Setter
@@ -213,10 +217,20 @@ public class EDbPro extends DbPro {
         //BeanUtil.fillBeanWithMap(record.getColumns(),m,false);
         // 获取主键字段
         //coumns = JpaAnnotationUtil.getIdFieldAndColumnValues(m);
-        // 所有字段重新赋值，可能主键或者自定义键值产生变更（通过 beforeSave 方法调整变更的对象）
-        for(FieldAndColumn fieldAndColumn : coumns) {
-            // 字段赋值
-            JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+        if(saveAndFlush){// 代表保存后一定要刷新下数据，从数据库获取最新的数据变化，可能会因为数据库的默认值字段导致当前字段数据不一致
+            String[] pKeys = keys.split(",");
+            List<Object> objects = new ArrayList<>();
+            for (String keyName:pKeys){
+                objects.add(record.get(keyName));
+            }
+            M m2 = (M) this.findByGroupId(m.getClass(),objects.toArray());
+            BeanUtil.copyProperties(m2,m); // 必须进行1次属性拷贝，不然无法替换 m 的数值
+        }else {
+            // 所有字段重新赋值，可能主键或者自定义键值产生变更（通过 beforeSave 方法调整变更的对象）
+            for(FieldAndColumn fieldAndColumn : coumns) {
+                // 字段赋值
+                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+            }
         }
 
         return resultStatus;
