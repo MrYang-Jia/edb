@@ -5,6 +5,7 @@ import com.edbplus.db.EDb;
 import com.edbplus.db.druid.filter.EDbDruidSqlLogFilter;
 import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.jpa.VehicleType;
+import com.edbplus.db.listener.impl.SqlListener;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.log.EDbLogUtil;
 import org.testng.annotations.BeforeTest;
@@ -39,7 +40,7 @@ public class BaseTest {
 
     @BeforeTest
     public void init(){
-
+        SqlListener sqlListener = new SqlListener();
         List<String> sqlTplList = new ArrayList<>();
         // edb 通用模板sql 加载
 //        sqlTplList.add("/edb/sql/all.sql");
@@ -71,8 +72,10 @@ public class BaseTest {
         JpaListener jpaListener = new JpaListener();
         // 初始化
         EDb.use().setEDbListener(jpaListener);
+        EDb.use().setConnectListener(sqlListener);
         // 一个数据库只能设定一个监听 ，所以要绑定监听的数据库对象
         EDb.use("pg").setEDbListener(jpaListener);
+        EDb.use("pg").setConnectListener(sqlListener);
     }
 
 

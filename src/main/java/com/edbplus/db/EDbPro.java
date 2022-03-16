@@ -25,8 +25,10 @@ import com.edbplus.db.druid.EDbSelectUtil;
 import com.edbplus.db.dto.EDBListenerResult;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
+import com.edbplus.db.em.RunSqlType;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.jpa.JpaBuilder;
+import com.edbplus.db.listener.ConnectListener;
 import com.edbplus.db.listener.EDbListener;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
@@ -69,6 +71,10 @@ public class EDbPro extends DbPro {
     // jpa 监听
     @Setter
     private EDbListener eDbListener;
+
+    // sql 连接监听，用于统计耗时，解析sql处理时使用
+    @Setter
+    private ConnectListener connectListener;
 
     public EDbPro(){
         super(DbKit.MAIN_CONFIG_NAME);
@@ -215,6 +221,7 @@ public class EDbPro extends DbPro {
 
         return resultStatus;
     }
+
 
 
     /**
@@ -675,6 +682,38 @@ public class EDbPro extends DbPro {
         return this.update(table.name(),keys,record);
     }
 
+
+    /**
+     * 更新表对象
+     * @param config
+     * @param conn
+     * @param tableName
+     * @param primaryKey
+     * @param record
+     * @return
+     * @throws SQLException
+     */
+    protected boolean update(Config config, Connection conn, String tableName, String primaryKey, Record record) throws SQLException {
+
+        String[] pKeys = primaryKey.split(",");
+        Object[] ids = new Object[pKeys.length];
+        for(int i = 0; i < pKeys.length; ++i) {
+            ids[i] = record.get(pKeys[i].trim());
+            if (ids[i] == null) {
+                throw new ActiveRecordException("You can't update record without Primary Key, " + pKeys[i] + " can not be null.");
+            }
+        }
+        StringBuilder sql = new StringBuilder();
+        List<Object> paras = new ArrayList();
+        this.getConfig().getDialect().forDbUpdate(tableName, pKeys, ids, record, sql, paras);
+
+        if (paras.size() <= 1) {
+            return false;
+        } else {
+            return this.update(config, conn, sql.toString(), paras.toArray()) >= 1;
+        }
+    }
+
     /**
      * 更新对象 -- 包含null值的变更情况 ,成功返回1 ，失败返回 0
      * @param mClass -- 数据库表对象
@@ -964,6 +1003,52 @@ public class EDbPro extends DbPro {
         } else {
             return this.update(config, conn, sql.toString(), paras.toArray()) >= 1;
         }
+    }
+
+
+    /**
+     * 执行sql语句更新
+     * @param config
+     * @param conn
+     * @param sql
+     * @param paras
+     * @return
+     * @throws SQLException
+     */
+    @Override
+    protected int update(Config config, Connection conn, String sql, Object... paras) throws SQLException {
+        Long startTime = System.currentTimeMillis();
+        PreparedStatement pst = conn.prepareStatement(sql);
+        Throwable var6 = null;
+
+        int var8;
+        try {
+            config.getDialect().fillStatement(pst, paras);
+            int result = pst.executeUpdate();
+            var8 = result;
+        } catch (Throwable var17) {
+            var6 = var17;
+            throw var17;
+        } finally {
+            if (pst != null) {
+                if (var6 != null) {
+                    try {
+                        pst.close();
+                    } catch (Throwable var16) {
+                        var6.addSuppressed(var16);
+                    }
+                } else {
+                    pst.close();
+                }
+            }
+            if(connectListener != null){
+                // 执行结尾增加相应的逻辑处理
+                connectListener.loss(this, RunSqlType.update,(System.currentTimeMillis()-startTime),sql,paras);
+            }
+
+        }
+
+        return var8;
     }
 
 
@@ -1686,6 +1771,7 @@ public class EDbPro extends DbPro {
      */
     protected <T> List<T> query(Config config, Connection conn, String sql, Object... paras) throws SQLException {
         List result = new ArrayList();
+        Long startTime =  System.currentTimeMillis();
         PreparedStatement pst = conn.prepareStatement(sql);
         setRowMaxs(pst); // 设置返回条数的最大值，可以保护系统运行时避免内存溢出
         Throwable var7 = null;
@@ -1718,6 +1804,10 @@ public class EDbPro extends DbPro {
             var7 = var19;
             throw var19;
         } finally {
+            if(connectListener != null){
+                // 执行结尾增加相应的逻辑处理
+                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras);
+            }
             if (pst != null) {
                 if (var7 != null) {
                     try {
@@ -1745,6 +1835,7 @@ public class EDbPro extends DbPro {
      * @throws SQLException
      */
     protected List<Record> find(Config config, Connection conn, String sql, Object... paras) throws SQLException {
+        Long startTime =  System.currentTimeMillis();
         PreparedStatement pst = conn.prepareStatement(sql);
         setRowMaxs(pst); // 设置返回条数的最大值，可以保护系统运行时避免内存溢出
         Throwable var6 = null;
@@ -1770,7 +1861,10 @@ public class EDbPro extends DbPro {
                     pst.close();
                 }
             }
-
+            if(connectListener != null){
+                // 执行结尾增加相应的逻辑处理
+                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras);
+            }
         }
 
         return var9;
@@ -1809,6 +1903,7 @@ public class EDbPro extends DbPro {
         Throwable var6 = null;
 
         List var9;
+        Long startTime = System.currentTimeMillis();
         try {
             // 有入参才进行调整
             if(paras != null){
@@ -1835,7 +1930,10 @@ public class EDbPro extends DbPro {
                     pst.close();
                 }
             }
-
+            if(connectListener != null){
+                // 执行结尾增加相应的逻辑处理
+                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras);
+            }
         }
         return var9;
     }
@@ -3334,4 +3432,179 @@ public class EDbPro extends DbPro {
         return new EDbTemplate(true, this, content, paras);
     }
 
+
+
+    protected Page<Record> doPaginate(int pageNumber, int pageSize, Boolean isGroupBySql, String select, String sqlExceptSelect, Object... paras) {
+        Connection conn = null;
+
+        Page var10;
+        try {
+            conn = this.config.getConnection();
+            String totalRowSql = this.config.getDialect().forPaginateTotalRow(select, sqlExceptSelect, (Object)null);
+            StringBuilder findSql = new StringBuilder();
+            findSql.append(select).append(' ').append(sqlExceptSelect);
+            var10 = this.doPaginateByFullSql(this.config, conn, pageNumber, pageSize, isGroupBySql, totalRowSql, findSql, paras);
+        } catch (Exception var14) {
+            throw new ActiveRecordException(var14);
+        } finally {
+            this.config.close(conn);
+        }
+
+        return var10;
+    }
+
+    /**
+     * 保存服务
+     * @param config
+     * @param conn
+     * @param tableName
+     * @param primaryKey
+     * @param record
+     * @return
+     * @throws SQLException
+     */
+    protected boolean save(Config config, Connection conn, String tableName, String primaryKey, Record record) throws SQLException {
+        Long startTime = System.currentTimeMillis();
+        String[] pKeys = primaryKey.split(",");
+        List<Object> paras = new ArrayList();
+        StringBuilder sql = new StringBuilder();
+        config.getDialect().forDbSave(tableName, pKeys, record, sql, paras);
+        PreparedStatement pst = config.getDialect().isOracle() ? conn.prepareStatement(sql.toString(), pKeys) : conn.prepareStatement(sql.toString(), 1);
+        Throwable var10 = null;
+
+        boolean var12;
+        try {
+            config.getDialect().fillStatement(pst, paras);
+            int result = pst.executeUpdate();
+            config.getDialect().getRecordGeneratedKey(pst, record, pKeys);
+            var12 = result >= 1;
+        } catch (Throwable var21) {
+            var10 = var21;
+            throw var21;
+        } finally {
+            if (pst != null) {
+                if (var10 != null) {
+                    try {
+                        pst.close();
+                    } catch (Throwable var20) {
+                        var10.addSuppressed(var20);
+                    }
+                } else {
+                    pst.close();
+                }
+            }
+            if(connectListener != null){
+                // 执行结尾增加相应的逻辑处理
+                connectListener.loss(this, RunSqlType.save,(System.currentTimeMillis()-startTime),sql.toString(),paras.toArray());
+            }
+
+        }
+
+        return var12;
+    }
+
+    /**
+     * 执行函数回调等操作
+     * @param config
+     * @param callback
+     * @return
+     */
+    protected Object execute(Config config, ICallback callback) {
+        Connection conn = null;
+        Object var4;
+        try {
+            conn = config.getConnection();
+            var4 = callback.call(conn);
+        } catch (Exception var8) {
+            throw new ActiveRecordException(var8);
+        } finally {
+            config.close(conn);
+        }
+        return var4;
+    }
+
+    protected boolean tx(Config config, int transactionLevel, IAtom atom) {
+        Connection conn = config.getThreadLocalConnection();
+        if (conn != null) {
+            try {
+                if (conn.getTransactionIsolation() < transactionLevel) {
+                    conn.setTransactionIsolation(transactionLevel);
+                }
+
+                boolean result = atom.run();
+                if (result) {
+                    return true;
+                } else {
+                    throw new NestedTransactionHelpException("Notice the outer transaction that the nested transaction return false");
+                }
+            } catch (SQLException var66) {
+                throw new ActiveRecordException(var66);
+            }
+        } else {
+            Boolean autoCommit = null;
+
+            boolean var7;
+            try {
+                conn = config.getConnection();
+                autoCommit = conn.getAutoCommit();
+                config.setThreadLocalConnection(conn);
+                conn.setTransactionIsolation(transactionLevel);
+                conn.setAutoCommit(false);
+                boolean result = atom.run();
+                if (result) {
+                    conn.commit();
+                } else {
+                    conn.rollback();
+                }
+
+                var7 = result;
+                return var7;
+            } catch (NestedTransactionHelpException var67) {
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (Exception var65) {
+                        LogKit.error(var65.getMessage(), var65);
+                    }
+                }
+
+                LogKit.logNothing(var67);
+                var7 = false;
+            } catch (Throwable var68) {
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (Exception var64) {
+                        LogKit.error(var64.getMessage(), var64);
+                    }
+                }
+
+                throw var68 instanceof RuntimeException ? (RuntimeException)var68 : new ActiveRecordException(var68);
+            } finally {
+                try {
+                    if (conn != null) {
+                        if (autoCommit != null) {
+                            conn.setAutoCommit(autoCommit);
+                        }
+
+                        conn.close();
+                    }
+                } catch (Throwable var62) {
+                    LogKit.error(var62.getMessage(), var62);
+                } finally {
+                    config.removeThreadLocalConnection();
+                }
+
+            }
+
+            return var7;
+        }
+    }
+
+    protected Page<Record> paginate(Config config, Connection conn, int pageNumber, int pageSize, String select, String sqlExceptSelect, Object... paras) throws SQLException {
+        String totalRowSql = config.getDialect().forPaginateTotalRow(select, sqlExceptSelect, (Object)null);
+        StringBuilder findSql = new StringBuilder();
+        findSql.append(select).append(' ').append(sqlExceptSelect);
+        return this.doPaginateByFullSql(config, conn, pageNumber, pageSize, (Boolean)null, totalRowSql, findSql, paras);
+    }
 }
