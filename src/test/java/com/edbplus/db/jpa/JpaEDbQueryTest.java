@@ -103,7 +103,7 @@ public class JpaEDbQueryTest extends BaseTest {
         eDbQuery.fields(" VEHICLE_TYPE_ID,CREATOR ");
         // select * from xxx where 1 = 1 --> and 拼接1
         // 包含 VEHICLE_TYPE_ID 100 、 200 的数据
-        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.like, manyIds));
+        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.in, manyIds));
         // 定义id列表
         manyIds = new ArrayList<>();
         manyIds.add(100);
@@ -195,6 +195,14 @@ public class JpaEDbQueryTest extends BaseTest {
 
         EDb.paginate(1,10,sqlPara);
 
+    }
+
+    @Test
+    public void testDateQuery(){
+        EDbQuery eDbQuery = new EDbQuery();
+        // 基于时间范围的查询
+        eDbQuery.and(EDbFilter.le("CREATE_TIME",new Date()));
+        System.out.println(EJSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
     }
 
 

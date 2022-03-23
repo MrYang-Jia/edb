@@ -17,6 +17,7 @@ package com.edbplus.db.listener;
 
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.em.RunSqlType;
+import com.edbplus.db.em.RunStatus;
 
 /**
  * @ClassName ConnectListener
@@ -27,8 +28,6 @@ import com.edbplus.db.em.RunSqlType;
  **/
 public interface ConnectListener {
 
-
-
     /**
      * 损耗监听
      * @param eDbPro -- 执行器
@@ -36,6 +35,6 @@ public interface ConnectListener {
      * @param sql -- 执行语句
      * @param params -- 入参
      */
-    public void loss(EDbPro eDbPro, RunSqlType runSqlType, Long lossTimeMillis, String sql, Object[] params);
+    public void loss(EDbPro eDbPro, RunSqlType runSqlType, Long lossTimeMillis, String sql, Object[] params, RunStatus runStatus);
 
 }

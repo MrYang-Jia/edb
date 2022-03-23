@@ -27,7 +27,7 @@ import com.alibaba.druid.sql.parser.SQLStatementParser;
 import com.alibaba.druid.sql.parser.Token;
 import com.alibaba.druid.util.StringUtils;
 import com.edbplus.db.util.hutool.str.EStrUtil;
-import org.testng.collections.Lists;
+
 
 import java.util.*;
 
@@ -50,7 +50,7 @@ public class SelectParser {
     public static SelectItems getSelectNames(String sql, String jdbcType) { //类型转换
         //Map<String,SelectItemInfo> selectItemInfoMap = new LinkedHashMap<>(); // 属性集合
         SelectItems selectItems =  new SelectItems();
-        List<String> aliasNames = Lists.newArrayList();
+        List<String> aliasNames = new ArrayList<>();
         //格式化sql语句
 //        String sql = SQLUtils.format(sqlOld, jdbcType);
         if (sql.contains("*")) {

@@ -16,10 +16,14 @@
 package com.edbplus.db.tool;
 
 import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.edbplus.db.druid.EDbSelectUtil;
+import com.edbplus.db.jpa.Cat;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -204,6 +208,26 @@ public class SqlParserTest {
         sql = " select 1_offset,'\\n 1' -- 回车 \r\n from tb where and offset 0 limit 9 ";
         System.out.println("11=>"+EDbSelectUtil.returnOffsetSql(sql,1));
         Assert.assertEquals(" select 1_offset,'\\n 1' -- 回车 \r\n from tb where and  offset 1 limit 9 ",EDbSelectUtil.returnOffsetSql(sql,1));
+    }
+
+    @Test
+    public void test333(){
+        List<Map<String,Integer>> list = new ArrayList<>();
+        Map<String,Integer> dataMap = new HashMap<>();
+        dataMap.put("age",3);
+        list.add(dataMap);
+        dataMap = new HashMap<>();
+        dataMap.put("age",2);
+        list.add(dataMap);
+//        list.sort(Comparator.comparing((Map<String, Integer> key) -> {
+//            return key.get("age");
+//        }));
+//        Collections.sort(list, new Comparator<Map<String, Integer>>() {
+//            public int compare(Map<String, Integer> o1, Map<String, Integer> o2) {
+//                return o1.get("age").compareTo(o2.get("age"));
+//            }
+//        });
+        System.out.println(list);
     }
 
 

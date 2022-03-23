@@ -102,8 +102,10 @@ public class JpaBuilder  {
         Table table = null;
         //
         String keys = null;
+        // 获取所有构造函数，包括无构造参数对象的实例化
+        // Constructor<?> cons[]= beanClass.getConstructors();
         while (rs.next()) {
-            // 对象实例化
+            // 对象实例化 - 排除只有构造参数的对象
             ar = beanClass.newInstance();
             // 使用不区分大小写的对象赋值
             attrs = new CaseInsensitiveMap();
