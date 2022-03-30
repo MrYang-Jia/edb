@@ -116,10 +116,12 @@ public class EDbSelectUtil {
             // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
             if(checkSpecialCharacters(leftIdxStr,rightIdxStr)) { // 确认存在limit关键字
                 String lastSql = sqlLower.substring(lastIdx, sql.length()); // 最后尾部 limit(包含) 右侧的字符串
-                int limitFilterIdx = lastSql.indexOf(",");//特殊符号，一般是不会有什么特殊的场景，所以直接切割即可
-                if (limitFilterIdx > -1) { // mysql 之 limit 0,10 转为 limit offset,10
-                    String limitFilterPreSql = lastSql.substring(limitFilterIdx + 1, lastSql.length());
-                    return sql.substring(0, lastIdx) + " limit " + offsetIdx + "," + limitFilterPreSql;
+                if(lastSql.indexOf(")") == -1){ // 右侧如果是 limit 1 ) 这种模式的，则需要屏蔽掉
+                    int limitFilterIdx = lastSql.indexOf(",");//特殊符号，一般是不会有什么特殊的场景，所以直接切割即可
+                    if (limitFilterIdx > -1) { // mysql 之 limit 0,10 转为 limit offset,10
+                        String limitFilterPreSql = lastSql.substring(limitFilterIdx + 1, lastSql.length());
+                        return sql.substring(0, lastIdx) + " limit " + offsetIdx + "," + limitFilterPreSql;
+                    }
                 }
             }
         }
