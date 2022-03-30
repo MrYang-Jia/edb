@@ -1687,8 +1687,8 @@ public class EDbPro extends DbPro {
      * @return
      */
     public List<Record> find(SqlPara sqlPara,int limit,int offset) {
-        sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
         sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
+        sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
         return this.find(sqlPara.getSql(), sqlPara.getPara());
     }
 
@@ -1728,8 +1728,8 @@ public class EDbPro extends DbPro {
      * @return
      */
     public <M> List<M> find(Class<M> mClass,SqlPara sqlPara,int limit,int offset) {
-        sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
         sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
+        sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
         // 返回查询结果
         return find(mClass,sqlPara.getSql(),sqlPara.getPara());
     }
@@ -2883,10 +2883,10 @@ public class EDbPro extends DbPro {
         if(offset == null){
             sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
         }else{
-            // 先处理 offset
-            sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
-            // 再处理 limit
+            // 先处理 limit
             sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
+            // 再处理 offset
+            sqlPara.setSql(EDbSelectUtil.returnOffsetSql(sqlPara.getSql(),offset));
         }
 
         return find(tClass,sqlPara);
