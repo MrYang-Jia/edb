@@ -15,6 +15,7 @@
  */
 package com.edbplus.db.druid;
 
+import cn.hutool.core.util.NumberUtil;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLLimit;
@@ -120,7 +121,9 @@ public class EDbSelectUtil {
                     int limitFilterIdx = lastSql.indexOf(",");//特殊符号，一般是不会有什么特殊的场景，所以直接切割即可
                     if (limitFilterIdx > -1) { // mysql 之 limit 0,10 转为 limit offset,10
                         String limitFilterPreSql = lastSql.substring(limitFilterIdx + 1, lastSql.length());
-                        return sql.substring(0, lastIdx) + " limit " + offsetIdx + "," + limitFilterPreSql;
+                        if(NumberUtil.isNumber(limitFilterPreSql)){ // 避免意外情况发生，只保留数字的情况
+                            return sql.substring(0, lastIdx) + " limit " + offsetIdx + "," + limitFilterPreSql;
+                        }
                     }
                 }
             }
