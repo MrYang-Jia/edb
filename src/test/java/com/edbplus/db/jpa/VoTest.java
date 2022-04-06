@@ -1,11 +1,15 @@
 package com.edbplus.db.jpa;
 
+import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.DbType;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.jpa.view.VehicleView;
 import com.edbplus.db.jpa.vo.CrVehicleTypeVo;
 import com.edbplus.db.proxy.EDbProxyFactory;
+import com.edbplus.db.query.lambda.EDbLambdaQuery;
+import com.edbplus.db.query.lambda.LambdaQuery;
+import com.edbplus.db.query.lambda.LambdaSelectQuery;
 import com.edbplus.db.util.code.MapToCode;
 import com.edbplus.db.util.code.SqlToCode;
 import com.edbplus.db.util.code.TableToCode;
@@ -13,6 +17,7 @@ import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class VoTest extends BaseTest {
@@ -341,6 +346,51 @@ public class VoTest extends BaseTest {
     @Test
     public void tableToCode(){
         TableToCode.javaCode("cr_vehicle_type","CrVehicleType",EDb.use());
+    }
+
+
+    @Test
+    public void test211(){
+        LambdaSelectQuery<Cat> eDbLambdaQuery = EDbLambdaQuery.lambdaQuery(Cat.class);
+        // LambdaQueryWrapper<User> lambda3 = Wrappers.<User>lambdaQuery();
+// name like '王%' and (age <40 or email in not null)
+//        lambda3.likeRight(User::getName, "王").and(
+//                qw -> qw.lt(User::getAge, 40).or().isNotNull(User::getEmail)
+//        );
+        eDbLambdaQuery.ge(Cat::getAge,3)
+                // 添加一个andCom条件
+        .andCom(p->
+            p.ge(Cat::getAge,4)
+                    .ge(Cat::getAge,5)
+        )
+        .orCom(p->
+                p.ge(Cat::getAge,6)
+                        .or().eq(Cat::getAge,8)
+                        .ne(Cat::getAge,8)
+                        .ge(Cat::getAge,7)
+        ).or().isNull(Cat::getAge)
+        .groupBy(Cat::getAge)
+        .having("count(1)>1").limit(5);
+        System.out.println(JSONUtil.toJsonStr(eDbLambdaQuery));
+//        System.out.println(JSONUtil.toJsonStr(eDbLambdaQuery.eDbQuery.andComs));
+//        System.out.println(JSONUtil.toJsonStr(eDbLambdaQuery.eDbQuery.orComs));
+    }
+
+    public void ojbsF(Object... values){
+        if(values instanceof Object[]){
+            Object[] opts = values;
+            for (Object opt:opts){
+                System.out.println(opt);
+            }
+        }
+        System.out.println(values.getClass());
+    }
+
+    @Test
+    public void testP(){
+//        ojbsF(1,2,3);
+        Class<List<Cat>> classType = new DefaultTargetType<List<Cat>>() {}.getClassType();
+        System.out.println(classType.getName());
     }
 
 }

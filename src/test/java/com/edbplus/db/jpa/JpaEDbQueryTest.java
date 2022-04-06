@@ -11,10 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @ClassName JpaEDbQueryTest
@@ -75,12 +72,25 @@ public class JpaEDbQueryTest extends BaseTest {
 //        list.add(2);
         eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.in, list));
         eDbQuery.or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "3"));
-        eDbQuery.andCom().and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"))
-                .or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "2"));
-        eDbQuery.orCom().and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "1"))
-                .or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "2"));
+        eDbQuery.andCom().and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "11"))
+                .or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "22"));
+        eDbQuery.orCom().and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "3"))
+                .or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "5"));
+
+        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.notRlk, "1"));
+
+        LinkedList<Object> params = new LinkedList();
+        params.add(1);
+        params.add(100);
+        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.notBetween, params));
+        eDbQuery.and(new EDbFilter(null, EDbFilter.Operator.exists, " select 1 from cr_vehicle_type c1 where c1.VEHICLE_TYPE_ID = VEHICLE_TYPE_ID "));
+        eDbQuery.and(new EDbFilter(null, EDbFilter.Operator.notExists, " select 1 from cr_vehicle_type c1 where c1.VEHICLE_TYPE_ID <> VEHICLE_TYPE_ID "));
+
+        eDbQuery.groupBy("VEHICLE_TYPE_ID");
+        eDbQuery.having("count(1) > ?",1);
         // 根据主键id降序排序 -- 跟创建时间基本上是一致的，性能还更好
         eDbQuery.orderDESC("VEHICLE_TYPE_ID");
+//        eDbQuery.orderASC("VEHICLE_TYPE_ID");
         // 只获取一条数据
         VehicleType vehicleType = EDb.use().findFirst(VehicleType.class,eDbQuery);
 //        // 无法预估范围值时，建议写上

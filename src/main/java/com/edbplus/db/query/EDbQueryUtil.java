@@ -21,6 +21,7 @@ import com.jfinal.plugin.activerecord.SqlPara;
 import javax.persistence.Table;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -39,6 +40,14 @@ public class EDbQueryUtil {
      * @param paramsList
      */
     public static void loadFilter(EDbFilter eDbFilter, StringBuffer andSqlStr, List<Object> paramsList){
+
+        if(eDbFilter.getOperator() == EDbFilter.Operator.exists || eDbFilter.getOperator() == EDbFilter.Operator.notExists){
+
+        }else{
+            // 驼峰转下划线 -- 如果是规范的驼峰写法，则不会有异常，否则需要去获取jpa对应的字段上的colum注解
+            andSqlStr.append(eDbFilter.getProperty());
+        }
+
         // 等于
         if(eDbFilter.getOperator() == EDbFilter.Operator.eq){
             andSqlStr.append(" = ? ");
@@ -57,7 +66,24 @@ public class EDbQueryUtil {
         if(eDbFilter.getOperator() == EDbFilter.Operator.gt ){
             andSqlStr.append(" > ? ");
             paramsList.add(eDbFilter.getValue());
+        }
 
+        // between 1 and 2
+        if(eDbFilter.getOperator() == EDbFilter.Operator.between  ){
+            LinkedList<Object> params = (LinkedList<Object>) eDbFilter.getValue();
+            andSqlStr.append(" between ? ");
+            paramsList.add(params.get(0));
+            andSqlStr.append(" and ? ");
+            paramsList.add(params.get(1));
+        }
+
+        // not between 1 and 2
+        if(eDbFilter.getOperator() == EDbFilter.Operator.notBetween  ){
+            LinkedList<Object> params = (LinkedList<Object>) eDbFilter.getValue();
+            andSqlStr.append(" not between ? ");
+            paramsList.add(params.get(0));
+            andSqlStr.append(" and ? ");
+            paramsList.add(params.get(1));
         }
 
         // 大于等于
@@ -106,11 +132,43 @@ public class EDbQueryUtil {
             andSqlStr.append(")");
         }
 
+        // exists
+        if(eDbFilter.getOperator() == EDbFilter.Operator.exists){
+            andSqlStr.append(" exists (");
+            andSqlStr.append(eDbFilter.getValue());
+            andSqlStr.append(")");
+        }
+
+        // not exists
+        if(eDbFilter.getOperator() == EDbFilter.Operator.notExists){
+            andSqlStr.append(" not exists (");
+            andSqlStr.append(eDbFilter.getValue());
+            andSqlStr.append(")");
+        }
+
         // not in
         if(eDbFilter.getOperator() == EDbFilter.Operator.notIn){
             andSqlStr.append(" not in (");
             filterArrayFun(eDbFilter,andSqlStr,paramsList);
             andSqlStr.append(")");
+        }
+
+        // not like
+        if(eDbFilter.getOperator() == EDbFilter.Operator.notLike){
+            andSqlStr.append(" not like ? ");
+            paramsList.add("%"+eDbFilter.getValue()+"%");
+        }
+
+        // not likeLeft
+        if(eDbFilter.getOperator() == EDbFilter.Operator.notLlk){
+            andSqlStr.append(" not like ? ");
+            paramsList.add(eDbFilter.getValue()+"%");
+        }
+
+        // not likeRight
+        if(eDbFilter.getOperator() == EDbFilter.Operator.notRlk){
+            andSqlStr.append(" not like ? ");
+            paramsList.add("%"+eDbFilter.getValue());
         }
 
         // is not null
@@ -154,7 +212,7 @@ public class EDbQueryUtil {
 
 
     /**
-     *
+     * sql字段拼接
      * @param queryParams
      * @param andSqlStr
      * @param paramsList
@@ -164,11 +222,8 @@ public class EDbQueryUtil {
         Boolean firstAnd = false;
         // and 部分
         for(int i = 0; i< queryParams.getAndEDbFilters().size(); i++){
-            //
-            eDbFilter = queryParams.getAndEDbFilters().get(i);
             andSqlStr.append(" and ");
-            // 驼峰转下划线 -- 如果是规范的驼峰写法，则不会有异常，否则需要去获取jpa对应的字段上的colum注解
-            andSqlStr.append(eDbFilter.getProperty());
+            eDbFilter = queryParams.getAndEDbFilters().get(i);
             // 加载过滤器生成sql部分
             loadFilter(eDbFilter,andSqlStr,paramsList);
             if(!firstAnd){ // 左侧首位 1=1 and的模式必须有才行
@@ -178,15 +233,14 @@ public class EDbQueryUtil {
 
         // or 部分
         for(int i = 0; i< queryParams.getOrEDbFilters().size(); i++){
-            //
-            eDbFilter =  queryParams.getOrEDbFilters().get(i);
             if(!firstAnd){ // 1=1 左侧首位必须是and，否则会导致数据有误
                 andSqlStr.append(" and ");
                 firstAnd = true;
             }else{
                 andSqlStr.append(" or ");
             }
-            andSqlStr.append(eDbFilter.getProperty());
+            //
+            eDbFilter =  queryParams.getOrEDbFilters().get(i);
             // 加载过滤器生成sql部分
             loadFilter(eDbFilter,andSqlStr,paramsList);
         }
@@ -209,22 +263,50 @@ public class EDbQueryUtil {
 
         baseQueryFun(queryParams,andSqlStr,paramsList);
 
-        // and ( filters ) 部分
-        if(queryParams.andCom().getQuerySize() >0 ) {
-            andSqlStr.append(" and ( 1=1  ");
-            baseQueryFun(queryParams.andCom(), andSqlStr, paramsList);
-            andSqlStr.append(" )");
+        if(queryParams.andComs!=null && queryParams.andComs.size()>0){
+            for(EDbBaseQuery andCom:queryParams.andComs){
+                // and ( filters ) 部分
+                if(andCom.getQuerySize() >0 ) {
+                    andSqlStr.append(" and ( 1=1 ");
+                    baseQueryFun(andCom, andSqlStr, paramsList);
+                    andSqlStr.append(" )");
+                }
+            }
         }
 
-        // or ( filters ) 部分
-        if(queryParams.orCom().getQuerySize() >0 ){
-            andSqlStr.append(" or (  1=1 ");
-            baseQueryFun( queryParams.orCom(),andSqlStr,paramsList);
-            andSqlStr.append(" )");
+        if(queryParams.orComs!=null && queryParams.orComs.size()>0){
+            for(EDbBaseQuery orCom:queryParams.orComs){
+                // or ( filters ) 部分
+                if(orCom.getQuerySize() >0 ){
+                    andSqlStr.append(" or (  1=1 ");
+                    baseQueryFun(orCom,andSqlStr,paramsList);
+                    andSqlStr.append(" )");
+                }
+            }
         }
+
+        // 拼接 group By 部分
+        if(queryParams.getGroupByFilter()!=null){
+            // 添加groupBy
+            andSqlStr.append(" group by ").append(queryParams.getGroupByFilter().getProperty());
+        }
+
+        // having 的部分处理
+        if(queryParams.getHavingFilter() != null ){
+            andSqlStr.append(" having ").append(queryParams.getHavingFilter().getProperty());
+            if(queryParams.getHavingFilter().getValue() != null){
+                if(queryParams.getHavingFilter().getValue() instanceof Object[]){
+                    Object[] opts = (Object[]) queryParams.getHavingFilter().getValue();
+                    for (Object opt:opts){
+                        paramsList.add(opt);
+                    }
+                }
+            }
+        }
+
 
         // 将 2=2 去掉，是为了保证不会被识别成是注入的代码块
-        String andSql =  andSqlStr.toString().replaceAll("2=2  and","");
+        String andSql =  andSqlStr.toString().replaceAll("1=1  and","");
 
 
         StringBuffer orderSql =  new StringBuffer("");
@@ -261,6 +343,12 @@ public class EDbQueryUtil {
         if(queryParams.getLimit() != null){
             sqlPara.setSql( sqlPara.getSql() + " limit ? " );
             sqlPara.addPara( queryParams.getLimit() );
+        }
+
+        // 从什么位置开始读取
+        if(queryParams.getOffset() != null){
+            sqlPara.setSql( sqlPara.getSql() + " offset ? " );
+            sqlPara.addPara( queryParams.getOffset() );
         }
 
 

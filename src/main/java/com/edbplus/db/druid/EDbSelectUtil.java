@@ -83,7 +83,7 @@ public class EDbSelectUtil {
      * @param offsetIdx
      * @return
      */
-    public static String returnOffsetSql(String sql,int offsetIdx){
+    public static String returnOffsetSql(String sql,Integer offsetIdx){
         String sqlLower = sql.toLowerCase();
         int lastIdx = sqlLower.lastIndexOf("offset");
         if(lastIdx > -1){ // 可能存在 offset 关键字

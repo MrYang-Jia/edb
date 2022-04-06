@@ -17,6 +17,7 @@ package com.edbplus.db.query;
 
 
 import java.io.Serializable;
+import java.util.LinkedList;
 
 
 /**
@@ -52,6 +53,8 @@ public class EDbFilter implements Serializable {
         /** 小于等于 */
         le(" <= "),
 
+
+
         /** 全匹配 */
         like(" like "),
 
@@ -64,6 +67,33 @@ public class EDbFilter implements Serializable {
         /** 包含 */
         in(" in "),
 
+        /** 区间 */
+        between(" between "),
+
+        /** 包含 */
+        notBetween(" not between "),
+
+        /** exists */
+        exists(" exists "),
+
+        /** not exists */
+        notExists(" not exists "),
+
+        /**
+         * 否定 like
+         */
+        notLike(" not like"),
+
+        /**
+         * 否定 right like
+         */
+        notRlk(" not rlk"),
+
+        /**
+         * 否定 left like
+         */
+        notLlk(" not llk"),
+
         /**
          * 不包含
          */
@@ -73,7 +103,16 @@ public class EDbFilter implements Serializable {
         isNull(" is NULL "),
 
         /** 不为Null */
-        isNotNull(" is not NULL ");
+        isNotNull(" is not NULL "),
+
+        groupBy(" group by "),
+
+        having(" having "),
+
+        orderBy(" order by "),
+
+        limit(" limit "),
+        ;
 
 //        /** 正则表达式 */
 //        reg(" REGEXP ");
@@ -108,6 +147,14 @@ public class EDbFilter implements Serializable {
      * 构造方法
      */
     public EDbFilter() {
+    }
+
+    /**
+     * 操作符
+     * @param operator
+     */
+    public EDbFilter(EDbFilter.Operator operator) {
+        this.operator = operator;
     }
 
     /**
@@ -236,6 +283,53 @@ public class EDbFilter implements Serializable {
     }
 
     /**
+     * between
+     * @param property
+     * @param begin
+     * @param end
+     * @return
+     */
+    public static EDbFilter between(String property, Object begin,Object end) {
+        LinkedList<Object> params = new LinkedList();
+        params.add(begin);
+        params.add(end);
+        return new EDbFilter(property, Operator.between, params);
+    }
+
+    /**
+     * not between
+     * @param property
+     * @param begin
+     * @param end
+     * @return
+     */
+    public static EDbFilter notBetween(String property, Object begin,Object end) {
+        LinkedList<Object> params = new LinkedList();
+        params.add(begin);
+        params.add(end);
+        return new EDbFilter(property, Operator.notBetween, params);
+    }
+
+
+    /**
+     * exists
+     * @param existsSql
+     * @return
+     */
+    public static EDbFilter exists( String existsSql) {
+        return new EDbFilter( null,Operator.exists, existsSql);
+    }
+
+    /**
+     * exists
+     * @param existsSql
+     * @return
+     */
+    public static EDbFilter notExists(String existsSql) {
+        return new EDbFilter(null, Operator.notExists, existsSql);
+    }
+
+    /**
      * 返回不包含筛选
      * @param property 属性
      * @param value 值
@@ -243,6 +337,36 @@ public class EDbFilter implements Serializable {
      */
     public static EDbFilter notIn(String property, Object value) {
         return new EDbFilter(property, Operator.notIn, value);
+    }
+
+    /**
+     * 否定like
+     * @param property
+     * @param value
+     * @return
+     */
+    public static EDbFilter notLike(String property, Object value) {
+        return new EDbFilter(property, Operator.notLike, value);
+    }
+
+    /**
+     * 否定 左like
+     * @param property
+     * @param value
+     * @return
+     */
+    public static EDbFilter notLlk(String property, Object value) {
+        return new EDbFilter(property, Operator.notLlk, value);
+    }
+
+    /**
+     * 否定右like
+     * @param property
+     * @param value
+     * @return
+     */
+    public static EDbFilter notRlk(String property, Object value) {
+        return new EDbFilter(property, Operator.notRlk, value);
     }
 
     /**
@@ -266,6 +390,37 @@ public class EDbFilter implements Serializable {
     public static EDbFilter isNotNull(String property) {
         return new EDbFilter(property, EDbFilter.Operator.isNotNull, null);
     }
+
+
+    /**
+     * group by ... -> group by c1,c2,c3
+     * @param propertys -> c1,c2,c3
+     * @return
+     */
+    public static EDbFilter groupBy(String propertys) {
+        return new EDbFilter(propertys, Operator.groupBy, null);
+    }
+
+
+    /**
+     * having ... -> having count(c1) > 1 and sum(c1) <10000
+     * @param havingSql ->  count(c1) > 1 and sum(c1) <10000
+     * @return
+     */
+    public static EDbFilter having(String havingSql) {
+        return new EDbFilter(havingSql,Operator.having,null);
+    }
+
+    /**
+     * having ... -> having count(c1) > 1 and sum(c1) <10000
+     * @param havingSql ->  count(c1) > ? and sum(c1) < ?
+     * @param values -> 1,10000
+     * @return
+     */
+    public static EDbFilter having(String havingSql,Object... values) {
+        return new EDbFilter(havingSql,Operator.having, values);
+    }
+
 
     /**
      * 返回忽略大小写筛选

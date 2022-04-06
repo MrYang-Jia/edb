@@ -15,6 +15,7 @@
  */
 package com.edbplus.db.query;
 
+import com.edbplus.db.query.em.SqlConnectorEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,44 +31,40 @@ import java.util.List;
  **/
 public class EDbQuery extends EDbBaseQuery{
 
+    public List<EDbBaseQuery> andComs;
+
+    public List<EDbBaseQuery> orComs;
 
 
-    // and
-    @Setter
-    private EDbBaseQuery andCom;
 
     /**
      * 添加一个and条件 -> and (  xxxx  )
      * @return 链式调用
      */
     public  EDbBaseQuery andCom(){
-        if(andCom ==null){
-            andCom = new EDbBaseQuery();
+        if(andComs ==null){
+            andComs = new ArrayList<>();
         }
+        EDbBaseQuery andCom = new EDbBaseQuery(SqlConnectorEnum.and);
+        andComs.add(andCom);
         return andCom;
     }
 
 
-    /**
-     * or组合对象
-     */
-    @Setter
-    private EDbBaseQuery orCom;
+
 
     /**
      * 添加一个 or 条件组合 -> or ( xxx )
      * @return 链式调用
      */
     public  EDbBaseQuery orCom(){
-        if(orCom == null){
-            orCom = new EDbBaseQuery();
+        if(orComs == null){
+            orComs = new ArrayList<>();
         }
+        EDbBaseQuery orCom = new EDbBaseQuery(SqlConnectorEnum.or);
+        orComs.add(orCom);
         return orCom;
     }
-
-
-
-
 
 
     /**
@@ -115,6 +112,8 @@ public class EDbQuery extends EDbBaseQuery{
     }
 
 
+
+
     /**
      * 升序字段
      * @param property 该字段对应变量名
@@ -139,6 +138,13 @@ public class EDbQuery extends EDbBaseQuery{
     private Integer limit ;
     public  EDbQuery limit(int limit){
         this.limit =limit;
+        return this;
+    }
+
+    @Getter
+    private Integer offset ;
+    public  EDbQuery offset(int offset){
+        this.offset =offset;
         return this;
     }
 
