@@ -16,6 +16,8 @@
 package com.edbplus.db.generator.jdbc;
 
 
+import static com.edbplus.db.generator.jdbc.GenMysql.splitSqlParams;
+
 /**
  * PostgreSql常用表语句
  *
@@ -57,7 +59,10 @@ public class GenPg {
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
         sql.append(" 	relname as \"tableName\" ");
-        sql.append(" 	,cast(obj_description(relfilenode,'pg_class') as varchar) as \"tableComment\" ");
+        // rewrite table 后 relfilenode 表注释会发生变化，得改成 oid ，否则无法读取到注释
+//        sql.append(" 	,cast(obj_description(relfilenode,'pg_class') as varchar) as \"tableComment\" ");
+        // pg_catalog.obj_description(pg_class.oid, 'pg_class') as "Description"
+        sql.append(" 	,cast(obj_description(oid,'pg_class') as varchar) as \"tableComment\" ");
         // postgreSql 默认存储引擎即可
         //sql.append(" 	,'Tuple' as ENGINE ");
         sql.append(" FROM ");
@@ -82,6 +87,15 @@ public class GenPg {
      * @return
      */
     public static String getTableColumnsSql(String tableName){
+        return getTableColumnsSql(tableName,null);
+    }
+    /**
+     * 返回表字段信息sql
+     * @param tableName
+     * @param columnName
+     * @return
+     */
+    public static String getTableColumnsSql(String tableName,String columnName){
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
         sql.append(" ordinal_position as \"ordinalPosition\", ");
@@ -136,6 +150,15 @@ public class GenPg {
                 sql.append(" AND  table_name in (").append(getTablesSql(tableName)).append(") ");
             }else{
                 sql.append(" AND  table_name = '").append(tableName).append("' ");
+            }
+        }
+        // 根据传入的字段过滤掉其他信息
+        if(columnName!=null && columnName.length()>0)//column_name
+        {
+            if(columnName.contains(",")){
+                sql.append(" and column_name in (").append(splitSqlParams(columnName)).append(") ");
+            }else{
+                sql.append(" and column_name = '").append(columnName).append("' ");
             }
         }
         //sql.append(" and table_name =  'tra_goods_source' ");
