@@ -118,6 +118,139 @@ public class SqlParserTest {
 
     }
 
+
+    @Test
+    public void test2(){
+        String sql= "select\n" +
+                "tvs.vsid,\n" +
+                "tvs.id,\n" +
+                "tvs.vs_no,\n" +
+                "tvs.vehicle_id,\n" +
+                "tvs.vehicle_type_code,\n" +
+                "\n" +
+                "tvs.vehicle_model_code,\n" +
+                "tvs.vehicle_model,\n" +
+                "tvs.vehicle_length,\n" +
+                "tvs.vehicle_load_weight,\n" +
+                "tvs.vehicle_volume,\n" +
+                "tvs.vs_set_out_time,\n" +
+                "tvs.vs_insurance,\n" +
+                "tvs.vs_destination,\n" +
+                "tvs.destination_province,\n" +
+                "tvs.destination_city,\n" +
+                "tvs.destination_district,\n" +
+                "tvs.vs_origin,\n" +
+                "tvs.orgin_province,\n" +
+                "tvs.orgin_city,\n" +
+                "tvs.orgin_district,\n" +
+                "tvs.vs_contact,\n" +
+                "tvs.vs_cellphone,\n" +
+                "tvs.release_time,\n" +
+                "tvs.vs_status,\n" +
+                "tvs.vs_remark,\n" +
+                "tvs.createtime,\n" +
+                "tvs.createby,\n" +
+                "tvs.updatetime,\n" +
+                "tvs.updateby,\n" +
+                "tvs.enabled,\n" +
+                "tvs.account_id,\n" +
+                "tvs.user_id_int,\n" +
+                "tvs.vs_type_code,\n" +
+                "tvs.vid,\n" +
+                "tvs.c_vehicle_type_id,\n" +
+                "tvs.source_type,\n" +
+                "tvs.business_status,\n" +
+                "tvs.vs_start_set_out_time,\n" +
+                "tvs.vs_end_set_out_time,\n" +
+                "tvs.vs_reward_ammount,\n" +
+                "tvs.vs_reward_status_id,\n" +
+                "tvs.reward_business_status,\n" +
+                "tvs.tank_volume,\n" +
+                "tvs.suitable_source,\n" +
+                "tvs.tank_function,\n" +
+                "tvs.cargo_name,\n" +
+                "? as recommend,\n" +
+                "( case when tvs.vehicle_number ='未填写' then '' else tvs.vehicle_number end) vehicle_number,\n" +
+                "( case when tvs.vehicle_type ='未填写' then '' else tvs.vehicle_type end) vehicle_type,\n" +
+                "(select los_name from lom_order_status where los_id = tvs.vs_reward_status_id) AS losName,\n" +
+                "(select los_code from lom_order_status where los_id = tvs.vs_reward_status_id) AS losCode,\n" +
+                "( select ifnull(tra_gvs_price.min_price,0.00) from tra_gvs_price where tra_gvs_price.biz_id = tvs.vsid and tra_gvs_price.biz_type = 20) as minPrice,\n" +
+                "( select ifnull(tra_gvs_price.top_price,0.00) from tra_gvs_price where tra_gvs_price.biz_id = tvs.vsid and tra_gvs_price.biz_type = 20) as topPrice,\n" +
+                "( select ifnull(tra_gvs_price.sin_price,0.00) from tra_gvs_price where tra_gvs_price.biz_id = tvs.vsid and tra_gvs_price.biz_type = 20) as sinPrice,\n" +
+                "( select base_number from tra_gvs_detail_num where tra_gvs_detail_num.biz_id = tvs.vsid and tra_gvs_detail_num.biz_type = 20 limit 1) as baseNumber,\n" +
+                "( select detail_number from tra_gvs_detail_num where tra_gvs_detail_num.biz_id = tvs.vsid and tra_gvs_detail_num.biz_type = 20 limit 1) as detailNumber,\n" +
+                "( select vehicle_type from mot_vehicle where mot_vehicle.vid = tvs.vid) AS vsTypeName,\n" +
+                "( select c_vehicle_type_id from mot_vehicle where mot_vehicle.vid = tvs.vid) AS vsTypeId,\n" +
+                "( select auth_status from sys_account where sys_account.user_id_int = tvs.user_id_int) AS authStatus,\n" +
+                "( select true_name from sys_user where id = (select development_user_id from sys_account where user_id_int = tvs.user_id_int)) AS developmentName,\n" +
+                "( select account_type from sys_account where sys_account.user_id_int = tvs.user_id_int) AS accountType,\n" +
+                "( select sys_attachment.attachment_dest_name from sys_attachment where sys_attachment.id = (select attachment_id from sys_account_attachment where sys_account_attachment.user_id_int = tvs.user_id_int and sys_account_attachment.attachment_type = 6)) as attDestName,\n" +
+                "( select sys_attachment.attachment_path from sys_attachment where sys_attachment.id = (select attachment_id from sys_account_attachment where sys_account_attachment.user_id_int = tvs.user_id_int and sys_account_attachment.attachment_type = 6)) as attPath,\n" +
+                "( select lord_trade_status from lom_order_reward_detail where lord_vsid = tvs.vsid and remove_flag = 'n' and lord_trade_status = 0 limit 1) as waitPaySubOrderStatus,\n" +
+                "( select group_concat(type_name) from mot_vehicle_receive where mot_vehicle_receive.vid = tvs.vid) as vehicleReceives,\n" +
+                "( select distance from cr_routes_source where cr_routes_source.route_id = tvv.route_id) as distance,\n" +
+                "(select pro.vip_icon from oc_third_vip_user tvu left join oc_third_vip_product pro on pro.product_id = tvu.product_id where tvu.usid = tvs.user_id_int and tvu.status = 10 and tvu.remove_flag = 'n' and tvu.serve_start_time <= now() and tvu.serve_end_time > now()) as vipIcon,\n" +
+                "(select pro.personal_icon from oc_third_vip_user tvu left join oc_third_vip_product pro on pro.product_id = tvu.product_id where tvu.usid = tvs.user_id_int and tvu.status = 10 and tvu.remove_flag = 'n' and tvu.serve_start_time <= now() and tvu.serve_end_time > now()) as personalVipIcon,\n" +
+                "(select pro.vehicle_icon from oc_third_vip_user tvu left join oc_third_vip_product pro on pro.product_id = tvu.product_id where tvu.usid = tvs.user_id_int and tvu.status = 10 and tvu.remove_flag = 'n' and tvu.serve_start_time <= now() and tvu.serve_end_time > now()) as vsVipIcon,\n" +
+                "(select img_path from pt_uc_head_img where img_use_type = 1 and remove_flag = 'n' and  pt_uc_head_img.user_id = tvs.user_id_int limit 1) as ossHeadUrl,\n" +
+                "(select behavior.call_count from tra_vehicle_user_behavior behavior where behavior.vsid = tvv.vsid and behavior.usid = ? limit 1) as call_count,\n" +
+                "(select behavior.view_count from tra_vehicle_user_behavior behavior where behavior.vsid = tvv.vsid and behavior.usid = ? limit 1) as view_count,\n" +
+                "case when tvv.top_end_time > now() then 1 else 0 end as top_flag,\n" +
+                "(select define_code from sys_dict_define lsc where lsc.define_value = tvs.suitable_source and lsc.type_code = 'SUITABLE_SOURCE' ) as suitableSourceName,\n" +
+                "(select define_code from sys_dict_define lsc where lsc.define_value = tvs.tank_function and lsc.type_code = 'TANK_FUNCTION' ) as tankFunctionName,\n" +
+                "(\n" +
+                "SELECT\n" +
+                "\t group_concat( distinct mrtl.tag_name ) tagNam\n" +
+                "FROM\n" +
+                "\tmkt_report_main mrm\n" +
+                "\tLEFT JOIN mkt_report_main_tag_type_relation mrmttr ON mrm.rm_id = mrmttr.rm_id\n" +
+                "\tLEFT JOIN mkt_report_tag_type_relation mrttr ON mrttr.rttr_id = mrmttr.rttr_id\n" +
+                "\tLEFT JOIN mkt_report_tag_label mrtl ON mrtl.rtl_id = mrttr.rtl_id\n" +
+                "WHERE\n" +
+                "\tmrm.remove_flag = 'N'\n" +
+                "\tAND mrtl.remove_flag = 'N'\n" +
+                "\tAND mrtl.tag_name IS NOT NULL\n" +
+                "    AND mrm.report_user_id = ?\n" +
+                "\tand mrm.reported_user_id = tvs.user_id_int\n" +
+                "\tAND mrttr.tag_type = 'PEOPLE'\n" +
+                "\tAND mrttr.tag_feedback_type != '30'\n" +
+                ") as label_names\n" +
+                "FROM\n" +
+                "  tra_vehicle_view tvv\n" +
+                "LEFT JOIN tra_vehicle_source tvs on tvv.vsid = tvs.vsid\n" +
+                "\n" +
+                "WHERE 1=1\n" +
+                "    AND tvv.status = 'N'\n" +
+                "    AND tvs.enabled = 1\n" +
+                "    and tvs.BUSINESS_STATUS = 10\n" +
+                "    and tvs.reward_business_status = 10\n" +
+                "    and  not EXISTS (\n" +
+                "        select vsid from tra_vehicle_source where enabled = 1 and user_id_int = ? and source_type = 6\n" +
+                "        and  vsid = tvv.vsid\n" +
+                "    )\n" +
+                "    and not EXISTS (\n" +
+                "        select target_user_id from uc_user_blacklist where remove_flag = 'N' and user_id = ?\n" +
+                "        and tvs.user_id_int = target_user_id\n" +
+                "    )\n" +
+                "        AND tvv.set_out_time >= ?\n" +
+                "        AND tvv.route_from_id >= ?\n" +
+                "        AND tvv.route_from_id <= ?\n" +
+                "        AND tvv.route_to_id >= ?\n" +
+                "        AND tvv.route_to_id <= ?\n" +
+                "        AND tvv.vs_start_set_out_time <= ?\n" +
+                "        AND tvv.vs_end_set_out_time >= ?\n" +
+                "\n" +
+                "\n" +
+                "ORDER BY top_flag DESC , tvv.release_time DESC\n" +
+                "\n" +
+                "\n";
+        sql = EDbSelectUtil.returnLimitSql(sql,10);
+        sql = EDbSelectUtil.returnOffsetSql(sql,1);
+
+        System.out.println(sql);
+//        System.out.println("1=>"+EDbSelectUtil.returnLimitSql(sql,10));
+    }
+
     /**
      * 移除 order 关键字相关语法测试
      */

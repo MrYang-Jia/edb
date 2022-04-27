@@ -55,12 +55,13 @@ public class JpaEasyTest extends BaseTest {
     public void testFirst(){
         VehicleType vehicleType = eDbPro.findFirst(VehicleType.class,"select * from cr_vehicle_type where VEHICLE_TYPE_ID =#para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
         System.out.println(vehicleType);
-
+        vehicleType.setCreateTime(new Date());
+        EDb.update(vehicleType);
         Record record = eDbPro.findFirst("select * from cr_vehicle_type where VEHICLE_TYPE_ID = #para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
 
         System.out.println(record);
 
-        eDbPro.findFirst("select * from dd where VEHICLE_TYPE_NAME like #para(k1)", Kv.by("vehicleTypeId",100));
+//        eDbPro.findFirst("select * from dd where VEHICLE_TYPE_NAME like #para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
     }
 
     /**
@@ -80,6 +81,7 @@ public class JpaEasyTest extends BaseTest {
              VehicleType vehicleType = new VehicleType();
              vehicleType.setVehicleTypeName("原:小汽车");
              vehicleType.setCreatorName("小陈陈");
+             vehicleType.setCreateTime(new Date());
              // 如果有多个数据库，可以用 EDb.use("数据库标识1") 指定
              eDbPro.save(vehicleType);
              System.out.println("耗时:"+(System.currentTimeMillis()-start));

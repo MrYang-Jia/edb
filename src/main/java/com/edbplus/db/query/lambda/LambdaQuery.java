@@ -257,4 +257,10 @@ public interface LambdaQuery<T> extends LambdaBaseQuery<T>,LambdaGroupQuery<T>,L
      * @return
      */
     public Page<T> page(int pageNum,int pageSize,int totalSize);
+
+    /**
+     * 获取查询统计结果
+     * @return
+     */
+    public long count();
 }

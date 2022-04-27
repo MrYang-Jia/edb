@@ -59,7 +59,10 @@ public class GenPg {
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
         sql.append(" 	relname as \"tableName\" ");
-        sql.append(" 	,cast(obj_description(relfilenode,'pg_class') as varchar) as \"tableComment\" ");
+        // rewrite table 后 relfilenode 表注释会发生变化，得改成 oid ，否则无法读取到注释
+//        sql.append(" 	,cast(obj_description(relfilenode,'pg_class') as varchar) as \"tableComment\" ");
+        // pg_catalog.obj_description(pg_class.oid, 'pg_class') as "Description"
+        sql.append(" 	,cast(obj_description(oid,'pg_class') as varchar) as \"tableComment\" ");
         // postgreSql 默认存储引擎即可
         //sql.append(" 	,'Tuple' as ENGINE ");
         sql.append(" FROM ");

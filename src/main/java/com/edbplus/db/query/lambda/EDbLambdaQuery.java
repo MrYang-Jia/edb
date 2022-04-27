@@ -48,6 +48,8 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
     // 参考1: https://blog.csdn.net/u012503481/article/details/100896507
     // 参考2: https://blog.csdn.net/weixin_38405253/article/details/121847323
     // 参考3：mybatiesPlus LambdaQueryWrapper 源码参考，发现是一个针对sql的封装操作，迭代处理sql
+    // 关于native的问题处理解决方案，目前暂时没有比较好的头绪
+    // 参考4：https://githubhot.com/repo/oracle/graal/issues/3756
 
     public EDbQuery eDbQuery = new EDbQuery(); // 基础封装对象
 
@@ -66,22 +68,22 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
     /**
      * 创建查询对象
      * @param entityClass
-     * @param <V>
+     * @param <T>
      * @return
      */
-    public static <V> EDbLambdaQuery<V> lambdaQuery(Class<V> entityClass){
-        return new EDbLambdaQuery<V>(entityClass);
+    public static <T> EDbLambdaQuery<T> lambdaQuery(Class<T> entityClass){
+        return new EDbLambdaQuery<T>(entityClass);
     }
 
     /**
      * 创建查询对象，并指定数据库
      * @param entityClass
      * @param configName
-     * @param <V>
+     * @param <T>
      * @return
      */
-    public static <V> EDbLambdaQuery<V> lambdaQuery(Class<V> entityClass,String configName){
-        return new EDbLambdaQuery<V>(entityClass,configName);
+    public static <T> EDbLambdaQuery<T> lambdaQuery(Class<T> entityClass,String configName){
+        return new EDbLambdaQuery<T>(entityClass,configName);
     }
 
     /**
@@ -102,6 +104,33 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
         eDbPro = EDb.use(configName);
         this.entityClass = entityClass;
     }
+
+    // =============================
+    /**
+     * 封装 and 和 or 的拼接操作
+     * @param sqlConnector
+     * @param eDbFilter
+     */
+    public void doSome(SqlConnectorEnum sqlConnector, EDbFilter eDbFilter){
+        if(sqlConnector == SqlConnectorEnum.and){
+            eDbQuery.and(eDbFilter);
+        }
+        if(sqlConnector == SqlConnectorEnum.or){
+            eDbQuery.or(eDbFilter);
+            this.sqlConnector = SqlConnectorEnum.and; // 切回默认值，因为or的场景比较少，一般只会使用1次，所以切回来and模式
+        }
+    }
+
+
+    /**
+     * 获取字段注解 Column 属性
+     * @param func
+     * @return
+     */
+    public Column getColumn(EDbColumnFunc<T, ?> func) {
+        return EDbLambdaUtil.getColumn(entityClass,func);
+    }
+    // =============================
 
 
     /**
@@ -190,20 +219,6 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
     }
 
 
-    /**
-     * 封装 and 和 or 的拼接操作
-     * @param sqlConnector
-     * @param eDbFilter
-     */
-    public void doSome(SqlConnectorEnum sqlConnector, EDbFilter eDbFilter){
-        if(sqlConnector == SqlConnectorEnum.and){
-            eDbQuery.and(eDbFilter);
-        }
-        if(sqlConnector == SqlConnectorEnum.or){
-            eDbQuery.or(eDbFilter);
-            this.sqlConnector = SqlConnectorEnum.and; // 切回默认值，因为or的场景比较少，一般只会使用1次，所以切回来and模式
-        }
-    }
 
     /**
      * 小于 <
@@ -577,117 +592,17 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
         return eDbPro.paginate(entityClass,pageNum,pageSize,totalSize,eDbQuery);
     }
 
-
-
     /**
-     * 获取字段注解 Column 属性
-     * @param func
+     * 获取查询统计结果
      * @return
      */
-    public Column getColumn(EDbColumnFunc<T, ?> func) {
-        try {
-            SerializedLambda serializedLambda = getSerializedLambda(func);
-            String getter = serializedLambda.getImplMethodName();
-            String fieldName = resolveFieldName(getter);
-//            Class<?> capturingClass = Class.forName(serializedLambda.getCapturingClass().replace("/", "."));
-//            System.out.println(capturingClass.getName()); // 调用类
-            if(entityClass == null){
-                entityClass = (Class<T>) Class.forName(serializedLambda.getImplClass().replace("/", "."));
-            }
-//            System.out.println(domainClass.getName()); // 实体类
-            // 利用hutool的类反射对象
-//            Field field =  ClassUtil.getDeclaredField(domainClass,fieldName); // 通过反射获取字段
-//            Column column = EAnnotationUtil.getAnnotation(field, Column.class); // 获取字段上的注解，从而获取到数据库的实际字段名
-            // 通过已缓存的对象反射注解池，直接获取到对象的相关信息，只有第一次反射时，才需要消耗一定的资源
-            FieldAndColumn fieldAndColumn = JpaAnnotationUtil.getCoumnsMap(entityClass).get(fieldName);
-            Column column = fieldAndColumn.getColumn(); // 获取到字段注解
-            return column;
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
+    public long count(){
+        return eDbPro.count(entityClass,eDbQuery);
     }
 
-    private static <T> SerializedLambda getSerializedLambda(EDbColumnFunc<T, ?>  fn) {
-//        // 从function取出序列化方法
-        Method writeReplaceMethod;
-        SerializedLambda serializedLambda;
-        try {
-            writeReplaceMethod = fn.getClass().getDeclaredMethod("writeReplace");
-            // 从序列化方法取出序列化的lambda信息
-            boolean isAccessible = writeReplaceMethod.isAccessible();
-            writeReplaceMethod.setAccessible(true);
-            try {
-                serializedLambda = (SerializedLambda) writeReplaceMethod.invoke(fn);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-            writeReplaceMethod.setAccessible(isAccessible);
-        } catch (NoSuchMethodException e) {
-            try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-                 ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-                 oos.writeObject(fn);
-                 oos.flush();
-                 try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))
-                     {
-                         @Override
-                         protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-                             Class<?> clazz = super.resolveClass(desc);
-                             return clazz == java.lang.invoke.SerializedLambda.class ? SerializedLambda.class : clazz;
-                         }
 
-                     }
-                 ) {
-                    serializedLambda = (SerializedLambda) ois.readObject();
-                 }
-            } catch (IOException | ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        return serializedLambda;
-    }
 
-//    public String getFieldName(PropertyFunc<T, ?> func) {
-//        try {
-//            // 通过获取对象方法，判断是否存在该方法
-//            Method method = func.getClass().getDeclaredMethod("writeReplace");
-//            method.setAccessible(Boolean.TRUE);
-//            // 利用jdk的SerializedLambda 解析方法引用
-//            java.lang.invoke.SerializedLambda serializedLambda = (SerializedLambda) method.invoke(func);
-//            String getter = serializedLambda.getImplMethodName();
-//            String fieldName = resolveFieldName(getter);
-////            Class<?> capturingClass = Class.forName(serializedLambda.getCapturingClass().replace("/", "."));
-////            System.out.println(capturingClass.getName()); // 调用类
-//            Class<?> domainClass = Class.forName(serializedLambda.getImplClass().replace("/", "."));
-////            System.out.println(domainClass.getName()); // 实体类
-//            // 利用hutool的类反射对象
-////            Field field =  ClassUtil.getDeclaredField(domainClass,fieldName); // 通过反射获取字段
-////            Column column = EAnnotationUtil.getAnnotation(field, Column.class); // 获取字段上的注解，从而获取到数据库的实际字段名
-//            // 通过已缓存的对象反射注解池，直接获取到对象的相关信息，只有第一次反射时，才需要消耗一定的资源
-//            FieldAndColumn fieldAndColumn = JpaAnnotationUtil.getCoumnsMap(domainClass).get(fieldName);
-//            Column column = fieldAndColumn.getColumn(); // 获取到字段注解
-//            return fieldName;
-//        } catch (ReflectiveOperationException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-
-    private  String resolveFieldName(String getMethodName) {
-        if (getMethodName.startsWith("get")) {
-            getMethodName = getMethodName.substring(3);
-        } else if (getMethodName.startsWith("is")) {
-            getMethodName = getMethodName.substring(2);
-        }
-        // 小写第一个字母
-        return firstToLowerCase(getMethodName);
-    }
-
-    private  String firstToLowerCase(String param) {
-        if (StrKit.isBlank(param)) {
-            return "";
-        }
-        return param.substring(0, 1).toLowerCase() + param.substring(1);
-    }
 
     
 

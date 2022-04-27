@@ -99,6 +99,14 @@ public class JpaEDbQueryTest extends BaseTest {
 //        List<VehicleType> vehicleTypes =   EDb.find(VehicleType.class,eDbQuery);
     }
 
+    @Test
+    public void likeTest(){
+        EDbQuery eDbQuery = new EDbQuery();
+        // 根据情况设置查询条件
+        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_NAME", EDbFilter.Operator.llk, "1"));
+        VehicleType vehicleType = EDb.use().findFirst(VehicleType.class,eDbQuery);
+    }
+
 
     @Test
     public void test(){
@@ -144,7 +152,7 @@ public class JpaEDbQueryTest extends BaseTest {
 
         start = System.currentTimeMillis();
         // PageRequest 分页查询
-        EDb.paginate(VehicleType.class, PageRequest.of(1,10),eDbQuery);
+//        EDb.paginate(VehicleType.class, PageRequest.of(1,10),eDbQuery);
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
 
         start = System.currentTimeMillis();

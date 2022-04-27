@@ -187,6 +187,36 @@ public class JpaAnnotationUtil {
 
 
     /**
+     * 获取对象字段与表字段的映射集合
+     * @param mClass
+     * @return
+     */
+    public static Map<String,String> getFieldToTableColumnMap(Class mClass){
+        List<FieldAndColumn> fieldAndColumns = getCoumns(mClass);
+        Map<String,String> fieldColumnMap =  new HashMap<>();
+        for(FieldAndColumn fieldAndColumn:fieldAndColumns){
+            // 驼峰字段 映射 数据库字段
+            fieldColumnMap.put(fieldAndColumn.getField().getName(),fieldAndColumn.getColumn().name());
+        }
+        return fieldColumnMap;
+    }
+
+    /**
+     * 获取对象字段的表字段名称
+     * @param mClass
+     * @return
+     */
+    public static String getColumnFromFieldName(Class mClass,String fieldName){
+        List<FieldAndColumn> fieldAndColumns = getCoumns(mClass);
+        for(FieldAndColumn fieldAndColumn:fieldAndColumns){
+            if(fieldAndColumn.getField().getName().equals(fieldName)){
+                return fieldAndColumn.getColumn().name();
+            }
+        }
+        throw new RuntimeException(" not find fieldName ");
+    }
+
+    /**
      * 获取对象的所有columns对象
      * @param mClass
      * @return

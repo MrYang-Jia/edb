@@ -50,7 +50,6 @@ import com.jfinal.plugin.activerecord.*;
 import com.jfinal.plugin.activerecord.Record; // 必须指定 Record 对象，不然jdk版本的问题，会导致异常，因为 Record 是关键性对象
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 import lombok.Setter;
-import org.springframework.data.domain.PageRequest;
 import javax.persistence.Table;
 import java.lang.reflect.Method;
 import java.sql.*;
@@ -915,6 +914,128 @@ public class EDbPro extends DbPro {
         return update(m,false);
     }
 
+    /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
+     * @param eDbQuery -- 查询字段
+     * @param <M>
+     * @return
+     */
+    public <M> boolean delete(Class<M> mClass,EDbQuery eDbQuery)
+    {
+        return deleteReInt(mClass,eDbQuery) > 0;
+    }
+
+    /**
+     * 删除数据
+     * @param mClass
+     * @param eDbQuery
+     * @param <M>
+     * @return
+     */
+    public <M> int deleteReInt(Class<M> mClass,EDbQuery eDbQuery)
+    {
+        // 如果查询的条件为0则抛出异常
+        if(eDbQuery.getQuerySize() == 0){
+            throw new RuntimeException(" no querys ");
+        }
+        List<Object> paras = new ArrayList<>();
+        String andSql = EDbQueryUtil.doWhereSql(eDbQuery,paras);
+        SqlPara sqlPara=new SqlPara();
+        StringBuilder deleteSql = new StringBuilder("delete from ");
+        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        deleteSql.append(table.name()).append(" where ").append(andSql);
+        sqlPara.setSql(deleteSql.toString());
+        for(Object obj:paras){
+            sqlPara.addPara(obj);
+        }
+        return this.update(sqlPara);
+    }
+
+    /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
+     * @param updateData -- 更新的数据库字段
+     * @param eDbQuery -- 查询字段
+     * @param <M>
+     * @return
+     */
+    public <M> boolean update(Class<M> mClass,Map<String,Object> updateData,EDbQuery eDbQuery){
+        return updateReInt(mClass,updateData,eDbQuery) > 0;
+    }
+    /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
+     * @param updateData -- 更新的数据库字段
+     * @param eDbQuery -- 查询字段
+     * @param <M>
+     * @return
+     */
+    public <M> int updateReInt(Class<M> mClass,Map<String,Object> updateData,EDbQuery eDbQuery){
+        // 如果查询的条件为0则抛出异常
+        if(eDbQuery.getQuerySize() == 0){
+            throw new RuntimeException(" no querys ");
+        }
+
+        // 返回表对象 -- 便于获取表名称
+        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        // 获取主键键值 -- 小写
+        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        Record record = new Record();
+        // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
+        Map<String,Object> dataMap = new HashMap<>();
+        // 必须有更新条件，所以不用判断null
+        if(updateData.size() > 0){
+            for(Map.Entry<String, Object> entry : updateData.entrySet()){
+                // 由于使用工具类取出来的数据库字段命名是小写，所以统一转小写 ，这点是因为你永远无法知道用户到底是小写还是大写的命名规则决定的
+                dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
+            }
+        }else{
+            throw new RuntimeException(" no update params ");
+        }
+        // 初始化对象
+        record.setColumns(dataMap);
+        // 获取所有字段列表
+        List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(mClass);
+        // 更新前的方法事件
+        Method beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbUpdate.class);
+        Map<String,Object> updateDataMap = null;
+        // 保存前的监听
+        if(eDbListener!=null){
+            updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            // 执行对象方法
+            eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
+            // 替换数据
+            record.setColumns(updateDataMap);
+        }
+        //
+        if(beforeSave != null){
+            Object ojb = null;
+            try {
+                ojb = mClass.newInstance();
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+            // 替换成 忽略 大小写的 map
+            updateDataMap =  new CaseInsensitiveMap(dataMap);
+            // 执行对象方法
+            EReflectUtil.invoke(ojb, beforeSave, updateDataMap,coumns);
+            // 替换数据
+            record.setColumns(updateDataMap);
+        }
+        StringBuilder updateSql =  new StringBuilder("");
+        List<Object> paras = new ArrayList<>();
+        String[] pKeys = keys.split(",");
+        forDbUpdateByQuery(table.name(),pKeys,record,updateSql,paras,eDbQuery);
+        SqlPara sqlPara =  new SqlPara();
+        sqlPara.setSql(updateSql.toString());
+        for(Object obj:paras){
+            sqlPara.addPara(obj);
+        }
+        // 更新数据
+        return this.update(sqlPara);
+    }
+
 
     /**
      * 根据外键进行更新
@@ -938,6 +1059,8 @@ public class EDbPro extends DbPro {
                 // 由于使用工具类取出来的数据库字段命名是小写，所以统一转小写 ，这点是因为你永远无法知道用户到底是小写还是大写的命名规则决定的
                 dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
             }
+        }else{
+            throw new RuntimeException(" no update params ");
         }
         // 初始化对象
         record.setColumns(dataMap);
@@ -1127,6 +1250,37 @@ public class EDbPro extends DbPro {
             throw new RuntimeException(" fkData size must be greater than 0 ");
         }
 
+    }
+
+
+    /**
+     *
+     * @param tableName
+     * @param pKeys
+     * @param record
+     * @param sql
+     * @param paras
+     * @param eDbQuery
+     */
+    public void forDbUpdateByQuery(String tableName, String[] pKeys,  Record record, StringBuilder sql, List<Object> paras,EDbQuery eDbQuery) {
+        tableName = tableName.trim();
+        this.config.getDialect().trimPrimaryKeys(pKeys);
+        sql.append("update ").append(tableName).append(" set ");
+        Iterator var7 = record.getColumns().entrySet().iterator();
+
+        while(var7.hasNext()) {
+            Map.Entry<String, Object> e = (Map.Entry)var7.next();
+            String colName = (String)e.getKey();
+            if (!this.config.getDialect().isPrimaryKey(colName, pKeys)) { // 非主键键值更新防御
+                if (paras.size() > 0) {
+                    sql.append(", ");
+                }
+                sql.append(colName).append(" = ? ");
+                paras.add(e.getValue());
+            }
+        }
+        String andSql = EDbQueryUtil.doWhereSql(eDbQuery,paras);
+        sql.append(" where ").append(andSql);
     }
 
     /**
@@ -1669,6 +1823,17 @@ public class EDbPro extends DbPro {
     }
 
     /**
+     * 查询表所有对象
+     * @param mClass
+     * @return
+     */
+    public <M> List<M> findAll(Class<M> mClass){
+        String tableName = tableName(mClass);
+        String sql = this.config.getDialect().forFindAll(tableName);
+        return find(mClass,sql,null);
+    }
+
+    /**
      * 查询sql，并设置返回条数
      * @param sqlPara
      * @param limit
@@ -1995,18 +2160,18 @@ public class EDbPro extends DbPro {
         return this.doPaginate(mClass,pageNumber, pageSize, (Boolean)null, sqls[0], sqls[1]);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param findSql
-     * @param <M>
-     * @return
-     */
-    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql) {
-        String[] sqls = PageSqlKit.parsePageSql(findSql);
-        return this.doPaginate(mClass,pageRequest, (Boolean)null, sqls[0], sqls[1]);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param findSql
+//     * @param <M>
+//     * @return
+//     */
+//    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql) {
+//        String[] sqls = PageSqlKit.parsePageSql(findSql);
+//        return this.doPaginate(mClass,pageRequest, (Boolean)null, sqls[0], sqls[1]);
+//    }
 
 
 
@@ -2030,23 +2195,23 @@ public class EDbPro extends DbPro {
         return this.doPaginate(mClass,pageNumber, pageSize, (Boolean)null, sqls[0], sqls[1], paras);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param findSql
-     * @param paras
-     * @param <M>
-     * @return
-     */
-    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql,Object... paras) {
-        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
-            SqlPara sqlPara = this.getSqlParaByString(findSql, (Map) paras[0]);
-            return this.paginate(mClass,pageRequest,sqlPara);
-        }
-        String[] sqls = PageSqlKit.parsePageSql(findSql);
-        return this.doPaginate(mClass,pageRequest, (Boolean)null, sqls[0], sqls[1], paras);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param findSql
+//     * @param paras
+//     * @param <M>
+//     * @return
+//     */
+//    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql,Object... paras) {
+//        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
+//            SqlPara sqlPara = this.getSqlParaByString(findSql, (Map) paras[0]);
+//            return this.paginate(mClass,pageRequest,sqlPara);
+//        }
+//        String[] sqls = PageSqlKit.parsePageSql(findSql);
+//        return this.doPaginate(mClass,pageRequest, (Boolean)null, sqls[0], sqls[1], paras);
+//    }
 
 
     /**
@@ -2064,18 +2229,18 @@ public class EDbPro extends DbPro {
         return this.doPaginate(mClass,pageNumber, pageSize, (Boolean)null,totalRow, new StringBuilder(findSql),new Object[0]);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param totalRow
-     * @param findSql
-     * @param <M>
-     * @return
-     */
-    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql) {
-        return this.doPaginate(mClass,pageRequest, (Boolean)null,totalRow, new StringBuilder(findSql),new Object[0]);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param totalRow
+//     * @param findSql
+//     * @param <M>
+//     * @return
+//     */
+//    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql) {
+//        return this.doPaginate(mClass,pageRequest, (Boolean)null,totalRow, new StringBuilder(findSql),new Object[0]);
+//    }
 
 
 
@@ -2099,23 +2264,23 @@ public class EDbPro extends DbPro {
         return this.doPaginate(mClass,pageNumber, pageSize, (Boolean)null,totalRow, new StringBuilder(findSql),paras);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param totalRow
-     * @param findSql
-     * @param paras
-     * @param <M>
-     * @return
-     */
-    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql,Object... paras) {
-        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
-            SqlPara sqlPara = this.getSqlParaByString(findSql, (Map) paras[0]);
-            return this.paginate(mClass,pageRequest,totalRow,sqlPara);
-        }
-        return this.doPaginate(mClass,pageRequest, (Boolean)null,totalRow, new StringBuilder(findSql),paras);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param totalRow
+//     * @param findSql
+//     * @param paras
+//     * @param <M>
+//     * @return
+//     */
+//    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql,Object... paras) {
+//        if(paras!=null && paras.length == 1 && paras[0] instanceof Map) {
+//            SqlPara sqlPara = this.getSqlParaByString(findSql, (Map) paras[0]);
+//            return this.paginate(mClass,pageRequest,totalRow,sqlPara);
+//        }
+//        return this.doPaginate(mClass,pageRequest, (Boolean)null,totalRow, new StringBuilder(findSql),paras);
+//    }
 
 
     /**
@@ -2169,19 +2334,19 @@ public class EDbPro extends DbPro {
         return var10;
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param totalRow
-     * @param sqlPara
-     * @param <M>
-     * @return
-     */
-    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, SqlPara sqlPara) {
-        //
-        return this.doPaginate(mClass,pageRequest, (Boolean)null,totalRow,new StringBuilder(sqlPara.getSql()), sqlPara.getPara());
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param totalRow
+//     * @param sqlPara
+//     * @param <M>
+//     * @return
+//     */
+//    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, SqlPara sqlPara) {
+//        //
+//        return this.doPaginate(mClass,pageRequest, (Boolean)null,totalRow,new StringBuilder(sqlPara.getSql()), sqlPara.getPara());
+//    }
 
     /**
      * 根据 sqlPara查询对象，返回指定的对象分页列表
@@ -2199,18 +2364,18 @@ public class EDbPro extends DbPro {
 
 
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param sqlPara
-     * @param <M>
-     * @return
-     */
-    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, SqlPara sqlPara) {
-        String[] sqls = PageSqlKit.parsePageSql(sqlPara.getSql());
-        return this.doPaginate(mClass,pageRequest, (Boolean)null, sqls[0], sqls[1], sqlPara.getPara());
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param sqlPara
+//     * @param <M>
+//     * @return
+//     */
+//    public <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, SqlPara sqlPara) {
+//        String[] sqls = PageSqlKit.parsePageSql(sqlPara.getSql());
+//        return this.doPaginate(mClass,pageRequest, (Boolean)null, sqls[0], sqls[1], sqlPara.getPara());
+//    }
 
     /**
      * 根据 sqlPara查询对象、是否分组sql,返回指定的对象分页列表
@@ -2308,25 +2473,25 @@ public class EDbPro extends DbPro {
     }
 
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param isGroupBySql
-     * @param select
-     * @param sqlExceptSelect
-     * @param paras
-     * @param <M>
-     * @return
-     */
-    protected <M> Page<M> doPaginate(Class<M> mClass,PageRequest pageRequest, Boolean isGroupBySql, String select, String sqlExceptSelect, Object... paras) {
-        // 默认值设定
-        if(pageRequest == null){
-            // 默认只返回最多10条数据
-            pageRequest = PageRequest.of(1,10);
-        }
-        return doPaginate(mClass,pageRequest.getPageNumber(),pageRequest.getPageSize(),isGroupBySql,select,sqlExceptSelect,paras);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param isGroupBySql
+//     * @param select
+//     * @param sqlExceptSelect
+//     * @param paras
+//     * @param <M>
+//     * @return
+//     */
+//    protected <M> Page<M> doPaginate(Class<M> mClass,PageRequest pageRequest, Boolean isGroupBySql, String select, String sqlExceptSelect, Object... paras) {
+//        // 默认值设定
+//        if(pageRequest == null){
+//            // 默认只返回最多10条数据
+//            pageRequest = PageRequest.of(1,10);
+//        }
+//        return doPaginate(mClass,pageRequest.getPageNumber(),pageRequest.getPageSize(),isGroupBySql,select,sqlExceptSelect,paras);
+//    }
 
     /**
      * 主要是根据 已传入的总记录数 实现分页逻辑
@@ -2354,25 +2519,25 @@ public class EDbPro extends DbPro {
         return var10;
     }
 
-    /**
-     * 直接赋予记录总数的分页查询方法
-     * @param mClass
-     * @param pageRequest
-     * @param isGroupBySql
-     * @param totalRow
-     * @param findSql
-     * @param paras
-     * @param <M>
-     * @return
-     */
-    protected <M> Page<M> doPaginate(Class<M> mClass,PageRequest pageRequest, Boolean isGroupBySql,long totalRow, StringBuilder findSql, Object... paras) {
-        // 默认值设定
-        if(pageRequest == null){
-            // 默认只返回最多10条数据
-            pageRequest = PageRequest.of(1,10);
-        }
-        return doPaginate(mClass,pageRequest.getPageNumber(),pageRequest.getPageSize(),isGroupBySql,totalRow,findSql,paras);
-    }
+//    /**
+//     * 直接赋予记录总数的分页查询方法
+//     * @param mClass
+//     * @param pageRequest
+//     * @param isGroupBySql
+//     * @param totalRow
+//     * @param findSql
+//     * @param paras
+//     * @param <M>
+//     * @return
+//     */
+//    protected <M> Page<M> doPaginate(Class<M> mClass,PageRequest pageRequest, Boolean isGroupBySql,long totalRow, StringBuilder findSql, Object... paras) {
+//        // 默认值设定
+//        if(pageRequest == null){
+//            // 默认只返回最多10条数据
+//            pageRequest = PageRequest.of(1,10);
+//        }
+//        return doPaginate(mClass,pageRequest.getPageNumber(),pageRequest.getPageSize(),isGroupBySql,totalRow,findSql,paras);
+//    }
 
     /**
      * 主要是根据 已传入的总记录数 实现分页逻辑
@@ -2907,19 +3072,19 @@ public class EDbPro extends DbPro {
         return paginate(mClass,pageNumber,pageSize,sqlPara);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param eDbQuery
-     * @param <M>
-     * @return
-     */
-    public <M> Page<M> paginate(Class<M> mClass, PageRequest pageRequest, EDbQuery eDbQuery) {
-        // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(mClass,eDbQuery);
-        return paginate(mClass,pageRequest,sqlPara);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param eDbQuery
+//     * @param <M>
+//     * @return
+//     */
+//    public <M> Page<M> paginate(Class<M> mClass, PageRequest pageRequest, EDbQuery eDbQuery) {
+//        // 解析 sqlpara
+//        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(mClass,eDbQuery);
+//        return paginate(mClass,pageRequest,sqlPara);
+//    }
 
     /**
      * 根据 EDbQuery 返回分页对象（已制定 totalRow的模式）
@@ -2937,20 +3102,20 @@ public class EDbPro extends DbPro {
         return paginate(mClass,pageNumber,pageSize,totalRow,sqlPara);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param totalRow
-     * @param eDbQuery
-     * @param <M>
-     * @return
-     */
-    public <M> Page<M> paginate(Class<M> mClass, PageRequest pageRequest,long totalRow, EDbQuery eDbQuery) {
-        // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(mClass,eDbQuery);
-        return paginate(mClass,pageRequest,totalRow,sqlPara);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param totalRow
+//     * @param eDbQuery
+//     * @param <M>
+//     * @return
+//     */
+//    public <M> Page<M> paginate(Class<M> mClass, PageRequest pageRequest,long totalRow, EDbQuery eDbQuery) {
+//        // 解析 sqlpara
+//        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(mClass,eDbQuery);
+//        return paginate(mClass,pageRequest,totalRow,sqlPara);
+//    }
 
 
     /**

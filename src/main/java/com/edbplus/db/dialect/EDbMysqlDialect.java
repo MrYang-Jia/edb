@@ -17,6 +17,10 @@ package com.edbplus.db.dialect;
 
 import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
+
 /**
  * @ClassName EDbMysqlDialect
  * @Description: mysql方言解析器
@@ -53,5 +57,35 @@ public class EDbMysqlDialect extends MysqlDialect {
         }
     }
 
+
+    /**
+     * 参数填充
+     * @param pst
+     * @param paras
+     * @throws SQLException
+     */
+    public void fillStatement(PreparedStatement pst, List<Object> paras) throws SQLException {
+        int i = 0;
+
+        for(int size = paras.size(); i < size; ++i) {
+            // 目前需要注意的是有些版本的 jdbc 驱动，关于 timestamp 填充会报异常，如果有需要，则需要兼容下转换
+            pst.setObject(i + 1, paras.get(i));
+        }
+
+    }
+
+    /**
+     * 参数填充
+     * @param pst
+     * @param paras
+     * @throws SQLException
+     */
+    public void fillStatement(PreparedStatement pst, Object... paras) throws SQLException {
+        for(int i = 0; i < paras.length; ++i) {
+            // 目前需要注意的是有些版本的 jdbc 驱动，关于 timestamp 填充会报异常，如果有需要，则需要兼容下转换
+            pst.setObject(i + 1, paras[i]);
+        }
+
+    }
 
 }

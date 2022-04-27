@@ -389,8 +389,60 @@ public class VoTest extends BaseTest {
     @Test
     public void testP(){
 //        ojbsF(1,2,3);
-        Class<List<Cat>> classType = new DefaultTargetType<List<Cat>>() {}.getClassType();
-        System.out.println(classType.getName());
+//        Class<List<Cat>> classType = new DefaultTargetType<List<Cat>>() {}.getClassType();
+//        System.out.println(classType.getName());
+//        StringBuffer sbSQL = new StringBuffer();
+//        sbSQL.append(" SELECT ");
+//        sbSQL.append(" distinct  s.resource_code as resourceCode,s.resource_name as resourceName ");
+//        sbSQL.append(" FROM sys_user u ");
+//        sbSQL.append(" LEFT JOIN p_sys_userrole ur ON u.usid=ur.user_id ");
+//        sbSQL.append(" LEFT JOIN p_sys_roleresource rs ON ur.role_id = rs.role_id ");
+//        sbSQL.append(" LEFT JOIN p_sys_resource s ON rs.resource_id=s.resource_id ");
+//        sbSQL.append(" where u.usid = ?").append(" and s.resource_type = ?");
+//        sbSQL.append(" and s.STATUS = ?");
+//        System.out.println(sbSQL);
+
+        String regStr = "${quarkus.dubbo.version}";
+//        String jpaRelReg = "$\\{([^\\$\\{]*)\\}";
+//        String columnName = regStr.replaceAll(jpaRelReg,"$1").replaceAll(" ","");
+//        System.out.println(columnName);
+
+
+
+
+
+        System.out.println(properName(regStr));
+    }
+
+
+    public String properName(String properNameProxy){
+        if(!properNameProxy.startsWith("$")){
+            return null;
+        }
+        String temp = properNameProxy;
+        String proerName = null;
+        int start=0;
+        int end=0;
+        int sign=0;
+        for (int index=0;index<temp.length();index++){
+            switch (temp.charAt(index)){
+                case '$':{
+                    if((index+1!=temp.length())&&temp.charAt(index+1)=='{')
+                    {
+                        start = index+2;sign=1;
+                    }
+                    break;
+                }
+                case '}':{
+                    if (sign==1){
+                        end = index;
+                        proerName = temp.substring(start,end);
+                        sign=0;
+                    }
+                }
+            }
+        }
+        return proerName;
     }
 
 }

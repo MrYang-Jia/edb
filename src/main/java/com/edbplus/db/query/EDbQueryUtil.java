@@ -247,15 +247,13 @@ public class EDbQueryUtil {
         firstAnd = null;
     }
 
-    public static SqlPara getSqlParaForJpaQuery(String tableName, EDbQuery queryParams){
+    /**
+     * 处理where部分sql
+     * @param queryParams
+     * @return
+     */
+    public static String doWhereSql(EDbQuery queryParams,List<Object> paramsList){
 
-
-        if(queryParams == null){
-            queryParams = new EDbQuery();
-        }
-
-        //
-        List<Object> paramsList = new ArrayList<>();
         //
         StringBuffer andSqlStr =  new StringBuffer("");
         // 首次拼接前用 1=1 ，以便后续的对象可以 and 拼接
@@ -303,11 +301,74 @@ public class EDbQueryUtil {
                 }
             }
         }
-
-
         // 将 2=2 去掉，是为了保证不会被识别成是注入的代码块
         String andSql =  andSqlStr.toString().replaceAll("1=1  and","");
+        return andSql;
+    }
 
+    public static SqlPara getSqlParaForJpaQuery(String tableName, EDbQuery queryParams){
+
+
+        if(queryParams == null){
+            queryParams = new EDbQuery();
+        }
+
+        // 处理where部分sql开始
+//        //
+//        List<Object> paramsList = new ArrayList<>();
+//        //
+//        StringBuffer andSqlStr =  new StringBuffer("");
+//        // 首次拼接前用 1=1 ，以便后续的对象可以 and 拼接
+//        andSqlStr.append(" 1=1 ");
+//
+//        baseQueryFun(queryParams,andSqlStr,paramsList);
+//
+//        if(queryParams.andComs!=null && queryParams.andComs.size()>0){
+//            for(EDbBaseQuery andCom:queryParams.andComs){
+//                // and ( filters ) 部分
+//                if(andCom.getQuerySize() >0 ) {
+//                    andSqlStr.append(" and ( 1=1 ");
+//                    baseQueryFun(andCom, andSqlStr, paramsList);
+//                    andSqlStr.append(" )");
+//                }
+//            }
+//        }
+//
+//        if(queryParams.orComs!=null && queryParams.orComs.size()>0){
+//            for(EDbBaseQuery orCom:queryParams.orComs){
+//                // or ( filters ) 部分
+//                if(orCom.getQuerySize() >0 ){
+//                    andSqlStr.append(" or (  1=1 ");
+//                    baseQueryFun(orCom,andSqlStr,paramsList);
+//                    andSqlStr.append(" )");
+//                }
+//            }
+//        }
+//
+//        // 拼接 group By 部分
+//        if(queryParams.getGroupByFilter()!=null){
+//            // 添加groupBy
+//            andSqlStr.append(" group by ").append(queryParams.getGroupByFilter().getProperty());
+//        }
+//
+//        // having 的部分处理
+//        if(queryParams.getHavingFilter() != null ){
+//            andSqlStr.append(" having ").append(queryParams.getHavingFilter().getProperty());
+//            if(queryParams.getHavingFilter().getValue() != null){
+//                if(queryParams.getHavingFilter().getValue() instanceof Object[]){
+//                    Object[] opts = (Object[]) queryParams.getHavingFilter().getValue();
+//                    for (Object opt:opts){
+//                        paramsList.add(opt);
+//                    }
+//                }
+//            }
+//        }
+//        // 将 2=2 去掉，是为了保证不会被识别成是注入的代码块
+//        String andSql =  andSqlStr.toString().replaceAll("1=1  and","");
+
+        List<Object> paramsList = new ArrayList<>();
+        String andSql = doWhereSql(queryParams,paramsList);
+        // ============ 处理 where 部分结束================
 
         StringBuffer orderSql =  new StringBuffer("");
         Order order = null;
@@ -325,6 +386,7 @@ public class EDbQueryUtil {
                 orderSql.append(",");
             }
         }
+
         // sqlPara
         SqlPara sqlPara = new SqlPara();
         // select xxx

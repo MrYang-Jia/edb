@@ -71,6 +71,8 @@ public class EDb extends Db{
         }
         // 删除配置对象
         edbFutruePools.remove(configName);
+        // 删除内部数据操作对象
+        dbMap.remove(configName);
     }
 
     /**
@@ -355,6 +357,52 @@ public class EDb extends Db{
     /**
      * 根据外键进行更新
      * @param mClass -- 对象
+     * @param eDbQuery -- 查询字段
+     * @param <M>
+     * @return
+     */
+    public static  <M> boolean delete(Class<M> mClass,EDbQuery eDbQuery){
+        return MAIN.delete(mClass,eDbQuery);
+    }
+
+    /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
+     * @param eDbQuery -- 查询字段
+     * @param <M>
+     * @return
+     */
+    public static  <M> int deleteReInt(Class<M> mClass,EDbQuery eDbQuery){
+        return MAIN.deleteReInt(mClass,eDbQuery);
+    }
+
+    /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
+     * @param updateData -- 更新的数据库字段
+     * @param eDbQuery -- 查询字段
+     * @param <M>
+     * @return
+     */
+    public static <M> boolean update(Class<M> mClass,Map<String,Object> updateData,EDbQuery eDbQuery){
+        return MAIN.update(mClass,updateData,eDbQuery);
+    }
+
+    /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
+     * @param updateData -- 更新的数据库字段
+     * @param eDbQuery -- 查询字段
+     * @param <M>
+     * @return
+     */
+    public static <M> int updateReInt(Class<M> mClass,Map<String,Object> updateData,EDbQuery eDbQuery){
+        return MAIN.updateReInt(mClass,updateData,eDbQuery);
+    }
+
+    /**
+     * 根据外键进行更新
+     * @param mClass -- 对象
      * @param updateData -- 更新的数据库字段
      * @param fkData -- 外键数据字段集
      * @param <M>
@@ -587,6 +635,15 @@ public class EDb extends Db{
         return MAIN.find(mClass,finalSql);
     }
 
+    /**
+     * 查询表所有对象
+     * @param mClass
+     * @return
+     */
+    public  static <M> List<M> findAll(Class<M> mClass){
+        return MAIN.findAll(mClass);
+    }
+
 
     /**
      * 返回查询对象和设置返回的条数
@@ -671,18 +728,18 @@ public class EDb extends Db{
     public static  <M> Page<M> paginate(Class<M> mClass, int pageNumber, int pageSize, String findSql) {
         return MAIN.paginate(mClass,pageNumber,pageSize,findSql);
     }
-
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param findSql
-     * @param <M>
-     * @return
-     */
-    public static  <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql) {
-        return MAIN.paginate(mClass,pageRequest,findSql);
-    }
+//
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param findSql
+//     * @param <M>
+//     * @return
+//     */
+//    public static  <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql) {
+//        return MAIN.paginate(mClass,pageRequest,findSql);
+//    }
 
 
     /**
@@ -699,18 +756,18 @@ public class EDb extends Db{
         return MAIN.paginate(mClass,pageNumber,pageSize,findSql,paras);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param findSql
-     * @param paras
-     * @param <M>
-     * @return
-     */
-    public static <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql,Object... paras) {
-        return MAIN.paginate(mClass,pageRequest,findSql,paras);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param findSql
+//     * @param paras
+//     * @param <M>
+//     * @return
+//     */
+//    public static <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, String findSql,Object... paras) {
+//        return MAIN.paginate(mClass,pageRequest,findSql,paras);
+//    }
 
     /**
      * 根据设定好的查询总记录数和查询语句返回分页记录集
@@ -726,18 +783,18 @@ public class EDb extends Db{
         return MAIN.paginate(mClass,pageNumber,pageSize,totalRow,findSql);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param totalRow
-     * @param findSql
-     * @param <M>
-     * @return
-     */
-    public static <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql) {
-        return MAIN.paginate(mClass,pageRequest,totalRow,findSql);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param totalRow
+//     * @param findSql
+//     * @param <M>
+//     * @return
+//     */
+//    public static <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql) {
+//        return MAIN.paginate(mClass,pageRequest,totalRow,findSql);
+//    }
 
     /**
      * 根据设定好的查询总记录数和查询语句返回分页记录集
@@ -754,19 +811,19 @@ public class EDb extends Db{
         return MAIN.paginate(mClass,pageNumber,pageSize,totalRow,findSql,paras);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param totalRow
-     * @param findSql
-     * @param paras
-     * @param <M>
-     * @return
-     */
-    public static  <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql,Object... paras) {
-        return MAIN.paginate(mClass,pageRequest,totalRow,findSql,paras);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param totalRow
+//     * @param findSql
+//     * @param paras
+//     * @param <M>
+//     * @return
+//     */
+//    public static  <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, String findSql,Object... paras) {
+//        return MAIN.paginate(mClass,pageRequest,totalRow,findSql,paras);
+//    }
 
     /**
      * 根据 预设的数据库总记录数 和 sqlPara查询对象，返回指定的对象分页列表
@@ -781,18 +838,18 @@ public class EDb extends Db{
         return MAIN.paginate(mClass,pageNumber,pageSize,totalRow,sqlPara);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param totalRow
-     * @param sqlPara
-     * @param <M>
-     * @return
-     */
-    public static <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, SqlPara sqlPara) {
-        return MAIN.paginate(mClass,pageRequest,totalRow,sqlPara);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param totalRow
+//     * @param sqlPara
+//     * @param <M>
+//     * @return
+//     */
+//    public static <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest,long totalRow, SqlPara sqlPara) {
+//        return MAIN.paginate(mClass,pageRequest,totalRow,sqlPara);
+//    }
 
 
     /**
@@ -808,17 +865,17 @@ public class EDb extends Db{
         return MAIN.paginate(mClass,pageNumber,pageSize,sqlPara);
     }
 
-    /**
-     * 根据 sqlPara 查询对象，返回指定的对象分页列表
-     * @param mClass
-     * @param pageRequest
-     * @param sqlPara
-     * @param <M>
-     * @return
-     */
-    public static <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, SqlPara sqlPara){
-        return MAIN.paginate(mClass,pageRequest,sqlPara);
-    }
+//    /**
+//     * 根据 sqlPara 查询对象，返回指定的对象分页列表
+//     * @param mClass
+//     * @param pageRequest
+//     * @param sqlPara
+//     * @param <M>
+//     * @return
+//     */
+//    public static <M> Page<M> paginate(Class<M> mClass,PageRequest pageRequest, SqlPara sqlPara){
+//        return MAIN.paginate(mClass,pageRequest,sqlPara);
+//    }
 
     /**
      * 根据 sqlPara查询对象、是否分组sql,返回指定的对象分页列表
@@ -1149,17 +1206,17 @@ public class EDb extends Db{
     }
 
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param eDbQuery
-     * @param <M>
-     * @return
-     */
-    public static  <M> Page<M> paginate(Class<M> mClass, PageRequest pageRequest, EDbQuery eDbQuery) {
-        return MAIN.paginate(mClass,pageRequest,eDbQuery);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param eDbQuery
+//     * @param <M>
+//     * @return
+//     */
+//    public static  <M> Page<M> paginate(Class<M> mClass, PageRequest pageRequest, EDbQuery eDbQuery) {
+//        return MAIN.paginate(mClass,pageRequest,eDbQuery);
+//    }
 
 
     /**
@@ -1176,18 +1233,18 @@ public class EDb extends Db{
         return MAIN.paginate(mClass,pageNumber,pageSize,totalRow,eDbQuery);
     }
 
-    /**
-     * 分页查询
-     * @param mClass
-     * @param pageRequest
-     * @param totalRow
-     * @param eDbQuery
-     * @param <M>
-     * @return
-     */
-    public static <M> Page<M> paginate(Class<M> mClass, PageRequest pageRequest,long totalRow, EDbQuery eDbQuery){
-        return MAIN.paginate(mClass,pageRequest,totalRow,eDbQuery);
-    }
+//    /**
+//     * 分页查询
+//     * @param mClass
+//     * @param pageRequest
+//     * @param totalRow
+//     * @param eDbQuery
+//     * @param <M>
+//     * @return
+//     */
+//    public static <M> Page<M> paginate(Class<M> mClass, PageRequest pageRequest,long totalRow, EDbQuery eDbQuery){
+//        return MAIN.paginate(mClass,pageRequest,totalRow,eDbQuery);
+//    }
 
     /**
      * 创建当前对象的关系代理对象
@@ -1845,6 +1902,7 @@ public class EDb extends Db{
     public static void each(Function<Record, Boolean> func, String sql, Object... paras) {
         MAIN.each(func, sql, paras);
     }
+
 
 
 
