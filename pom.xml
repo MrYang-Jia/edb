@@ -19,8 +19,8 @@
         <jfinal.version>4.9.16</jfinal.version>
         <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
         <druid.version>1.1.21_1</druid.version>
-        <!--        <druid.version>1.2.8</druid.version>-->
-        <java.version>17</java.version>
+        <druid.version>1.2.8</druid.version>
+        <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- 2.1 到 2.3 的事务版本改变不大，通用 -->
@@ -342,8 +342,8 @@
                 <version>3.6.1</version>
                 <configuration>
                     <!-- <compilerArgument>-parameters</compilerArgument> -->
-                    <source>16</source>
-                    <target>16</target>
+                    <source>11</source>
+                    <target>11</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -362,7 +362,7 @@
                     <linksource>true</linksource>
                     <additionalparam>-Xdoclint:none</additionalparam>
                     <detectJavaApiLink>true</detectJavaApiLink>
-                    <source>8</source>
+                    <source>11</source>
                     <!-- 生成api文档 mvn javadoc:javadoc -->
                     <!--<reportOutputDirectory>../javadocs</reportOutputDirectory>-->
                     <reportOutputDirectory>javadocs</reportOutputDirectory>
