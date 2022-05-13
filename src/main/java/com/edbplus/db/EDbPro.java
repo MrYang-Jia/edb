@@ -1159,7 +1159,7 @@ public class EDbPro extends DbPro {
         PreparedStatement pst = conn.prepareStatement(sql);
         Throwable var6 = null;
 
-        int var8;
+        int var8 = 0; // 更新影响的行数
         try {
             config.getDialect().fillStatement(pst, paras);
             int result = pst.executeUpdate();
@@ -1167,7 +1167,7 @@ public class EDbPro extends DbPro {
         } catch (Throwable var17) {
             var6 = var17;
             if(connectListener != null){
-                connectListener.loss(this,RunSqlType.update,(System.currentTimeMillis()-startTime),sql,paras,RunStatus.FAIL);
+                connectListener.loss(this,RunSqlType.update,(System.currentTimeMillis()-startTime),sql,paras,var8,RunStatus.FAIL,var17);
             }
             throw var17;
         } finally {
@@ -1186,7 +1186,7 @@ public class EDbPro extends DbPro {
         }
         if(connectListener != null) {
             // sql监听
-            connectListener.loss(this, RunSqlType.update, (System.currentTimeMillis() - startTime), sql, paras, RunStatus.SUCCESS);
+            connectListener.loss(this, RunSqlType.update, (System.currentTimeMillis() - startTime), sql, paras,var8, RunStatus.SUCCESS);
         }
 
         return var8;
@@ -1987,7 +1987,7 @@ public class EDbPro extends DbPro {
             var7 = var19;
             if(connectListener != null){
                 // 执行结尾增加相应的逻辑处理
-                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,RunStatus.FAIL);
+                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,0,RunStatus.FAIL,var19);
             }
             throw var19;
         } finally {
@@ -2006,7 +2006,7 @@ public class EDbPro extends DbPro {
         }
         if(connectListener != null){
             // 执行结尾增加相应的逻辑处理
-            connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,RunStatus.SUCCESS);
+            connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,result.size(),RunStatus.SUCCESS);
         }
         return var21;
     }
@@ -2036,7 +2036,7 @@ public class EDbPro extends DbPro {
             var6 = var18;
             if(connectListener != null){
                 // 执行结尾增加相应的逻辑处理
-                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,RunStatus.FAIL);
+                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,0,RunStatus.FAIL,var18);
             }
             throw var18;
         } finally {
@@ -2055,8 +2055,12 @@ public class EDbPro extends DbPro {
         }
 
         if(connectListener != null){
+            int rowSize=0;
+            if(var9!=null){
+                rowSize = var9.size();
+            }
             // 执行结尾增加相应的逻辑处理
-            connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,RunStatus.SUCCESS);
+            connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,rowSize,RunStatus.SUCCESS);
         }
 
         return var9;
@@ -2111,7 +2115,7 @@ public class EDbPro extends DbPro {
             var6 = var18;
             if(connectListener != null){
                 // 执行结尾增加相应的逻辑处理
-                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,RunStatus.FAIL);
+                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,0,RunStatus.FAIL,var18);
             }
             throw new RuntimeException(var18);
         } finally {
@@ -2128,8 +2132,12 @@ public class EDbPro extends DbPro {
             }
         }
         if(connectListener != null){
+            int rowSize= 0;
+            if(var9!=null){
+                rowSize = var9.size();
+            }
             // 执行结尾增加相应的逻辑处理
-            connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,RunStatus.SUCCESS);
+            connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,rowSize,RunStatus.SUCCESS);
         }
         return var9;
     }
@@ -3669,16 +3677,17 @@ public class EDbPro extends DbPro {
         Throwable var10 = null;
 
         boolean var12;
+        int result = 0;
         try {
             config.getDialect().fillStatement(pst, paras);
-            int result = pst.executeUpdate();
+            result = pst.executeUpdate();
             config.getDialect().getRecordGeneratedKey(pst, record, pKeys);
             var12 = result >= 1;
         } catch (Throwable var21) {
             var10 = var21;
             if(connectListener != null){
                 // 执行结尾增加相应的逻辑处理
-                connectListener.loss(this, RunSqlType.save,(System.currentTimeMillis()-startTime),sql.toString(),paras.toArray(),RunStatus.FAIL);
+                connectListener.loss(this, RunSqlType.save,(System.currentTimeMillis()-startTime),sql.toString(),paras.toArray(),result,RunStatus.FAIL,var21);
             }
             throw var21;
         } finally {
@@ -3698,7 +3707,7 @@ public class EDbPro extends DbPro {
         }
         if(connectListener != null){
             // 执行结尾增加相应的逻辑处理
-            connectListener.loss(this, RunSqlType.save,(System.currentTimeMillis()-startTime),sql.toString(),paras.toArray(),RunStatus.SUCCESS);
+            connectListener.loss(this, RunSqlType.save,(System.currentTimeMillis()-startTime),sql.toString(),paras.toArray(),result,RunStatus.SUCCESS);
         }
 
         return var12;

@@ -23,12 +23,15 @@ import java.util.*;
 public class VoTest extends BaseTest {
 
 
+    /**
+     * proxy 去除，主要是graalvm不支持
+     */
     @Test
     public void test6(){
-        EDbProxyFactory eDbProxyFactory = new EDbProxyFactory();
-//        EDbProxyGenerator eDbProxyGenerator = new EDbProxyGenerator();
-        VehicleView vehicleView = eDbProxyFactory.get(VehicleView.class);
-        System.out.println(vehicleView.getCrVehicleTypeView());
+//        EDbProxyFactory eDbProxyFactory = new EDbProxyFactory();
+////        EDbProxyGenerator eDbProxyGenerator = new EDbProxyGenerator();
+//        VehicleView vehicleView = eDbProxyFactory.get(VehicleView.class);
+//        System.out.println(vehicleView.getCrVehicleTypeView());
     }
 
 //    @Test

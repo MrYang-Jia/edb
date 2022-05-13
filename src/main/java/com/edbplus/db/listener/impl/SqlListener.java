@@ -41,16 +41,26 @@ public class SqlListener implements ConnectListener {
     Boolean openLog =  true;
 
     @Override
-    public void loss(EDbPro eDbPro, RunSqlType runSqlType, Long lossTimeMillis, String sql, Object[] params, RunStatus runStatus) {
+    public void loss(EDbPro eDbPro, RunSqlType runSqlType, Long lossTimeMillis, String sql, Object[] params,Integer rowSize, RunStatus runStatus,Throwable sqlError){
         if(openLog){
 //            log.info("sql-> "+sql + "->" + JSONUtil.toJsonStr(params) +" -> "+lossTimeMillis);
             try {
-                log.info("sql-> "+lossTimeMillis+"("+runStatus.getDesc()+") ->"+format(sql,params) );
+                String logStr = "sql-> "+lossTimeMillis+"("+runStatus.getDesc()+") ->"+format(sql,params);
+                if(runStatus==RunStatus.FAIL){
+                    log.error(logStr,sqlError);
+                }else{
+                    log.info(logStr);
+                }
             }catch (Throwable e){
                 log.error("lossSqlErr:",e);
             }
 
         }
+    }
+
+    @Override
+    public void loss(EDbPro eDbPro, RunSqlType runSqlType, Long lossTimeMillis, String sql, Object[] params,Integer rowSize, RunStatus runStatus) {
+        loss(eDbPro,runSqlType,lossTimeMillis,sql,params,rowSize,runStatus,null);
     }
 
     public String format(final String strPattern, final Object... argArray) {

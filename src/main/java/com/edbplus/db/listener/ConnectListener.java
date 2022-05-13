@@ -27,7 +27,6 @@ import com.edbplus.db.em.RunStatus;
  * @Version V1.0
  **/
 public interface ConnectListener {
-
     /**
      * 损耗监听
      * @param eDbPro -- 执行器
@@ -35,6 +34,18 @@ public interface ConnectListener {
      * @param sql -- 执行语句
      * @param params -- 入参
      */
-    public void loss(EDbPro eDbPro, RunSqlType runSqlType, Long lossTimeMillis, String sql, Object[] params, RunStatus runStatus);
+    public void loss(EDbPro eDbPro, RunSqlType runSqlType, Long lossTimeMillis, String sql, Object[] params,Integer rowSize, RunStatus runStatus);
+
+    /**
+     * 损耗监听
+     * @param eDbPro -- 执行器
+     * @param lossTimeMillis -- 耗时，毫秒
+     * @param sql -- 执行语句
+     * @param params -- 入参
+     * @param rowSize -- 影响行数
+     * @param runStatus -- 失败时则输出堆栈信息
+     * @param sqlError -- 异常堆栈信息
+     */
+    public void loss(EDbPro eDbPro, RunSqlType runSqlType, Long lossTimeMillis, String sql, Object[] params,Integer rowSize, RunStatus runStatus,Throwable sqlError);
 
 }
