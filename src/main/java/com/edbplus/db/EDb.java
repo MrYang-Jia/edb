@@ -303,6 +303,16 @@ public class EDb extends Db{
     }
 
     /**
+     * 使用 insert values 的方式插入数据
+     * @param m
+     * @param <M>
+     * @return
+     */
+    public static <M>  int  insertValue(M m){
+        return MAIN.insertValue(m);
+    }
+
+    /**
      * 使用 insert values(...),(...) 的方式批量插入对象
      * @param objs
      * @param batchSize

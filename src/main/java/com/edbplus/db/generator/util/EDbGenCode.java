@@ -17,6 +17,7 @@ package com.edbplus.db.generator.util;
 
 
 import cn.hutool.core.map.CaseInsensitiveMap;
+import cn.hutool.core.util.StrUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.generator.entity.GenTable;
@@ -32,7 +33,6 @@ import com.jfinal.kit.Kv;
 import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.net.URL;
@@ -193,7 +193,7 @@ public class EDbGenCode {
             table.setClassName(EStrUtil.upperFirst(EStrUtil.toCamelCase(tableName)));
         }
         // 转小驼峰 - 大驼峰的首字母小写即可
-        table.setSmallClassName(StringUtils.uncapitalize(table.getClassName()));
+        table.setSmallClassName(EStrUtil.toCamelCase(table.getClassName()));
 
         // 实体名称+实体后缀
         table.setEntityClassName(table.getClassName() + table.getDtoSuffix());
@@ -484,8 +484,8 @@ public class EDbGenCode {
         String lastTableName = table.getTableName().substring(firstSp+1,table.getTableName().length());
         //
         String preUrl = preTableName.toLowerCase();
-        // 首字母小谢
-        String lastUrl = StringUtils.uncapitalize(lastTableName);
+        // 首字母小写
+        String lastUrl = EStrUtil.toCamelCase(lastTableName);
 
         if(!StrKit.isBlank(table.getModelName())){
             // 取传递进来的包名 ，而不用表名前缀分包
@@ -601,7 +601,7 @@ public class EDbGenCode {
                 .append(genClass.getControllerHtmlUrl())
                 .append(File.separator)
                 // 小驼峰
-                .append(genClass.getSmallClassName()+StringUtils.capitalize(htmlPre)+".html");
+                .append(genClass.getSmallClassName()+ EStrUtil.toCamelCase(htmlPre)+".html");
 
         File file = new File(outJavaFile.toString());
 
@@ -687,7 +687,7 @@ public class EDbGenCode {
                 .append(genClass.getControllerHtmlUrl())
                 .append(File.separator)
                 // 小驼峰
-                .append(genClass.getSmallClassName()+StringUtils.capitalize(htmlPre)+".js");
+                .append(genClass.getSmallClassName()+EStrUtil.toCamelCase(htmlPre)+".js");
 
         File file = new File(outJavaFile.toString());
         // 已存在则不做任何处理 -- 必须删除后重新创建
