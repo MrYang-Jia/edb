@@ -147,6 +147,20 @@ public class GenJdbc {
         initForEnjoy(configName,jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList,filterList,null);
     }
 
+    /**
+     * 初始化基于enjoy的数据库连接
+     * @param configName
+     * @param jdbcUrl
+     * @param userName
+     * @param pwd
+     * @param sqlTplList
+     * @param shareSqlTplList
+     * @param filterList
+     */
+    public static void initForEnjoy(int transactionLevel,String configName,String jdbcUrl,String userName,String pwd,List<String> sqlTplList,List<String> shareSqlTplList,List<Filter> filterList){
+        initForEnjoy(transactionLevel,configName,jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList,filterList,null);
+    }
+
 
     /**
      * 返回dp对象
@@ -186,7 +200,23 @@ public class GenJdbc {
      * @param filterList
      * @param driverClass
      */
-    public static void initForEnjoy(String configName,String jdbcUrl,String userName,String pwd,List<String> sqlTplList,List<String> shareSqlTplList,List<Filter> filterList,String driverClass){
+    public static void initForEnjoy(String configName,String jdbcUrl,String userName,String pwd,List<String> sqlTplList,List<String> shareSqlTplList,List<Filter> filterList,String driverClass) {
+        initForEnjoy(DbKit.DEFAULT_TRANSACTION_LEVEL,configName,jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList,filterList,driverClass);
+    }
+
+        /**
+         * 初始化基于enjoy的数据库连接
+         * @param transactionLevel -- 事务等级 0,1,2,4,8
+         * @param configName
+         * @param jdbcUrl
+         * @param userName
+         * @param pwd
+         * @param sqlTplList
+         * @param shareSqlTplList
+         * @param filterList
+         * @param driverClass
+         */
+    public static void initForEnjoy(int transactionLevel,String configName,String jdbcUrl,String userName,String pwd,List<String> sqlTplList,List<String> shareSqlTplList,List<Filter> filterList,String driverClass){
 
         // db对象初始化
         dp = initDruidPlugin(jdbcUrl,userName,pwd,driverClass);
@@ -203,7 +233,7 @@ public class GenJdbc {
                 // 默认名称 ，使用 Db.use() 时，可获取到
                 configName
                 ,dp.getDataSource()
-                , DbKit.DEFAULT_TRANSACTION_LEVEL
+                , transactionLevel
         );
 
         // 替换 config 对象，主要事务方法都在这个对象里实现
