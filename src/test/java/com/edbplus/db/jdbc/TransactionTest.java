@@ -10,21 +10,17 @@ import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.jdbc.domain.KnownFruits;
 import com.edbplus.db.jdbc.domain.MoneyCount;
 import com.edbplus.db.jfinal.activerecord.db.base.JpaListener;
-import com.edbplus.db.jpa.VehicleType;
 import com.edbplus.db.listener.impl.SqlListener;
-import com.edbplus.db.util.hutool.http.EHttpUtil;
 import com.edbplus.db.util.log.EDbLogUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @ClassName TransactionTest
@@ -144,10 +140,67 @@ public class TransactionTest {
     }
 
     /**
-     * 更新金额测试
+     * 测试 存在则更新，不存在则插入的场景，主要是看交给数据库时，是否还存在如上不同事务场景时的问题点
+     * 建议并行写入时，如果数据量较大，推荐这种模式，心智负担会小点，不然交给 redis 锁，难度会较高,然后事务模式建议采用 RC 模式，可以减少较多的性能开销和消耗，这个相当于是顺序扫描算法
+     * but: 但是实际上，我们很多时候是多表操作的情况发生，所以操作的时候，可能是联动的锁提交事务结果，最后会导致比较难于预估的情况，所以我们在事务操作的时候，尽量将事务节点尽量的小，速度要尽量的快，不要做大批量的事务操作，导致数据库的性能以及相关业务逻辑的处理大片锁定，严重影响读写效率
      */
     @Test
     public void test2(){
+        AtomicReference<String> sql = new AtomicReference<>("insert into known_fruits(id,name)\n" +
+                "VALUES(4,'测试')\n" +
+                "ON DUPLICATE KEY UPDATE name='更新'"); // 主键存在则更新
+
+        // RC TRANSACTION_READ_COMMITTED 模式下，执行结果正常 最后回写流程2，但是事务查询的话，对象则不存在
+        // RR TRANSACTION_REPEATABLE_READ 模式，执行结果正常 最后回写流程2，但是事务查询的话，对象则不存在
+        // S TRANSACTION_SERIALIZABLE 模式下，执行结果正常 最后回写流程2,事务查询时，对象可查询到
+        transactionLevel =  Connection.TRANSACTION_SERIALIZABLE; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
+        init();
+        // 第一个执行为插入数据
+        fixedThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    EDb.tx(transactionLevel, () -> {
+                        EDb.update(sql.get());
+                        ThreadUtil.sleep(1000);
+                        return true;// 写入
+                    });
+                }catch (Throwable e){
+                    log.error("环节1异常",e);
+                }
+            }
+        });
+
+        // 第2个执行为插入 同样的数据 数据
+        fixedThreadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    EDb.tx(transactionLevel, () -> {
+                        ThreadUtil.sleep(100); // 故意慢个100毫秒，目的是检测哪个环节报错了
+                        System.out.println("流程2校验是否存在->"+(EDb.findById(KnownFruits.class,4)!=null));
+
+                        sql.set("insert into known_fruits(id,name)\n" +
+                                "VALUES(4,'测试2')\n" +
+                                "ON DUPLICATE KEY UPDATE name='更新2'");
+                        EDb.update(sql.get());
+                        return true;// 写入
+                    });
+                }catch (Throwable e){
+                    log.error("环节2异常",e);
+                }
+
+            }
+        });
+        ThreadUtil.sleep(3000L);
+    }
+
+
+    /**
+     * 更新金额测试
+     */
+    @Test
+    public void test3(){
         // 执行结果是 三种事务模式下，都是一样的结果情况，但是注意的是sql的预判动作，都是交予了数据库去执行判断，并且前期是数据库里已存在该数据，该测试情况与数据库是否已存在该记录的情况是不一样的
         // s TRANSACTION_SERIALIZABLE 模式下， 执行成功，结果与实际相符，但是操作项必须由数据库执行，然后执行顺序则是 谁优先则信任谁，与事务提交顺序无关
         // RC TRANSACTION_READ_COMMITTED 模式下， 执行成功，结果与实际相符，但是操作项必须由数据库执行，然后执行顺序则是 谁优先则信任谁，与事务提交顺序无关
