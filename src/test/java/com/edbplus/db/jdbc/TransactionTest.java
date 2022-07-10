@@ -12,6 +12,7 @@ import com.edbplus.db.jdbc.domain.MoneyCount;
 import com.edbplus.db.jfinal.activerecord.db.base.JpaListener;
 import com.edbplus.db.listener.impl.SqlListener;
 import com.edbplus.db.util.log.EDbLogUtil;
+import com.jfinal.plugin.activerecord.Record;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.Test;
 
@@ -148,7 +149,7 @@ public class TransactionTest {
     public void test2(){
         AtomicReference<String> sql = new AtomicReference<>("insert into known_fruits(id,name)\n" +
                 "VALUES(4,'测试')\n" +
-                "ON DUPLICATE KEY UPDATE name='更新'"); // 主键存在则更新
+                "ON DUPLICATE KEY UPDATE name='更新'"); // 主键/唯一键值(UNIQUE KEY) 存在则更新
 
         // RC TRANSACTION_READ_COMMITTED 模式下，执行结果正常 最后回写流程2，但是事务查询的话，对象则不存在
         // RR TRANSACTION_REPEATABLE_READ 模式，执行结果正常 最后回写流程2，但是事务查询的话，对象则不存在
@@ -182,7 +183,7 @@ public class TransactionTest {
 
                         sql.set("insert into known_fruits(id,name)\n" +
                                 "VALUES(4,'测试2')\n" +
-                                "ON DUPLICATE KEY UPDATE name='更新2'");
+                                "ON DUPLICATE KEY UPDATE name='更新2'"); // 主键/唯一键值(UNIQUE KEY) 存在则更新
                         EDb.update(sql.get());
                         return true;// 写入
                     });
@@ -256,6 +257,57 @@ public class TransactionTest {
         ThreadUtil.sleep(3000L);
 
         EDb.deleteById(moneyCount);
+    }
+
+    /**
+     * 测试其他情况下，并行插入，锁 的实现与控制
+     */
+    @Test
+    public void test4(){
+
+        transactionLevel =  Connection.TRANSACTION_REPEATABLE_READ;
+//        long num = RandomUtil.randomLong(10000000000L,20000000000L);
+        long num = 13928900850L;
+        init();// 初始化数据库
+        for (int i=0;i<100;i++){
+            fixedThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        EDb.tx(transactionLevel, () -> {
+                            // 通过 RR 模式的间隙锁，锁住 上下游的范围记录，正常来说是锁住了 索引，以此保证插入的时候，满足条件的记录只有当前的规则
+                            // lock in share mode 只有RR模式才有效果，一般建议是唯一索引或主键，但是呢，如果是的主键的话，建议用记录锁的方式来执行，范围锁性能不太好
+//                            List<Record> records = EDb.find("select * from ms_top_relation where MTR_PHONE = '"+num+"' lock in share mode"); // RR 下有效果，性能相对较好,性能比 FOR UPDATE 好10倍
+//                            List<Record> records = EDb.find("select * from ms_top_relation where MTR_PHONE = '"+num+"' for update  "); // 更不建议这么用，原因是没有指向记录，导致全表锁
+                            // 假设主键id或唯一索引的情况下
+//                            List<Record> records = EDb.find("select * from ms_top_relation where MTR_ID = 3966 for update  "); // 有指向记录，不影响其他插入行为
+                            List<Record> records = EDb.find("select * from ms_top_relation where MTR_ID = 3966 lock in share mode  "); // 有指向记录，性能比 for update 好10倍
+                            // rr 可以产生 间隙锁，但是只是偶发性死锁，但是你必须保障更新的值与当前值不一样，否则更新记录也是无法锁定的，只能通过手工加更新记录锁 ， rc 不能，所以rc模式下基本不会因此出现死锁
+//                            if(EDb.update("update ms_top_relation set mtr_talk_id =  1 where MTR_PHONE = '"+num+"'  ") == 0) // 更新时间一般带上当前时间戳，但是很多时候，是毫秒级，导致更新数据只到秒，结果是返回 0 产生了 误判!!! 所以一般是加乐观锁的做法，字段+1的方案来规避操作,比如说 num+1
+//                            {
+                            if(records == null || records.size()==0){
+                                int czs = EDb.update("insert into ms_top_relation (MTR_PHONE) values ('"+num+"')");
+                                if(czs>0){
+                                    System.out.println("流程1操作正常");
+                                }else{
+                                    System.out.println("流程2无操作");
+                                }
+
+                            }else{
+                                System.out.println("流程3无操作");
+                            }
+
+//                            ThreadUtil.sleep(50);
+                            return true;// 写入
+                        });
+                    }catch (Throwable e){
+                        log.error("异常",e);
+                    }
+                }
+            });
+
+        }
+        ThreadUtil.sleep(10000L);
     }
 
 }
