@@ -3,6 +3,7 @@ package com.edbplus.db.jdbc;
 
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.filter.Filter;
 import com.edbplus.db.EDb;
 import com.edbplus.db.druid.filter.EDbDruidSqlLogFilter;
@@ -127,6 +128,7 @@ public class TransactionTest {
                         ThreadUtil.sleep(100); // 故意慢个100毫秒，目的是检测哪个环节报错了
                         // 插入时，是无法产生幻读的效果，会读取不到该数据，得使用 间隙锁(lock in share mode) 才能读取到插入的数据， 目前幻读只作用于 更新 数据的读取
                         System.out.println("流程2校验是否存在->"+(EDb.findById(KnownFruits.class,4)!=null));
+                        knownFruits.setName("测试-"+ 2);
                         EDb.save(knownFruits);
                         return true;// 写入
                     });
@@ -138,6 +140,7 @@ public class TransactionTest {
         });
 
         ThreadUtil.sleep(5000L);
+        System.out.println(JSONUtil.toJsonStr(knownFruits));
         EDb.deleteById(knownFruits);// 最后都删除掉该数据，便于循环测试
     }
 
@@ -208,9 +211,8 @@ public class TransactionTest {
         // RC TRANSACTION_READ_COMMITTED 模式下， 执行成功，结果与实际相符，但是操作项必须由数据库执行，然后执行顺序则是 谁优先则信任谁，与事务提交顺序无关
         // RR TRANSACTION_REPEATABLE_READ 模式下, 执行成功，结果与实际相符，但是操作项必须由数据库执行，然后执行顺序则是 谁优先则信任谁，与事务提交顺序无关
 
-        // 总结：更新的时候，建议是使用 RR 以上级别的事务，以此保证更新操作能正确，如果RR以上级别的锁定，得通过其他方面的事务锁进行锁定,例如 redis 锁，以此达到与结果一致的情况，但是实际操作过程中，很容易犯错误，建议业务级项目直接运用 RR 事务级别
-
-        transactionLevel =  Connection.TRANSACTION_REPEATABLE_READ; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
+        transactionLevel =  Connection.TRANSACTION_READ_COMMITTED; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
+        int kjje = 60; // 扣减金额
         // 初始化数据库
         init();
 
@@ -226,7 +228,7 @@ public class TransactionTest {
                 try {
                     EDb.tx(transactionLevel, () -> {
                         // zje >= 60
-                        int czs = EDb.update("update money_count set zje=zje-60 where zje >= zje-60 and (zje-60) >=0 and id=1");
+                        int czs = EDb.update("update money_count set zje=zje-"+kjje+" where zje >= zje-"+kjje+" and (zje-"+kjje+") >=0 and id=1");
                         if(czs>0){
                             System.out.println("流程1操作正常");
                         }
@@ -245,8 +247,9 @@ public class TransactionTest {
                 try {
                     EDb.tx(transactionLevel, () -> {
                         ThreadUtil.sleep(100);
+                        // 注意了 使用 RC模式 的话，这里读取到的金额，由于无法取到上面一步提交的结果集，会导致金额还是 100 ，会影响到咱们的操作判断，实际上 update 的金额操作，都是交予数据库的，所以不会计算错误
                         System.out.println(EDb.findFirst("select * from money_count where id=1"));
-                        int czs = EDb.update("update money_count set zje=zje-60 where zje >= zje-60 and (zje-60) >=0 and id=1");
+                        int czs = EDb.update("update money_count set zje=zje-"+kjje+" where zje >= zje-"+kjje+" and (zje-"+kjje+") >=0 and id=1");
                         if(czs>0){
                             System.out.println("流程2操作正常");
                         }else{
@@ -261,7 +264,7 @@ public class TransactionTest {
         });
 
         ThreadUtil.sleep(3000L);
-
+        System.out.println("->"+EDb.findFirst("select * from money_count where id=1"));
         EDb.deleteById(moneyCount);
     }
 
