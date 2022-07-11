@@ -94,10 +94,10 @@ public class TransactionTest {
     @Test
     public void test1(){
         // RC TRANSACTION_READ_COMMITTED 模式下，会优先认可首次修改的记录，第二次执行的行为则抛弃，有顺序执行的预判，不会因为提交顺序有所影响，而是执行时间的先后有影响 -- 这种模式下，流程 2 异常，同时另一个事务里，无法通过 find 查找到其他事务的数据 -- 最不容易缩表
-        // RR TRANSACTION_REPEATABLE_READ 模式下，优先认可谁先提交，谁先提交则成功，晚提交的则异常 -- 这种模式下 流程 1 异常 ，同时另一个事务里，无法通过 find 查找到其他事务的数据 -- 可能会锁表
+        // RR TRANSACTION_REPEATABLE_READ 模式下，与 RC 模式一样
         // S TRANSACTION_SERIALIZABLE 模式下，会获取到另外一个线程里正则执行的数据，但是数据的写入稳定性最好，可预判性最佳，目前用于单机模式的客户最佳，写代码预判最佳
 
-        transactionLevel =  Connection.TRANSACTION_SERIALIZABLE; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
+        transactionLevel =  Connection.TRANSACTION_REPEATABLE_READ; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
         init();
         KnownFruits knownFruits=new KnownFruits();
         knownFruits.setId(4);
@@ -109,7 +109,7 @@ public class TransactionTest {
                 try {
                 EDb.tx(transactionLevel, () -> {
                     EDb.save(knownFruits);
-                    ThreadUtil.sleep(1000);
+                    ThreadUtil.sleep(2000);
                     return true;// 写入
                 });
                 }catch (Throwable e){
@@ -125,6 +125,7 @@ public class TransactionTest {
                 try {
                     EDb.tx(transactionLevel, () -> {
                         ThreadUtil.sleep(100); // 故意慢个100毫秒，目的是检测哪个环节报错了
+                        // 插入时，是无法产生幻读的效果，会读取不到该数据，得使用 间隙锁(lock in share mode) 才能读取到插入的数据， 目前幻读只作用于 更新 数据的读取
                         System.out.println("流程2校验是否存在->"+(EDb.findById(KnownFruits.class,4)!=null));
                         EDb.save(knownFruits);
                         return true;// 写入
@@ -136,7 +137,7 @@ public class TransactionTest {
             }
         });
 
-        ThreadUtil.sleep(3000L);
+        ThreadUtil.sleep(5000L);
         EDb.deleteById(knownFruits);// 最后都删除掉该数据，便于循环测试
     }
 
@@ -154,7 +155,7 @@ public class TransactionTest {
         // RC TRANSACTION_READ_COMMITTED 模式下，执行结果正常 最后回写流程2，但是事务查询的话，对象则不存在
         // RR TRANSACTION_REPEATABLE_READ 模式，执行结果正常 最后回写流程2，但是事务查询的话，对象则不存在
         // S TRANSACTION_SERIALIZABLE 模式下，执行结果正常 最后回写流程2,事务查询时，对象可查询到
-        transactionLevel =  Connection.TRANSACTION_SERIALIZABLE; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
+        transactionLevel =  Connection.TRANSACTION_REPEATABLE_READ; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
         init();
         // 第一个执行为插入数据
         fixedThreadPool.execute(new Runnable() {
@@ -206,7 +207,10 @@ public class TransactionTest {
         // s TRANSACTION_SERIALIZABLE 模式下， 执行成功，结果与实际相符，但是操作项必须由数据库执行，然后执行顺序则是 谁优先则信任谁，与事务提交顺序无关
         // RC TRANSACTION_READ_COMMITTED 模式下， 执行成功，结果与实际相符，但是操作项必须由数据库执行，然后执行顺序则是 谁优先则信任谁，与事务提交顺序无关
         // RR TRANSACTION_REPEATABLE_READ 模式下, 执行成功，结果与实际相符，但是操作项必须由数据库执行，然后执行顺序则是 谁优先则信任谁，与事务提交顺序无关
-        transactionLevel =  Connection.TRANSACTION_SERIALIZABLE; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
+
+        // 总结：更新的时候，建议是使用 RR 以上级别的事务，以此保证更新操作能正确，如果RR以上级别的锁定，得通过其他方面的事务锁进行锁定,例如 redis 锁，以此达到与结果一致的情况，但是实际操作过程中，很容易犯错误，建议业务级项目直接运用 RR 事务级别
+
+        transactionLevel =  Connection.TRANSACTION_REPEATABLE_READ; // 2-RC模式,4-RR模式,8-S模式（性能最差，最容易锁表）
         // 初始化数据库
         init();
 
@@ -221,7 +225,8 @@ public class TransactionTest {
             public void run() {
                 try {
                     EDb.tx(transactionLevel, () -> {
-                        int czs = EDb.update("update money_count set zje=zje-60 where zje >= zje-60 and (zje-60) >0");
+                        // zje >= 60
+                        int czs = EDb.update("update money_count set zje=zje-60 where zje >= zje-60 and (zje-60) >=0 and id=1");
                         if(czs>0){
                             System.out.println("流程1操作正常");
                         }
@@ -240,7 +245,8 @@ public class TransactionTest {
                 try {
                     EDb.tx(transactionLevel, () -> {
                         ThreadUtil.sleep(100);
-                        int czs = EDb.update("update money_count set zje=zje-60 where zje >= zje-60 and (zje-60) >0");
+                        System.out.println(EDb.findFirst("select * from money_count where id=1"));
+                        int czs = EDb.update("update money_count set zje=zje-60 where zje >= zje-60 and (zje-60) >=0 and id=1");
                         if(czs>0){
                             System.out.println("流程2操作正常");
                         }else{
@@ -260,7 +266,7 @@ public class TransactionTest {
     }
 
     /**
-     * 测试其他情况下，并行插入，锁 的实现与控制
+     * 测试其他情况下，普通索引下 并行插入，锁 的实现与控制
      */
     @Test
     public void test4(){
@@ -281,12 +287,65 @@ public class TransactionTest {
 //                            List<Record> records = EDb.find("select * from ms_top_relation where MTR_PHONE = '"+num+"' for update  "); // 更不建议这么用，原因是没有指向记录，导致全表锁
                             // 假设主键id或唯一索引的情况下
 //                            List<Record> records = EDb.find("select * from ms_top_relation where MTR_ID = 3966 for update  "); // 有指向记录，不影响其他插入行为
-                            List<Record> records = EDb.find("select * from ms_top_relation where MTR_ID = 3966 lock in share mode  "); // 有指向记录，性能比 for update 好10倍
+//                            List<Record> records = EDb.find("select * from ms_top_relation where MTR_ID = 3966 lock in share mode  "); // 有指向记录，性能比 for update 好10倍
                             // rr 可以产生 间隙锁，但是只是偶发性死锁，但是你必须保障更新的值与当前值不一样，否则更新记录也是无法锁定的，只能通过手工加更新记录锁 ， rc 不能，所以rc模式下基本不会因此出现死锁
-//                            if(EDb.update("update ms_top_relation set mtr_talk_id =  1 where MTR_PHONE = '"+num+"'  ") == 0) // 更新时间一般带上当前时间戳，但是很多时候，是毫秒级，导致更新数据只到秒，结果是返回 0 产生了 误判!!! 所以一般是加乐观锁的做法，字段+1的方案来规避操作,比如说 num+1
+                            // 性能比 for update 好，但是容易犯错 ， 备注: mtr_talk_id 必须要有默认值，否则 mtr_talk_id+1 无效
+                            if(EDb.update("update ms_top_relation set mtr_talk_id =  mtr_talk_id+1 where MTR_PHONE = '"+num+"'  ") == 0) // 更新时间一般带上当前时间戳，但是很多时候，是毫秒级，导致更新数据只到秒，结果是返回 0 产生了 误判!!! 所以一般是加乐观锁的做法，字段+1的方案来规避操作,比如说 num+1
+                            {
+//                            if(records == null || records.size()==0){
+                                int czs = EDb.update("insert into ms_top_relation (MTR_PHONE) values ('"+num+"')");
+//                                int czs = EDb.update("insert into ms_top_relation (MTR_ID,MTR_PHONE) values (3096,'"+num+"')");
+                                if(czs>0){
+                                    System.out.println("流程1操作正常");
+                                }else{
+                                    System.out.println("流程2无操作");
+                                }
+
+                            }else{
+                                System.out.println("流程3无操作");
+                            }
+
+//                            ThreadUtil.sleep(50);
+                            return true;// 写入
+                        });
+                    }catch (Throwable e){
+                        log.error("异常",e);
+                    }
+                }
+            });
+
+        }
+        ThreadUtil.sleep(10000L);
+    }
+
+    /**
+     * 测试其他情况下，唯一索引下 并行插入，锁 的实现与控制 -- 目的是为了演示性能以及锁范围的定义
+     */
+    @Test
+    public void test5(){
+
+        transactionLevel =  Connection.TRANSACTION_REPEATABLE_READ;
+//        long num = RandomUtil.randomLong(10000000000L,20000000000L);
+        long num = 13928900850L;
+        init();// 初始化数据库
+        for (int i=0;i<100;i++){
+            fixedThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        EDb.tx(transactionLevel, () -> {
+                            // 通过 RR 模式的间隙锁，锁住 上下游的范围记录，正常来说是锁住了 索引，以此保证插入的时候，满足条件的记录只有当前的规则
+                            // lock in share mode 只有RR模式才有效果，一般建议是唯一索引或主键，但是呢，如果是的主键的话，建议用记录锁的方式来执行，范围锁性能不太好
+                            List<Record> records = EDb.find("select * from only_one_phone where phone = '"+num+"' lock in share mode"); // RR 下有效果，性能相对较好,性能比 FOR UPDATE 好10倍
+//                            List<Record> records = EDb.find("select * from only_one_phone where phone = '"+num+"' for update  "); // 更不建议这么用，原因是没有指向记录，导致全表锁
+                            // 假设主键id或唯一索引的情况下
+//                            List<Record> records = EDb.find("select * from only_one_phone where id = 3966 for update  "); // 有指向记录，不影响其他插入行为
+//                            List<Record> records = EDb.find("select * from only_one_phone where id = 3966 lock in share mode  "); // 有指向记录，性能比 for update 好10倍
+                            // rr 可以产生 间隙锁，但是只是偶发性死锁，但是你必须保障更新的值与当前值不一样，否则更新记录也是无法锁定的，只能通过手工加更新记录锁 ， rc 不能，所以rc模式下基本不会因此出现死锁
+//                            if(EDb.update("update only_one_phone set ct =  1 where phone = '"+num+"'  ") == 0) // 更新时间一般带上当前时间戳，但是很多时候，是毫秒级，导致更新数据只到秒，结果是返回 0 产生了 误判!!! 所以一般是加乐观锁的做法，字段+1的方案来规避操作,比如说 num+1
 //                            {
                             if(records == null || records.size()==0){
-                                int czs = EDb.update("insert into ms_top_relation (MTR_PHONE) values ('"+num+"')");
+                                int czs = EDb.update("insert into only_one_phone (phone) values ('"+num+"')");
                                 if(czs>0){
                                     System.out.println("流程1操作正常");
                                 }else{
