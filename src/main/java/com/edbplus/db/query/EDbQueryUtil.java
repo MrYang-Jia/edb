@@ -301,11 +301,18 @@ public class EDbQueryUtil {
                 }
             }
         }
-        // 将 2=2 去掉，是为了保证不会被识别成是注入的代码块
+        // 将 2=2 去掉，是为了保证不会被识别成是注入的代码块，其次是为了移除恒等式，避免不同的数据库恒等式格式不一样，例如 taos 的恒等式为 _c0 > 0 ,不等则为 _c0 = 0
         String andSql =  andSqlStr.toString().replaceAll("1=1  and","");
+        // andSql =  andSql.replaceAll("1=1"," "); // 二次处理，最后将只有 1=1 的情况移除，只能外部 where 条件查询时处理才有效，所以这里注释掉，预留是为了避免再次犯错
         return andSql;
     }
 
+    /**
+     * 根据 quary 对象动态生成sql语句，并去除 1=1 恒等式
+     * @param tableName
+     * @param queryParams
+     * @return
+     */
     public static SqlPara getSqlParaForJpaQuery(String tableName, EDbQuery queryParams){
 
 
@@ -391,10 +398,21 @@ public class EDbQueryUtil {
         SqlPara sqlPara = new SqlPara();
         // select xxx
         if( queryParams.getFieldsSql() != null){
-            sqlPara.setSql( "select " + queryParams.getFieldsSql() + " from " + tableName + " where  " + andSql + queryParams.getLastSql()  + orderSql );
+            if(andSql.contains("1=1")){
+                andSql =  andSql.replaceAll("1=1"," "); // 处理掉这个 1=1 恒等式
+                sqlPara.setSql( "select " + queryParams.getFieldsSql() + " from " + tableName + andSql + queryParams.getLastSql()  + orderSql );
+            }else{
+                sqlPara.setSql( "select " + queryParams.getFieldsSql() + " from " + tableName + " where  " + andSql + queryParams.getLastSql()  + orderSql );
+            }
+
         }else{
-            //
-            sqlPara.setSql("select * from "+ tableName + " where  " + andSql + queryParams.getLastSql()   + orderSql );
+            if(andSql.contains("1=1")){
+                andSql =  andSql.replaceAll("1=1"," "); // 处理掉这个 1=1 恒等式
+                sqlPara.setSql("select * from "+ tableName + andSql + queryParams.getLastSql()   + orderSql );
+            }else{
+                //
+                sqlPara.setSql("select * from "+ tableName + " where  " + andSql + queryParams.getLastSql()   + orderSql );
+            }
         }
         // 传递参数对象
         for(Object para:paramsList){
