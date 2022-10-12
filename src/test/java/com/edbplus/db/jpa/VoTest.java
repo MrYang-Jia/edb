@@ -1,5 +1,6 @@
 package com.edbplus.db.jpa;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.DbType;
 import com.edbplus.db.EDb;
@@ -18,6 +19,7 @@ import com.jfinal.plugin.activerecord.Record;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.util.*;
 
 public class VoTest extends BaseTest {
@@ -448,4 +450,13 @@ public class VoTest extends BaseTest {
         return proerName;
     }
 
+    @Test
+    public void time(){
+        Cat cat =  new Cat();
+        cat.setAge(10);
+        cat.setName("小猫咪");
+
+
+        System.out.println(JSONUtil.parse(JSONUtil.toJsonPrettyStr("cat")));
+    }
 }

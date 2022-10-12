@@ -17,6 +17,7 @@ package com.edbplus.db.web.util;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
+import com.edbplus.db.util.hutool.bean.EBeanUtil;
 import com.edbplus.db.web.shiro.ShiroUser;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,7 +51,7 @@ public class OperationUtil {
      */
     public static void loadJpaDeletion(Object jpaObj,ShiroUser shiroUser){
         // 将对象转换成map
-        Map<String,Object> dataMap = BeanUtil.beanToMap(jpaObj);
+        Map<String,Object> dataMap = EBeanUtil.beanToMap(jpaObj);
         // 如果逻辑删除字段未设定，则设定为否
         dataMap.put(removeFlag,"Y");
         // 判断 修改人 是否存在
@@ -68,7 +69,7 @@ public class OperationUtil {
             dataMap.put(modifyTime, DateUtil.date());
         }
         // 重新赋值给对象
-        BeanUtil.fillBeanWithMap(dataMap,jpaObj,true);
+        EBeanUtil.fillBeanWithMap(dataMap,jpaObj,true);
     }
 
     /**
@@ -79,7 +80,7 @@ public class OperationUtil {
     public static void loadJpa(Object jpaObj, ShiroUser shiroUser){
 
         // 将对象转换成map
-        Map<String,Object> dataMap = BeanUtil.beanToMap(jpaObj);
+        Map<String,Object> dataMap = EBeanUtil.beanToMap(jpaObj);
         // 判断是否存在 removeFlag 参数
         if(dataMap.containsKey(removeFlag)){
             if(dataMap.get(removeFlag)==null || String.valueOf(dataMap.get(removeFlag)).length()==0){
@@ -126,7 +127,7 @@ public class OperationUtil {
         }
 
         // 重新赋值给对象
-        BeanUtil.fillBeanWithMap(dataMap,jpaObj,true);
+        EBeanUtil.fillBeanWithMap(dataMap,jpaObj,true);
 
     }
 

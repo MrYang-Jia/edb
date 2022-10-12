@@ -15,10 +15,9 @@
  */
 package com.edbplus.db.util.bean;
 
-import cn.hutool.core.bean.BeanUtil;
+import com.edbplus.db.util.hutool.bean.EBeanUtil;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 public class EDbBeanUtil {
@@ -30,7 +29,7 @@ public class EDbBeanUtil {
      */
     public static Map<String,Object> beanToMap(Object object){
         //
-        Map<String,Object> map = BeanUtil.beanToMap(object);
+        Map<String,Object> map = EBeanUtil.beanToMap(object);
         reloadMapToMap(map);
         return map;
     }
@@ -54,7 +53,7 @@ public class EDbBeanUtil {
                             // 判断不是 sun  的工具类对象
                             && m.getValue().getClass().getTypeName().indexOf("sun") != 0
                     ){
-                        oMap = BeanUtil.beanToMap(m.getValue());
+                        oMap = EBeanUtil.beanToMap(m.getValue());
                         // 替换Map
                         m.setValue(oMap);
                         // 再次执行内循环，如果还存在非java基础对象类型的，则再转换一次

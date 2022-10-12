@@ -18,6 +18,8 @@ package com.edbplus.db.util.hutool.bean;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 
+import java.util.Map;
+
 /**
  * @ClassName EBeanUtil
  * @Description: BeanUtil 工具类扩展 -- 原因，避免hutool工具升级，影响到正常服务
@@ -35,5 +37,14 @@ public class EBeanUtil extends BeanUtil {
     public static void copyProperties(Object source, Object target) {
         // 忽略转换异常
         copyProperties(source, target, CopyOptions.create().setIgnoreError(true));
+    }
+
+    /**
+     * 继承原实现 -- 高级版本的 hutool 已移除
+     * @param bean
+     * @return
+     */
+    public static Map<String, Object> beanToMap(Object bean) {
+        return beanToMap(bean, false, false);
     }
 }

@@ -15,10 +15,8 @@
  */
 package com.edbplus.db;
 
-// 这种对象map非Util不需要扩展
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.map.CaseInsensitiveMap;
 
+import cn.hutool.core.map.CaseInsensitiveMap;
 import com.edbplus.db.annotation.EDbSave;
 import com.edbplus.db.annotation.EDbUpdate;
 import com.edbplus.db.dialect.EDbPostgreSqlDialect;
@@ -38,6 +36,7 @@ import com.edbplus.db.util.EDbRelUtil;
 import com.edbplus.db.util.EDbViewUitl;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
 import com.edbplus.db.util.hutool.array.EArrayUtil;
+import com.edbplus.db.util.hutool.bean.EBeanUtil;
 import com.edbplus.db.util.hutool.date.EDateUtil;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.hutool.number.ENumberUtil;
@@ -224,7 +223,7 @@ public class EDbPro extends DbPro {
                 objects.add(record.get(keyName));
             }
             M m2 = (M) this.findByGroupId(m.getClass(),objects.toArray());
-            BeanUtil.copyProperties(m2,m); // 必须进行1次属性拷贝，不然无法替换 m 的数值
+            EBeanUtil.copyProperties(m2,m); // 必须进行1次属性拷贝，不然无法替换 m 的数值
         }else {
             // 所有字段重新赋值，可能主键或者自定义键值产生变更（通过 beforeSave 方法调整变更的对象）
             for(FieldAndColumn fieldAndColumn : coumns) {
