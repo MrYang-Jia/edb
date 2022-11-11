@@ -16,6 +16,7 @@
 package com.edbplus.db.tool;
 
 import cn.hutool.core.thread.ThreadUtil;
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.edbplus.db.druid.EDbSelectUtil;
@@ -43,6 +44,9 @@ public class SqlParserTest {
         String keyWord = "select";
         int idx = sql.indexOf(keyWord); // 传递idx，主要是便于控制获取的是第几个关键字所在位置，避免一个语句包含多个关键字，导致判断混淆
         System.out.println(EDbSelectUtil.checkKeyWordFromSql(sql,keyWord,idx));
+
+
+        System.out.println(CharsetUtil.defaultCharset());
     }
 
 

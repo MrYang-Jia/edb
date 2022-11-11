@@ -457,6 +457,6 @@ public class VoTest extends BaseTest {
         cat.setName("小猫咪");
 
 
-        System.out.println(JSONUtil.parse(JSONUtil.toJsonPrettyStr("cat")));
+        System.out.println(JSONUtil.parse(JSONUtil.toJsonPrettyStr(cat)));
     }
 }

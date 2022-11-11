@@ -118,7 +118,7 @@ public class JpaEDbQueryTest extends BaseTest {
         manyIds.add(200);
         EDbQuery eDbQuery = new EDbQuery();
         // 假如只打印 VEHICLE_TYPE_ID,CREATOR 字段
-        eDbQuery.fields(" VEHICLE_TYPE_ID,CREATOR ");
+        eDbQuery.fields(" CREATOR ");
         // select * from xxx where 1 = 1 --> and 拼接1
         // 包含 VEHICLE_TYPE_ID 100 、 200 的数据
         eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.in, manyIds));

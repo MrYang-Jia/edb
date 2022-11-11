@@ -1441,6 +1441,14 @@ public class EDbPro extends DbPro {
         List<Record> records = new ArrayList<>();
         // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
         Map<String,Object> dataMap = null;
+        // 获取一条记录验证是否有值
+        dataMap = JpaAnnotationUtil.getJpaMap(updateList.get(0),containsNullValue);
+        // 默认 keys 一定有值，所以就不判断了!
+        for (String pKey:keys.split(",")){
+            if(dataMap.get(pKey)==null){
+                throw new RuntimeException(" priKey is null,please set priKey ");
+            }
+        }
 
         Map<String,Object> updateDataMap = null;
         Method beforeUpdate = null;

@@ -15,7 +15,7 @@ import java.util.Date;
  * @create:2020-10-21 17:49:41
  **/
 @Data
-@Table(name = "cr_vehicle_type")
+//@Table(name = "cr_vehicle_type")
 public class BaseVehicleType implements Serializable{
 
    @Id
