@@ -87,6 +87,13 @@ public class GenJdbc {
         filedTypeMap.put("mediumtext","String");
         filedTypeMap.put("bit","Boolean");
         filedTypeMap.put("boolean","Boolean");
+        // 文件类型 pg 、oracle
+        filedTypeMap.put("bytea","byte[]");
+        // 文件类型 MySQL
+        filedTypeMap.put("LONGBLOB","byte[]");
+        filedTypeMap.put("BLOB","byte[]");
+        filedTypeMap.put("tinyblob","byte[]");
+        filedTypeMap.put("mediumblob","byte[]");
 
         // 兼容pg的相关数据类型 -- 有需要再添加
         filedTypeMap.put("numeric","BigDecimal");
