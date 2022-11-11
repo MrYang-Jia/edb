@@ -1446,7 +1446,7 @@ public class EDbPro extends DbPro {
         // 默认 keys 一定有值，所以就不判断了!
         for (String pKey:keys.split(",")){
             if(dataMap.get(pKey)==null){
-                throw new RuntimeException(" priKey is null,please set priKey ");
+                throw new RuntimeException(" priKey is null,please set priKey:"+pKey);
             }
         }
 
