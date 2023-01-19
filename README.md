@@ -45,8 +45,7 @@
     <dependency>
         <groupId>com.edbplus</groupId>
         <artifactId>spring-jf-edb</artifactId>
-        <!-- 1.7.2 (生产稳定运行2个月才发的包)，待后续补充完整的文档，估计2.0左右能闭环 -->
-        <version>1.7.2</version>
+        <version>1.7.3</version>
     </dependency>
     
     

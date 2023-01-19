@@ -58,6 +58,18 @@ public class EDbBaseQuery {
         this.querySize++;
         return this;
     }
+
+    /**
+     * 移除一个and条件
+     * @param EDbFilter
+     * @return
+     */
+    public  EDbBaseQuery andRm(EDbFilter EDbFilter){
+        this.andEDbFilters.remove(EDbFilter);
+        this.querySize--;
+        return this;
+    }
+
     /**
      * 添加多个and条件
      * @param EDbFilter 该条件
@@ -66,6 +78,17 @@ public class EDbBaseQuery {
     public  EDbBaseQuery and(EDbFilter... EDbFilter){
         this.andEDbFilters.addAll(Arrays.asList(EDbFilter));
         querySize += EDbFilter.length;
+        return this;
+    }
+
+    /**
+     * 删除多个条件表达
+     * @param EDbFilter
+     * @return
+     */
+    public  EDbBaseQuery andRm(EDbFilter... EDbFilter){
+        this.andEDbFilters.removeAll(Arrays.asList(EDbFilter));
+        querySize -= EDbFilter.length;
         return this;
     }
     /**
@@ -78,6 +101,29 @@ public class EDbBaseQuery {
         this.querySize++;
         return this;
     }
+
+    /**
+     * or条件移除，必须是同一个 EDbFilter 对象
+     * @param EDbFilter
+     * @return
+     */
+    public  EDbBaseQuery orRm(EDbFilter EDbFilter){
+        this.orEDbFilters.remove(EDbFilter);
+        this.querySize--;
+        return this;
+    }
+
+    /**
+     * or条件批量移除
+     * @param EDbFilter
+     * @return
+     */
+    public  EDbBaseQuery orRm(EDbFilter... EDbFilter){
+        this.orEDbFilters.removeAll(Arrays.asList(EDbFilter));
+        querySize -= EDbFilter.length;
+        return this;
+    }
+
     /**
      * 添加多个or条件
      * @param EDbFilter 该条件
@@ -88,6 +134,8 @@ public class EDbBaseQuery {
         querySize += EDbFilter.length;
         return this;
     }
+
+
 
 
 }
