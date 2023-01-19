@@ -139,8 +139,9 @@ public class TableToCode {
         codeStr.append("@Data\n");
         codeStr.append("@Schema(title = \""+ genTable.getTableComment() +"\")\n");
         codeStr.append("@Table(name = \""+tableName+"\")\n");
-        codeStr.append("public class ").append(StrUtil.upperFirst(beanName)).append(" implements Serializable {\n");
+        codeStr.append("public class ").append(StrUtil.upperFirst(beanName)).append(" implements Serializable {\n\n");
         for (GenTableColumn genTableColumn:genTableColumns){
+            codeStr.append("\t").append("/**\n").append("     * ").append(genTableColumn.getColumnComment()).append("\n     */\n"); //注释
             if(genTableColumn.getColumnKey().equalsIgnoreCase("PRI")){
                 codeStr.append("\t").append("@Id\n"); // 主键注解
             }
