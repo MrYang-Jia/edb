@@ -43,10 +43,10 @@
 ```xml
     <!-- spring事务 + jfinalDb + enjoy -->
     <dependency>
+        <!-- 版本对应了quarkus的扩展分支 -->
         <groupId>com.edbplus</groupId>
-        <artifactId>spring-jf-edb</artifactId>
-        <!-- 1.7.2 (生产稳定运行2个月才发的包)，待后续补充完整的文档，估计2.0左右能闭环 -->
-        <version>1.7.2</version>
+        <artifactId>quarkus-edb</artifactId>
+        <version>1.0.0</version>
     </dependency>
     
     
@@ -86,9 +86,10 @@
 - @Id -- 基于 JPA 对象必须至少指定1个主键字段申明
 - @Column -- 基于 JPA 对象，@Column 是申明该属性字段对应的数据库实际名称，如果没有申明，则不会对数据库记录产生任何变化
 
-### 支持的springBoot 版本（已测的部分）
-SpringBoot 1.x
-SpringBoot 2.x
+### 目前只有该分支做了 quarkus 方面的兼容改造 （移除了动态代理相关）
+quarkus 1.x
+quarkus 2.x
+
 
 **jfinal源码变更部分**
 - Config.java
