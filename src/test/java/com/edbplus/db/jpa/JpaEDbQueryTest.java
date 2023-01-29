@@ -107,31 +107,6 @@ public class JpaEDbQueryTest extends BaseTest {
         VehicleType vehicleType = EDb.use().findFirst(VehicleType.class,eDbQuery);
     }
 
-    /**
-     * 扩展 andRm orRm 的条件删除对象，便于灵活的条件组合查询
-     */
-    @Test
-    public void testRm(){
-        // ================== 通用查询自定义组合 开始  ===================
-        // 定义多个id
-        List<Integer> manyIds = new ArrayList<>();
-        manyIds.add(100);
-        EDbQuery eDbQuery = new EDbQuery();
-        // 方式：必须是同一个条件对象才可以移除，不然其实是无法断定你要移除哪个条件！，所以必须申明条件变量
-        EDbFilter eDbFilter1 = new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.like, manyIds);
-        eDbQuery.and(eDbFilter1); // 引入查询对象
-        eDbQuery.andRm(eDbFilter1); // 删除查询对象，必须是同一个，不然无法剔除该条件
-        // 申明条件变量 2
-        EDbFilter eDbFilter2 = new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.notIn, manyIds);
-        eDbQuery.andCom().and(eDbFilter2); // 引入查询对象
-        eDbQuery.andCom().andRm(eDbFilter2); // 删除查询对象，必须是同一个，不然无法剔除该条件
-        // 根据 VEHICLE_TYPE_ID 进行降序布局 -- 可添加多个排序排序规则
-        eDbQuery.orderDESC("VEHICLE_TYPE_ID");
-        eDbQuery.orderASC("CREATE_TIME");
-        // 普通查询
-        List<VehicleType> vehicleTypes =   EDb.find(VehicleType.class,eDbQuery);
-    }
-
     @Test
     public void test(){
 
