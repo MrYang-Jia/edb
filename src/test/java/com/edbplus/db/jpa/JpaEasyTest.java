@@ -1,5 +1,6 @@
 package com.edbplus.db.jpa;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.EDb;
@@ -210,4 +211,18 @@ public class JpaEasyTest extends BaseTest {
 //
 //    }
 
+
+    @Test
+    public void getPriKeyValuesTest(){
+        VehicleType vehicleType = new VehicleType();
+        vehicleType.setVehicleTypeId(1);
+        List<Object> valList = JpaAnnotationUtil.getPriKeyValues(vehicleType);
+
+        if (CollectionUtil.isNotEmpty(valList)) {
+            System.out.println("结果无值也进入了");
+            System.out.println(valList);
+        }else{
+            System.out.println(valList);
+        }
+    }
 }

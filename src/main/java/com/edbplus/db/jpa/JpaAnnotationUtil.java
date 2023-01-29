@@ -586,7 +586,10 @@ public class JpaAnnotationUtil {
         //
         List<FieldAndColValue> idColumns = getIdFieldAndColumnValues(t);
         // 返回字段值
-        List<Object> ids = idColumns.stream().map(p -> p.getFieldValue() ).collect(Collectors.toList());
+        List<Object> ids = idColumns.stream()
+                .filter(p->p.getFieldValue()!=null)
+                .map(p -> p.getFieldValue() )
+                .collect(Collectors.toList());
         return ids;
     }
 
