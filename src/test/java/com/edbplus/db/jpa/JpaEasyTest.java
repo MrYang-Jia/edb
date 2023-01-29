@@ -1,6 +1,8 @@
 package com.edbplus.db.jpa;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.ObjectUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.EDb;
@@ -215,14 +217,13 @@ public class JpaEasyTest extends BaseTest {
     @Test
     public void getPriKeyValuesTest(){
         VehicleType vehicleType = new VehicleType();
-        vehicleType.setVehicleTypeId(1);
+//        vehicleType.setVehicleTypeId(1);
         List<Object> valList = JpaAnnotationUtil.getPriKeyValues(vehicleType);
-
-        if (CollectionUtil.isNotEmpty(valList)) {
-            System.out.println("结果无值也进入了");
-            System.out.println(valList);
-        }else{
-            System.out.println(valList);
+        // valList 一般是会有值的，不存在无的情况，主键为null的时候，返回 list.add(null)
+        Object id = valList.get(0);
+        if (ObjectUtil.isNull(id)){
+            System.out.println("需要单独判断null的情况进行处理");
         }
+
     }
 }

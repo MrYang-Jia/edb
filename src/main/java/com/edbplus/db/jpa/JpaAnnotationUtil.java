@@ -587,7 +587,8 @@ public class JpaAnnotationUtil {
         List<FieldAndColValue> idColumns = getIdFieldAndColumnValues(t);
         // 返回字段值
         List<Object> ids = idColumns.stream()
-                .filter(p->p.getFieldValue()!=null)
+                // 不需要过滤，获取到null则是null，这样子list里就会有 id == null 的情况，因为可能存在 复合 主键，一个有值，有一个没有值的情况
+               // .filter(p->p.getFieldValue()!=null)
                 .map(p -> p.getFieldValue() )
                 .collect(Collectors.toList());
         return ids;
