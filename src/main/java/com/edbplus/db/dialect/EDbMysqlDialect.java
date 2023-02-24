@@ -67,10 +67,18 @@ public class EDbMysqlDialect extends MysqlDialect {
      */
     public void fillStatement(PreparedStatement pst, List<Object> paras) throws SQLException {
         int i = 0;
-
         for(int size = paras.size(); i < size; ++i) {
             // 目前需要注意的是有些版本的 jdbc 驱动，关于 timestamp 填充会报异常，如果有需要，则需要兼容下转换
-            pst.setObject(i + 1, paras.get(i));
+            try {
+                pst.setObject(i + 1, paras.get(i));
+            }catch (Throwable e){
+                if(e.getMessage().contains("date")){
+                    // 强转成普通的 Date 对象，避免无法正常解析 timestamp
+                    pst.setObject(i + 1, new Date(((Date)paras.get(i)).getTime()));
+                }else{
+                    throw e;// 其他情况则抛出异常，避免被拦截掉
+                }
+            }
         }
 
     }
