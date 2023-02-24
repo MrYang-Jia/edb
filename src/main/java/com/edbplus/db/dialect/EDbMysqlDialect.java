@@ -20,6 +20,7 @@ import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @ClassName EDbMysqlDialect
@@ -55,6 +56,31 @@ public class EDbMysqlDialect extends MysqlDialect {
         }catch (Throwable e){// 请注意这个是获取父级的方法解析，所以无法单独写到工具类里
             return super.replaceOrderBy(sql); // 报错时使用原来的解析方式，以此兼容
         }
+    }
+
+
+    /**
+     * 参数填充
+     * @param pst
+     * @param paras
+     * @throws SQLException
+     */
+    public void fillStatement(PreparedStatement pst, List<Object> paras) throws SQLException {
+        int i = 0;
+        for(int size = paras.size(); i < size; ++i) {
+            // 目前需要注意的是有些版本的 jdbc 驱动，关于 timestamp 填充会报异常，如果有需要，则需要兼容下转换
+            try {
+                pst.setObject(i + 1, paras.get(i));
+            }catch (Throwable e){
+                if(e.getMessage().contains("date")){
+                    // 强转成普通的 Date 对象，避免无法正常解析 timestamp
+                    pst.setObject(i + 1, new Date(((Date)paras.get(i)).getTime()));
+                }else{
+                    throw e;// 其他情况则抛出异常，避免被拦截掉
+                }
+            }
+        }
+
     }
 
     /**

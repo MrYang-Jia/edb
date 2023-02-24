@@ -2,6 +2,7 @@ package com.edbplus.db.jpa;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
@@ -64,6 +65,7 @@ public class JpaEasyTest extends BaseTest {
              VehicleType vehicleType = new VehicleType();
              vehicleType.setVehicleTypeName("原:小汽车");
              vehicleType.setCreatorName("小陈陈");
+             vehicleType.setCreateTime(DateUtil.date());
              // 如果有多个数据库，可以用 EDb.use("数据库标识1") 指定
              eDbPro.save(vehicleType);
              System.out.println("耗时:"+(System.currentTimeMillis()-start));
