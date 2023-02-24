@@ -86,6 +86,7 @@ public class JpaEasyTest extends BaseTest {
              vehicleType.setVehicleTypeName("原:小汽车");
              vehicleType.setCreatorName("小陈陈");
              vehicleType.setCreateTime(DateUtil.date());
+             vehicleType.setModifyTime(DateUtil.date());
              // 如果有多个数据库，可以用 EDb.use("数据库标识1") 指定
              eDbPro.save(vehicleType);
              System.out.println("耗时:"+(System.currentTimeMillis()-start));

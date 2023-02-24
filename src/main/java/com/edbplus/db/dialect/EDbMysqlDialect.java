@@ -19,6 +19,7 @@ import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -67,17 +68,31 @@ public class EDbMysqlDialect extends MysqlDialect {
      */
     public void fillStatement(PreparedStatement pst, List<Object> paras) throws SQLException {
         int i = 0;
+        Object value = null;
         for(int size = paras.size(); i < size; ++i) {
-            // 目前需要注意的是有些版本的 jdbc 驱动，关于 timestamp 填充会报异常，如果有需要，则需要兼容下转换
-            try {
-                pst.setObject(i + 1, paras.get(i));
-            }catch (Throwable e){
-                if(e.getMessage().contains("date")){
-                    // 强转成普通的 Date 对象，避免无法正常解析 timestamp
-                    pst.setObject(i + 1, new Date(((Date)paras.get(i)).getTime()));
-                }else{
-                    throw e;// 其他情况则抛出异常，避免被拦截掉
+//            // 目前需要注意的是有些版本的 jdbc 驱动，关于 timestamp 填充会报异常，如果有需要，则需要兼容下转换
+//            try {
+//                pst.setObject(i + 1, paras.get(i));
+//            }catch (Throwable e){
+//                if(e.getMessage().contains("date")){
+//                    // 强转成普通的 Date 对象，避免无法正常解析 timestamp
+//                    pst.setObject(i + 1, new Date(((Date)paras.get(i)).getTime()));
+//                }else{
+//                    throw e;// 其他情况则抛出异常，避免被拦截掉
+//                }
+//            }
+            value = paras.get(i);
+            if (value instanceof Date) {
+                if (value instanceof java.sql.Date) {
+                    pst.setDate(i + 1, (java.sql.Date)value);
+                } else if (value instanceof Timestamp) {
+                    pst.setTimestamp(i + 1, (Timestamp)value);
+                } else {
+                    Date d = (Date)value;
+                    pst.setTimestamp(i + 1, new Timestamp(d.getTime()));
                 }
+            } else {
+                pst.setObject(i + 1, value);
             }
         }
 
@@ -90,17 +105,31 @@ public class EDbMysqlDialect extends MysqlDialect {
      * @throws SQLException
      */
     public void fillStatement(PreparedStatement pst, Object... paras) throws SQLException {
+        Object value = null;
         for(int i = 0; i < paras.length; ++i) {
-            // 目前需要注意的是有些版本的 jdbc 驱动，关于 timestamp 填充会报异常，如果有需要，则需要兼容下转换
-            try {
-                pst.setObject(i + 1, paras[i]);
-            }catch (Throwable e){
-                if(e.getMessage().contains("date")){
-                    // 强转成普通的 Date 对象，避免无法正常解析 timestamp
-                    pst.setObject(i + 1, new Date(((Date)paras[i]).getTime()));
-                }else{
-                    throw e;// 其他情况则抛出异常，避免被拦截掉
+            value = paras[i];
+//            // 目前需要注意的是有些版本的 jdbc 驱动，关于 timestamp 填充会报异常，如果有需要，则需要兼容下转换
+//            try {
+//                pst.setObject(i + 1, paras[i]);
+//            }catch (Throwable e){
+//                if(e.getMessage().contains("date")){
+//                    // 强转成普通的 Date 对象，避免无法正常解析 timestamp
+//                    pst.setObject(i + 1, new Date(((Date)paras[i]).getTime()));
+//                }else{
+//                    throw e;// 其他情况则抛出异常，避免被拦截掉
+//                }
+//            }
+            if (value instanceof Date) {
+                if (value instanceof java.sql.Date) {
+                    pst.setDate(i + 1, (java.sql.Date)value);
+                } else if (value instanceof Timestamp) {
+                    pst.setTimestamp(i + 1, (Timestamp)value);
+                } else {
+                    Date d = (Date)value;
+                    pst.setTimestamp(i + 1, new Timestamp(d.getTime()));
                 }
+            } else {
+                pst.setObject(i + 1, value);
             }
 
         }

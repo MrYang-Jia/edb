@@ -1,5 +1,6 @@
 package com.edbplus.db.jpa;
 
+import cn.hutool.core.date.DateUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
@@ -37,17 +38,19 @@ public class JpaBatchSaveTest extends BaseTest {
             List<VehicleType> saveList = new ArrayList<>();
             VehicleType vehicleType =null;
             // 插入数量自己预设
-            for(int i=0;i<1000;i++){
+            for(int i=0;i<10;i++){
                 // 数据对象
                 vehicleType = new VehicleType();
                 vehicleType.setVehicleTypeName("车辆类型-"+i);
                 vehicleType.setCreatorName("小M-"+i);
+                vehicleType.setCreateTime(DateUtil.date());
                 saveList.add(vehicleType);
             }
             // insertValues 无id返回值，建议大量数据插入时，可预分配id给数组对象
             // 批量插入 -- 以每批次插入100条数据位例子 ，该模式 id 不会回填，所以只返回操作的插入结果
-            int count=EDb.use().insertValues(VehicleType.class,saveList,1000);
-            System.out.println(count);
+            EDb.use().batchSave(VehicleType.class,saveList,1000);
+//            int count=EDb.use().insertValues(VehicleType.class,saveList,1000);
+//            System.out.println(count);
             System.out.println("耗时:"+(System.currentTimeMillis()-start));
             return false;
         });
