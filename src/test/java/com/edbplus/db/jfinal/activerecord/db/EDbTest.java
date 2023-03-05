@@ -11,6 +11,7 @@ import com.edbplus.db.util.hutool.http.EHttpUtil;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Page;
+import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.SqlPara;
 import org.apache.lucene.util.RamUsageEstimator;
 import org.testng.annotations.Test;
@@ -42,6 +43,9 @@ public class EDbTest extends BaseTest {
         VehicleType vehicleType = EDb.findById(VehicleType.class,100);
         System.out.println("原数值:" + EJSONUtil.toJsonStr(vehicleType));
         System.out.println(System.currentTimeMillis() - start);
+        // 当有主键键值的时候，同一个连接，可以获取到对应的 自增键值
+        Record record = EDb.findFirst("select LAST_INSERT_ID() idValue");
+        System.out.println(record);
     }
 
     /**

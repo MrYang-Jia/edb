@@ -70,7 +70,7 @@ public class BaseTest {
         JpaListener jpaListener = new JpaListener();
         // 初始化
         EDb.use().setEDbListener(jpaListener);
-        EDb.use().setSaveAndFlush(true);
+//        EDb.use().setSaveAndFlush(true);
         // 一个数据库只能设定一个监听 ，所以要绑定监听的数据库对象
         EDb.use("pg").setEDbListener(jpaListener);
     }

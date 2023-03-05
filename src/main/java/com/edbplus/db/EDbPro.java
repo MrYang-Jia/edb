@@ -44,8 +44,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.kit.LogKit;
 import com.jfinal.plugin.activerecord.*;
+import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import javax.persistence.Table;
 import java.lang.reflect.Method;
@@ -61,6 +63,7 @@ import java.util.concurrent.Future;
  * @Date 2020/10/14
  * @Version V1.0
  **/
+@Slf4j
 @JsonIgnoreType
 // 因为方法名以getxxx开头，如果没有参数的话，会被当作是属性对象返回给前端，所以接下来方法名命名要注意不能以get开头
 @JsonIgnoreProperties({"realJpaClass","dbPro", "tableName","columnsMap","relKey","relKeyForFutrue","allRel","allRelForFutrue","countSql"})
@@ -224,11 +227,46 @@ public class EDbPro extends SpringDbPro {
             for(FieldAndColumn fieldAndColumn : coumns) {
                 // 字段赋值
                 JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+//                BeanUtil.setFieldValue(m,fieldAndColumn.getField().getName(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
             }
         }
 
 
         return resultStatus;
+    }
+
+    /**
+     * 保存操作
+     * @param tableName
+     * @param primaryKey
+     * @param record
+     * @return
+     */
+    public boolean save(String tableName, String primaryKey, Record record) {
+        Connection conn = null;
+        boolean var5;
+        try {
+            conn = this.config.getConnection();
+            var5 = this.save(this.config, conn, tableName, primaryKey, record);
+            // 再次校验 key 是否有值
+//            String[] pKeys = primaryKey.split(",");
+//            if(pKeys.length==1){ // 如果只有一个键值，则尝试判断主键是否为null,说实话，这样子的兼容性少了标记的可能性，自增键值是哪个，完全依赖于主键标记，复合主键的话，则无法判断了，但这个符合99%的可能性了
+//                if(record.get(pKeys[0].trim()) == null){ // 当使用读写分离时，主键键值可能返回为 null 的时候，使用 select LAST_INSERT_ID() 获取当前插入的结果集的主键id的序列值
+//                    // mysql 的情况则需要通过 select LAST_INSERT_ID(); 获取结果集 ，当mysql通过 maxscale 的时候会发生可能取到id为null的情况，所以需要重新获取主键键值，通过同一个连接
+//                    // 参考文档地址：https://mariadb.com/kb/en/mariadb-maxscale-6-mariadb-maxscale-configuration-guide/
+//                    if (this.getConfig().getDialect() instanceof MysqlDialect) {
+//                        List<Record> idRecords = this.find(this.config,conn,"select LAST_INSERT_ID() idValue");
+//                        //log.error("class : "+this.getConfig().getDialect().getClass().getName()+" table : "+tableName+" key: "+pKeys[0].trim() +" ; this idValue is "+idRecords.get(0).get("idValue") + " oValue:"+ record.get(pKeys[0].trim()));
+//                        record.set(pKeys[0].trim(),idRecords.get(0).get("idValue"));
+//                    }
+//                }
+//            }
+        } catch (Exception var9) {
+            throw new ActiveRecordException(var9);
+        } finally {
+            this.config.close(conn);
+        }
+        return var5;
     }
 
 
