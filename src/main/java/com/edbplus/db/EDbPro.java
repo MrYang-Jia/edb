@@ -221,6 +221,7 @@ public class EDbPro extends SpringDbPro {
                 objects.add(record.get(keyName));
             }
             M m2 = (M) this.findByGroupId(m.getClass(),objects.toArray());
+            // 备注： 存在概率性主键回填失败的问题，例如 ID、GSID 等非驼峰式主键字段回填，使用以下方式偶然性主键丢失，所以建议不开启 saveAndFlush 插入保存后再刷新的的功能
             BeanUtil.copyProperties(m2,m); // 必须进行1次属性拷贝，不然无法替换 m 的数值
         }else {
             // 所有字段重新赋值，可能主键或者自定义键值产生变更（通过 beforeSave 方法调整变更的对象）
