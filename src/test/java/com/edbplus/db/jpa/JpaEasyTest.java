@@ -45,7 +45,7 @@ public class JpaEasyTest extends BaseTest {
 
         System.out.println(record);
 
-        eDbPro.findFirst("select * from dd where VEHICLE_TYPE_NAME like #para(k1)", Kv.by("vehicleTypeId",100));
+        eDbPro.findFirst("select * from cr_vehicle_type where VEHICLE_TYPE_NAME like #para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
     }
 
     /**

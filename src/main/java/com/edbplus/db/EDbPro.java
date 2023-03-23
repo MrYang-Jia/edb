@@ -21,12 +21,16 @@ import cn.hutool.core.map.CaseInsensitiveMap;
 
 import com.edbplus.db.annotation.EDbSave;
 import com.edbplus.db.annotation.EDbUpdate;
+import com.edbplus.db.dialect.EDbPostgreSqlDialect;
 import com.edbplus.db.druid.EDbSelectUtil;
 import com.edbplus.db.dto.EDBListenerResult;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
+import com.edbplus.db.em.RunSqlType;
+import com.edbplus.db.em.RunStatus;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.jpa.JpaBuilder;
+import com.edbplus.db.listener.ConnectListener;
 import com.edbplus.db.proxy.EDbRelProxy;
 import com.edbplus.db.jpa.util.JpaRelUtil;
 import com.edbplus.db.listener.EDbListener;
@@ -76,6 +80,10 @@ public class EDbPro extends SpringDbPro {
 
     @Setter// 保存后自动重新根据主键再查询1次
     private boolean saveAndFlush = false;
+
+    // sql 连接监听，用于统计耗时，解析sql处理时使用
+    @Setter
+    private ConnectListener connectListener;
 
     public EDbPro(){
         super(DbKit.MAIN_CONFIG_NAME);
@@ -1662,6 +1670,147 @@ public class EDbPro extends SpringDbPro {
             this.config.close(conn);
         }
         return var4;
+    }
+
+    /**
+     * 设置 PreparedStatement 的 RowMaxs 属性
+     * @param pst
+     */
+    public void setRowMaxs(PreparedStatement pst){
+        try { // 由于postgresql 无法通过jdbcUrl 设置 maxRows 保护系统运行时返回的系统内存，然后使用
+            if(this.config.getDialect() instanceof EDbPostgreSqlDialect){
+                EDbPostgreSqlDialect eDbPostgreSqlDialect = ((EDbPostgreSqlDialect) this.config.getDialect());
+                if(eDbPostgreSqlDialect.maxRows!=null){
+                    pst.setMaxRows(eDbPostgreSqlDialect.maxRows);
+                }
+            }
+        } catch (Throwable throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    /**
+     * 执行查询
+     * @param config
+     * @param conn
+     * @param sql
+     * @param paras
+     * @param <T>
+     * @return
+     * @throws SQLException
+     */
+    protected <T> List<T> query(Config config, Connection conn, String sql, Object... paras) throws SQLException {
+        List result = new ArrayList();
+        Long startTime =  System.currentTimeMillis();
+        PreparedStatement pst = conn.prepareStatement(sql);
+        setRowMaxs(pst); // 设置返回条数的最大值，可以保护系统运行时避免内存溢出
+        Throwable var7 = null;
+        List var21;
+        try {
+            config.getDialect().fillStatement(pst, paras);
+            ResultSet rs = pst.executeQuery();
+            int colAmount = rs.getMetaData().getColumnCount();
+            if (colAmount <= 1) {
+                if (colAmount == 1) {
+                    while(rs.next()) {
+                        result.add(rs.getObject(1));
+                    }
+                }
+            } else {
+                while(rs.next()) {
+                    Object[] temp = new Object[colAmount];
+
+                    for(int i = 0; i < colAmount; ++i) {
+                        temp[i] = rs.getObject(i + 1);
+                    }
+
+                    result.add(temp);
+                }
+            }
+
+            this.close(rs);
+            var21 = result;
+        } catch (Throwable var19) {
+            var7 = var19;
+            if(connectListener != null){
+                // 执行结尾增加相应的逻辑处理
+                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,0,RunStatus.FAIL,var19);
+            }
+            throw var19;
+        } finally {
+            if (pst != null) {
+                if (var7 != null) {
+                    try {
+                        pst.close();
+                    } catch (Throwable var18) {
+                        var7.addSuppressed(var18);
+                    }
+                } else {
+                    pst.close();
+                }
+            }
+
+        }
+        if(connectListener != null){
+            // 执行结尾增加相应的逻辑处理
+            connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,result.size(),RunStatus.SUCCESS);
+        }
+        return var21;
+    }
+
+    /**
+     * 原jfinal查询，需要改写才能支持一些查询服务的处理
+     * @param config
+     * @param conn
+     * @param sql
+     * @param paras
+     * @return
+     * @throws SQLException
+     */
+    protected List<Record> find(Config config, Connection conn, String sql, Object... paras) throws SQLException {
+        Long startTime =  System.currentTimeMillis();
+        PreparedStatement pst = conn.prepareStatement(sql);
+        setRowMaxs(pst); // 设置返回条数的最大值，可以保护系统运行时避免内存溢出
+        Throwable var6 = null;
+        List var9;
+        try {
+            config.getDialect().fillStatement(pst, paras);
+            ResultSet rs = pst.executeQuery();
+            List<Record> result = config.getDialect().buildRecordList(config, rs);
+            this.close(rs);
+            var9 = result;
+        } catch (Throwable var18) {
+            var6 = var18;
+            if(connectListener != null){
+                // 执行结尾增加相应的逻辑处理
+                connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,0, RunStatus.FAIL,var18);
+            }
+            throw var18;
+        } finally {
+            if (pst != null) {
+                if (var6 != null) {
+                    try {
+                        pst.close();
+                    } catch (Throwable var17) {
+                        var6.addSuppressed(var17);
+                    }
+                } else {
+                    pst.close();
+                }
+            }
+
+        }
+
+        if(connectListener != null){
+            int rowSize=0;
+            if(var9!=null){
+                rowSize = var9.size();
+            }
+            // 执行结尾增加相应的逻辑处理
+            connectListener.loss(this, RunSqlType.select,(System.currentTimeMillis()-startTime),sql,paras,rowSize,RunStatus.SUCCESS);
+        }
+
+        return var9;
     }
 
     /**

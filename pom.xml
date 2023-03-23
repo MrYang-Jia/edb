@@ -7,8 +7,8 @@
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
     <!-- 每次deploy后必须调整版本号 -->
-    <!-- 目前生产最新版本为 1.7.3 版本 -->
-    <version>1.7.3</version>
+    <!-- 目前生产最新版本为 1.7.2 版本 -->
+    <version>1.7.2</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
@@ -20,7 +20,7 @@
         <jfinal.version>4.9.16</jfinal.version>
         <!-- 独立修正版，有部分语句获取会有异常，调整了源码内容 -->
         <druid.version>1.1.21_1</druid.version>
-<!--        <druid.version>1.2.8</druid.version>-->
+        <!--        <druid.version>1.2.8</druid.version>-->
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -106,6 +106,15 @@
             <!-- 依赖时可选 -->
             <optional>true</optional>
             <!--<optional>true</optional>-->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.1.2</version>
+            <!-- 依赖时可选 -->
+            <optional>true</optional>
             <scope>provided</scope>
         </dependency>
 
@@ -379,39 +388,39 @@
                 </executions>
             </plugin>
 
-<!--            &lt;!&ndash; 安装源码到本地仓库，发布到中央仓库时校验失败 &ndash;&gt;-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-source-plugin</artifactId>-->
-<!--                <version>2.1.2</version>-->
-<!--                <configuration>-->
-<!--                    <attach>true</attach>-->
-<!--                </configuration>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>compile</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>jar</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
-
-<!--            &lt;!&ndash; 安装源码到本地仓库 &ndash;&gt;-->
+            <!-- 安装源码到本地仓库 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>2.1.2</version>
+                <configuration>
+                    <attach>true</attach>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>attach-sources</id>
-                        <phase>verify</phase>
+                        <phase>compile</phase>
                         <goals>
-                            <goal>jar-no-fork</goal>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+
+            <!--            &lt;!&ndash; 安装源码到本地仓库 &ndash;&gt;-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-source-plugin</artifactId>-->
+            <!--                <version>2.1.2</version>-->
+            <!--                <executions>-->
+            <!--                    <execution>-->
+            <!--                        <id>attach-sources</id>-->
+            <!--                        <phase>verify</phase>-->
+            <!--                        <goals>-->
+            <!--                            <goal>jar-no-fork</goal>-->
+            <!--                        </goals>-->
+            <!--                    </execution>-->
+            <!--                </executions>-->
+            <!--            </plugin>-->
 
             <!-- gpg签名 -->
             <plugin>
