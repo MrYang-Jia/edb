@@ -1,5 +1,6 @@
 package com.edbplus.db.jpa;
 
+import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.query.EDbFilter;
@@ -33,7 +34,8 @@ public class JpaPaginateTest extends BaseTest {
         // 只查询创建人 = 小陈 的数据
         eDbQuery.and(new EDbFilter("CREATOR", EDbFilter.Operator.eq, "小陈"));
         long start = System.currentTimeMillis();
-        EDb.paginate(VehicleType.class, PageRequest.of(1,10),eDbQuery);
+        Page page= EDb.paginate(VehicleType.class, PageRequest.of(1,10),eDbQuery);
+//        System.out.println(JSONUtil.toJsonStr(page.getList()));
         System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis()-start));
 
         // 不需要生成统计查询记录数的方法 -- 因为总记录数的方法可以通过 写死 或者写一个 获取缓存记录数的sql方法，原 jfinal 的设计方法不够灵活，所以单独扩展
@@ -44,7 +46,7 @@ public class JpaPaginateTest extends BaseTest {
         start = System.currentTimeMillis();
         //
         SqlPara sqlPara = EDb.getSqlPara("test.findForId", 200);
-        Page page = EDb.paginate(VehicleType.class,PageRequest.of(1,10),sqlPara);
+        page = EDb.paginate(VehicleType.class,PageRequest.of(1,10),sqlPara);
         System.out.println("自动生成统计语句的耗时:"+(System.currentTimeMillis() - start) + "==>"+ page.getTotalRow());
 
         start = System.currentTimeMillis();
