@@ -38,6 +38,11 @@ public class GenTableColumnsElem {
     // 数据类型
     public static String dataType = "dataType";
 
+    // 数据字段类型全部 -- 包含字段长度等 int(10) unsigned
+    public static String columnType = "columnType";
+    // 是否是 正整数
+    public static String signedType = "signedType";
+
     // 字段描述
     public static String columnComment = "columnComment";
 
