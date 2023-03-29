@@ -157,6 +157,7 @@ public class GenMysql {
         sql.append(" 		INSTR(column_type, '(') + 1, ");
         sql.append(" 		INSTR(column_type, ')') - INSTR(column_type, '(') - 1 ");
         sql.append(" 	) maxL ");
+        sql.append(",column_type columnType,(locate( 'unsigned',column_type)>0) as signedType "); // 增加 mysql unsigned 的识别
         sql.append(" FROM ");
         sql.append(" 	information_schema. COLUMNS ");
         sql.append(" WHERE ");
