@@ -149,6 +149,10 @@ public class EDbQueryUtil {
                 }
                 paramsList.add(values[j]);
             }
+        }else{
+            andSqlStr.append("?");
+            // 如果不是数组的情况，则直接回填对象即可
+            paramsList.add(EDbFilter.getValue());
         }
     }
 
