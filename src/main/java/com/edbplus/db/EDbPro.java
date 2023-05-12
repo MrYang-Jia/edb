@@ -3701,7 +3701,7 @@ public class EDbPro extends DbPro {
      */
     protected boolean save(Config config, Connection conn, String tableName, String primaryKey, Record record) throws SQLException {
         Long startTime = System.currentTimeMillis();
-        String[] pKeys = primaryKey.split(",");
+        String[] pKeys = primaryKey.split(",");;
         List<Object> paras = new ArrayList();
         StringBuilder sql = new StringBuilder();
         config.getDialect().forDbSave(tableName, pKeys, record, sql, paras);
@@ -3713,7 +3713,9 @@ public class EDbPro extends DbPro {
         try {
             config.getDialect().fillStatement(pst, paras);
             result = pst.executeUpdate();
-            config.getDialect().getRecordGeneratedKey(pst, record, pKeys);
+            if(primaryKey.length()>0){// 支持无主键模式
+                config.getDialect().getRecordGeneratedKey(pst, record, pKeys);
+            }
             var12 = result >= 1;
         } catch (Throwable var21) {
             var10 = var21;
