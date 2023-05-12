@@ -279,6 +279,63 @@ public class EDbPro extends SpringDbPro {
     }
 
 
+    /**
+     * 保存服务
+     * @param config
+     * @param conn
+     * @param tableName
+     * @param primaryKey
+     * @param record
+     * @return
+     * @throws SQLException
+     */
+    protected boolean save(Config config, Connection conn, String tableName, String primaryKey, Record record) throws SQLException {
+        Long startTime = System.currentTimeMillis();
+        String[] pKeys = primaryKey.split(",");
+        List<Object> paras = new ArrayList();
+        StringBuilder sql = new StringBuilder();
+        config.getDialect().forDbSave(tableName, pKeys, record, sql, paras);
+        PreparedStatement pst = config.getDialect().isOracle() ? conn.prepareStatement(sql.toString(), pKeys) : conn.prepareStatement(sql.toString(), 1);
+        Throwable var10 = null;
+
+        boolean var12;
+        int result = 0;
+        try {
+            config.getDialect().fillStatement(pst, paras);
+            result = pst.executeUpdate();
+            if(primaryKey.length()>0){// 支持无主键模式
+                config.getDialect().getRecordGeneratedKey(pst, record, pKeys);
+            }
+            var12 = result >= 1;
+        } catch (Throwable var21) {
+            var10 = var21;
+            if(connectListener != null){
+                // 执行结尾增加相应的逻辑处理
+                connectListener.loss(this, RunSqlType.save,(System.currentTimeMillis()-startTime),sql.toString(),paras.toArray(),result,RunStatus.FAIL,var21);
+            }
+            throw var21;
+        } finally {
+            if (pst != null) {
+                if (var10 != null) {
+                    try {
+                        pst.close();
+                    } catch (Throwable var20) {
+                        var10.addSuppressed(var20);
+                    }
+                } else {
+                    pst.close();
+                }
+            }
+        }
+        if(connectListener != null){
+            // 执行结尾增加相应的逻辑处理
+            connectListener.loss(this, RunSqlType.save,(System.currentTimeMillis()-startTime),sql.toString(),paras.toArray(),result,RunStatus.SUCCESS);
+        }
+
+        return var12;
+    }
+
+
 
     /**
      * 批量提交并返回主键
