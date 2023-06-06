@@ -599,6 +599,7 @@ public class EDbPro extends SpringDbPro {
      */
     public <T>  int  insertValues(Class<T> tClass,List<T> objs,int batchSize){
         int valueSize = 0;
+        String colStr = null; // 字符串转义时复用
         // 如果对象为null不管
         if( objs == null || objs.size() == 0){
             return 0;
@@ -644,13 +645,33 @@ public class EDbPro extends SpringDbPro {
             t = objs.get(i);
             // 拼接起始位置
             inserValues.append("(");
+
             // 赋予数据
             for(FieldAndColumn fieldAndColumn:coumns){
                 // 数据项
                 value = JpaAnnotationUtil.getFieldValue(t,fieldAndColumn.getField());
                 // 只允许对象只有 String Inter Long BigDecimal 这几种常用类型 (便于扩展) ,枚举类型不建议，虽然也能实现，但是存在各种不确定性，请勿玩花样，避免代码太过复杂恶心
                 if(value instanceof String){
-                    inserValues.append("'").append(value).append("',");
+                    colStr = value.toString();
+                    if(this.getConfig().getDialect() instanceof PostgreSqlDialect){
+                        // 转义 \ 符号，避免插入数据时缺失字符
+                        colStr = colStr.replaceAll("\\\\","\\\\\\\\");
+                        // 避免有单引号存在，造成插入异常，需要对单引号全部特殊处理,替换成 '' pg写入转义符号时报错
+//                        colStr = colStr.replaceAll("'","''");
+                        colStr = colStr.replaceAll("'","\\\\'"); // pg or mysql 都可以使用这种方式转义
+                        // 转换; Postgresql对于0x00和\u0000无法支持 -- 所以字符串这里统一进行处理
+                        colStr = colStr.replace((char)0x00,' ');
+                        // 避免有单引号存在，造成插入异常，需要对单引号全部特殊处理,替换成 \'
+                        inserValues.append("E'").append(colStr).append("',");
+                    }else if(this.getConfig().getDialect() instanceof MysqlDialect){
+                        // 转义 \ 符号，避免插入数据时缺失字符
+                        colStr = colStr.replaceAll("\\\\","\\\\\\\\");
+                        // 避免有单引号存在，造成插入异常，需要对单引号全部特殊处理,替换成 \'
+                        colStr = colStr.replaceAll("'","\\\\'");
+                        inserValues.append("'").append(colStr).append("',");
+                    }else{
+                        inserValues.append("'").append(value).append("',");
+                    }
                 }else
                 if(value instanceof Date){
                     inserValues.append("'").append(EDateUtil.formatDateTime((Date) value)).append("',");
