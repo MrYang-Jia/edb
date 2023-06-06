@@ -677,11 +677,20 @@ public class EDbPro extends SpringDbPro {
                     inserValues.append("'").append(EDateUtil.formatDateTime((Date) value)).append("',");
                 }
                 else{
-                    // 如果是 pg
-                    if (value == null && this.getConfig().getDialect() instanceof PostgreSqlDialect && fieldAndColumn.getIsPriKey()){
-                        inserValues.append("nextval(pg_get_serial_sequence('").append(table.name().toLowerCase()).append("','").append(fieldAndColumn.getColumn().name().toLowerCase()).append("')),");
+                    if(value == null && fieldAndColumn.getIsPriKey()) // 当主键为null时的处理方式
+                    {
+                        if(this.getConfig().getDialect() instanceof PostgreSqlDialect){
+                            // 如果是pg的话，则需要引入自增序列的方式进行 id 自增
+                            inserValues.append("nextval(pg_get_serial_sequence('").append(table.name().toLowerCase()).append("','").append(fieldAndColumn.getColumn().name().toLowerCase()).append("')),");
+                        }else{
+                            if(fieldAndColumn.getField().getType().equals(Date.class)){
+                                inserValues.append("now").append(","); // tdengine 数据库支持的函数，可以支持到 纳秒
+                            }else{
+                                inserValues.append(value).append(","); // 其他类型的数据库，实际回填 null 即可
+                            }
+                        }
                     }else{
-                        inserValues.append(value).append(",");
+                        inserValues.append(value).append(","); // 其他键值
                     }
 
                 }
