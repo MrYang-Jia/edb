@@ -17,12 +17,15 @@ package com.edbplus.db.jpa;
 
 import cn.hutool.core.lang.SimpleCache;
 import com.edbplus.db.annotation.EDbRel;
+import com.edbplus.db.annotation.EDbType;
 import com.edbplus.db.annotation.EDbView;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.dto.FieldAndRel;
 import com.edbplus.db.dto.FieldAndView;
+import com.edbplus.db.em.DataType;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
+import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.hutool.map.CaseInsensitiveMap;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 
@@ -369,6 +372,7 @@ public class JpaAnnotationUtil {
         HashSet<String> columnsKey = new HashSet();
         Enum fieldEnum = null;
         Enumerated enumerated = null;
+        EDbType eDbType = null;
         Object value = null;
         for( FieldAndColumn fieldAndColumn : fieldAndColumns ){
             // 获取column对象
@@ -411,8 +415,18 @@ public class JpaAnnotationUtil {
                             fieldAndColValue.setFieldValue(fieldEnum.name());
                         }
                     }else{
-                        // 非枚举字段赋予对象值
-                        fieldAndColValue.setFieldValue(value);
+                        // 如果字段上有转换标志
+                        if(EAnnotationUtil.getAnnotation(fieldAndColumn.getField(), EDbType.class) != null){
+                            eDbType = fieldAndColumn.getField().getAnnotation(EDbType.class);
+                            if(eDbType.type().equals(DataType.JSONSTRING)){ // json字符串转换
+                                fieldAndColValue.setFieldValue(EJSONUtil.toJsonStr(value));
+                            }else{
+                                fieldAndColValue.setFieldValue(value);
+                            }
+                        }else{
+                            // 非枚举字段赋予对象值
+                            fieldAndColValue.setFieldValue(value);
+                        }
                     }
 
                     if(EAnnotationUtil.getAnnotation(fieldAndColumn.getField(), Id.class) != null){
@@ -868,7 +882,19 @@ public class JpaAnnotationUtil {
             }else{
                 if(value != null){
                     // 非枚举，直接赋值即可，使用该方式可以避免类型不一致，赋值出现异常情况
-                    EReflectUtil.setFieldValue(t,field,value);
+                    // 如果字段上有转换标志则需要将对象进行转换，目前只用于 json 字符串转bean对象
+                    if(EAnnotationUtil.getAnnotation(field, EDbType.class) != null){
+                        EDbType eDbType = field.getAnnotation(EDbType.class);
+                        if(eDbType.type().equals(DataType.JSONSTRING)){ // json字符串转换,这时是回填到bean对象上，则需要转换 json 为bean
+                            EReflectUtil.setFieldValue(t,field,EJSONUtil.toBean((String) value,field.getType()));
+                        }else{
+                            EReflectUtil.setFieldValue(t,field,value);
+                        }
+                    }else{
+                        // 非枚举字段赋予对象值
+                        EReflectUtil.setFieldValue(t,field,value);
+                    }
+
                 }
             }
         }catch (Exception e){
