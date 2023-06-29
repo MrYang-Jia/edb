@@ -330,6 +330,17 @@ public class VoTest extends BaseTest {
 
 
     @Test
+    public void createCode3(){
+        String sql = " select id,create_id from sys_user a \n" +
+                "    where 1=1\n" +
+                "    and id=1";
+//        System.out.println(JSONUtil.toJsonStr(SelectParser.getSelectNames(sql, DbType.postgresql.name())));
+        String javaCode = SqlToCode.javaCode(sql,"appGoodSourceVo", EDb.use(),DbType.mysql);
+        System.out.println(javaCode);
+    }
+
+
+    @Test
     public void codeTest(){
         String sql =" SELECT  ordinal_position ordinalPosition,  table_name tableName,  \tcolumn_name columnName,  \tCOLUMN_DEFAULT columnDefault,  \tdata_type dataType,  \tcolumn_comment columnComment,  \tcolumn_key columnKey,  \textra,  \t(  \t\tCASE  \t\tWHEN IS_NULLABLE = 'YES' THEN  \t\t\t'1'  \t\tELSE  \t\t\t'0'  \t\tEND  \t) isN,  \tSUBSTRING(  \t\tcolumn_type,  \t\tINSTR(column_type, '(') + 1,  \t\tINSTR(column_type, ')') - INSTR(column_type, '(') - 1  \t) maxL  FROM  \tinformation_schema. COLUMNS  WHERE   table_name = 'cr_vehicle_type'  \n" +
                 " and column_name = 'vehicle_type_id'  AND table_schema = (SELECT DATABASE())  ORDER BY \n" +

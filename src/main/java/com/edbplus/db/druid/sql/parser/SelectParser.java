@@ -73,6 +73,9 @@ public class SelectParser {
             // stmt.accept(visitor);
 //            System.out.println("->"+stmt.getClass().getSimpleName());
             if (stmt instanceof SQLSelectStatement) {
+                String columnName = null;
+                String tableName = null;
+                Map<String,SQLExprTableSource> aliasTables = new HashMap<>(); // 外部表别名集合
                 SQLSelectStatement sstmt = (SQLSelectStatement) stmt;
                 SQLSelect sqlselect = sstmt.getSelect();
                 SQLSelectQueryBlock query = (SQLSelectQueryBlock) sqlselect.getQuery();
@@ -89,9 +92,8 @@ public class SelectParser {
                 List<SQLSelectItem> subSelectItem; // 复合查询的字段--最外围
                 List<SQLExpr> sqlExprList;
 
-                String columnName = null;
-                String tableName = null;
-                Map<String,SQLExprTableSource> aliasTables = new HashMap<>(); // 外部表别名集合
+
+
                 for (SQLSelectItem s : items) {
                     String aliasName = StringUtils.isEmpty(s.getAlias()) ? s.toString() : s.getAlias();
                     //防止字段重复
@@ -248,7 +250,17 @@ public class SelectParser {
                             }else{
                                 System.out.println("=5=>"+s.getExpr().getClass().getSimpleName()+"==>"+aliasName);
                             }
-                        }else{
+                        }else if(s.getExpr() instanceof SQLIdentifierExpr){
+                            SQLIdentifierExpr sqlIdentifierExpr =  (SQLIdentifierExpr)s.getExpr();
+                            if(query.getFrom() instanceof SQLExprTableSource) {
+                                tableSource = (SQLExprTableSource) query.getFrom();
+                                tableName = tableSource.getTableName();
+                                columnName = sqlIdentifierExpr.getName();
+//                                loadTableSourceAlias(tableSource,aliasTables);
+                                loadSelectItmes(selectItems,tableName,columnName,aliasName);
+                            }
+                        }
+                        else{
                             System.out.println("=6=>"+s.getExpr().getClass().getSimpleName()+"==>"+aliasName);
                         }
 
@@ -510,8 +522,10 @@ public class SelectParser {
             }
         }else{
             tableSource = (SQLExprTableSource) sqlTableSource;
-            if(aliasTables.get(tableSource.getAlias())==null){
+            if(tableSource.getAlias()!=null && aliasTables.get(tableSource.getAlias())==null){
                 aliasTables.put(tableSource.getAlias(),tableSource);
+            }else{
+                aliasTables.put(tableSource.getTableName(),tableSource);
             }
         }
 

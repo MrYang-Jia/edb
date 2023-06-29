@@ -166,7 +166,7 @@ public class GenMysql {
             if(tableName.contains(",")){
                 sql.append("  table_name in (").append(getTablesSql(tableName)).append(") ");
             }else{
-                sql.append("  table_name = '").append(tableName).append("' ");
+                sql.append("  table_name = ").append(tableName).append(" ");
             }
         }else
         {

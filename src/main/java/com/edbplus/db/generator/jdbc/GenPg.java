@@ -149,7 +149,7 @@ public class GenPg {
             if(tableName.contains(",")){
                 sql.append(" AND  table_name in (").append(getTablesSql(tableName)).append(") ");
             }else{
-                sql.append(" AND  table_name = '").append(tableName).append("' ");
+                sql.append(" AND  table_name = ").append(tableName).append(" ");
             }
         }
         // 根据传入的字段过滤掉其他信息
