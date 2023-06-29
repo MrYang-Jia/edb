@@ -78,7 +78,7 @@ public class GenMysql {
             if(tableName.contains(",")){
                 sql.append(" AND table_name in (").append(getTablesSql(tableName)).append(") ");
             }else{
-                sql.append(" AND table_name = '").append(tableName).append("' ");
+                sql.append(" AND table_name = ").append(getTablesSql(tableName)).append(" ");
             }
         }
         sql.append(" order by table_name ");
@@ -166,7 +166,7 @@ public class GenMysql {
             if(tableName.contains(",")){
                 sql.append("  table_name in (").append(getTablesSql(tableName)).append(") ");
             }else{
-                sql.append("  table_name = ").append(tableName).append(" ");
+                sql.append("  table_name = ").append(getTablesSql(tableName)).append(" ");
             }
         }else
         {
@@ -247,7 +247,7 @@ public class GenMysql {
             if(tableName.contains(",")){
                 sql.append(" and table_name in (").append(getTablesSql(tableName)).append(") ");
             }else{
-                sql.append(" and table_name = '").append(tableName).append("' ");
+                sql.append(" and table_name = ").append(getTablesSql(tableName)).append(" ");
             }
 
         }
@@ -293,7 +293,7 @@ public class GenMysql {
                 sql.append(" and table_name in (").append(getTablesSql(tableName)).append(") ");
             }else
             {
-                sql.append(" and table_name = '").append(tableName).append("' ");
+                sql.append(" and table_name = ").append(getTablesSql(tableName)).append(" ");
             }
         }
         // 根据数据库，表名，非唯一值，索引名称 统计
