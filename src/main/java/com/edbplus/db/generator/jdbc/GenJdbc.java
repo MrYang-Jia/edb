@@ -72,18 +72,21 @@ public class GenJdbc {
         // 左侧是 mysql 数据库类型，右侧是 java 对象属性类型
         filedTypeMap.put("int","Integer");
         filedTypeMap.put("tinyint","Integer");
+        filedTypeMap.put("smallint","Integer");
+        filedTypeMap.put("mediumint","Integer");
         filedTypeMap.put("BIGINT","Long");
         filedTypeMap.put("VARCHAR","String");
         filedTypeMap.put("CHAR","String");
         filedTypeMap.put("TEXT","String");
+        filedTypeMap.put("tinytext","String");
         filedTypeMap.put("longtext","String");
+        filedTypeMap.put("mediumtext","String");
         filedTypeMap.put("FLOAT","BigDecimal");
         filedTypeMap.put("DOUBLE","BigDecimal");
         filedTypeMap.put("Decimal","BigDecimal");
         filedTypeMap.put("TIMESTAMP","Date");
         filedTypeMap.put("datetime","Date");
         filedTypeMap.put("DATE","Date");
-        filedTypeMap.put("mediumtext","String");
         filedTypeMap.put("bit","Boolean");
         filedTypeMap.put("boolean","Boolean");
         // 文件类型 pg 、oracle
