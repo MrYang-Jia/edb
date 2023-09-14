@@ -1287,8 +1287,12 @@ public class EDbPro extends DbPro {
                     }
                     sql.append(")");
                 }else{
-                    sql.append(" =?");
-                    paras.add(m.getValue());
+                    if(m.getValue()!=null){
+                        sql.append(" =?");
+                        paras.add(m.getValue());
+                    }else{
+                        sql.append(" is null ");
+                    }
                 }
             }
         }else{

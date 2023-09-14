@@ -50,16 +50,18 @@ public class EDbQueryUtil {
 
         // 等于
         if(eDbFilter.getOperator() == EDbFilter.Operator.eq){
-            andSqlStr.append(" = ? ");
-            paramsList.add(eDbFilter.getValue());
-
+            if(eDbFilter.getValue() == null ){
+                andSqlStr.append(" is null ");
+            }else{
+                andSqlStr.append(" = ? ");
+                paramsList.add(eDbFilter.getValue());
+            }
         }
 
         // 不等于
         if(eDbFilter.getOperator() == EDbFilter.Operator.ne){
             andSqlStr.append(" <> ? ");
             paramsList.add(eDbFilter.getValue());
-
         }
 
         // 大于
