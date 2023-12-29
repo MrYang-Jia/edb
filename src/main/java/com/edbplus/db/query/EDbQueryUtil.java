@@ -17,12 +17,12 @@ package com.edbplus.db.query;
 
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
 import com.jfinal.plugin.activerecord.SqlPara;
+import com.jfinal.plugin.activerecord.dialect.Dialect;
+import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
+import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 
 import javax.persistence.Table;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @ClassName EDbQueryUtil
@@ -313,13 +313,17 @@ public class EDbQueryUtil {
         return andSql;
     }
 
+    public static SqlPara getSqlParaForJpaQuery(String tableName, EDbQuery queryParams){
+        return getSqlParaForJpaQuery(tableName,queryParams,new MysqlDialect());
+    }
+
     /**
      * 根据 quary 对象动态生成sql语句，并去除 1=1 恒等式
      * @param tableName
      * @param queryParams
      * @return
      */
-    public static SqlPara getSqlParaForJpaQuery(String tableName, EDbQuery queryParams){
+    public static SqlPara getSqlParaForJpaQuery(String tableName, EDbQuery queryParams, Dialect dialect){
 
 
         if(queryParams == null){
@@ -393,7 +397,14 @@ public class EDbQueryUtil {
             //
             order = (Order) queryParams.getOrders().get(i);
             //
-            orderSql.append(order.getProperty()).append(" ").append(order.getDirection().name());
+            if (dialect instanceof MysqlDialect){
+                orderSql.append("`").append(order.getProperty()).append("` ").append(order.getDirection().name());
+            }else if (dialect instanceof PostgreSqlDialect){
+                // 先默认全小写，避免 pg 库不区分大小写的时候报错
+                orderSql.append("\"").append(order.getProperty().toLowerCase(Locale.ROOT)).append("\" ").append(order.getDirection().name());
+            }else{
+                orderSql.append(order.getProperty()).append(" ").append(order.getDirection().name()).append(" ");
+            }
             //
             if(i < queryParams.getOrders().size() - 1) {
                 orderSql.append(",");
@@ -441,6 +452,7 @@ public class EDbQueryUtil {
         return sqlPara;
     }
 
+
     /**
      * 根据jpa单表查询对象返回 jdbcSql 查询对象
      * @param mClass
@@ -448,11 +460,22 @@ public class EDbQueryUtil {
      * @return
      */
     public static SqlPara getSqlParaForJpaQuery(Class<?> mClass, EDbQuery queryParams){
+        return getSqlParaForJpaQuery(mClass,queryParams,new MysqlDialect());
+    }
+
+    /**
+     * 根据jpa单表查询对象返回 jdbcSql 查询对象
+     * @param mClass
+     * @param queryParams
+     * @return
+     */
+    public static SqlPara getSqlParaForJpaQuery(Class<?> mClass, EDbQuery queryParams, Dialect dialect){
         // 获取表注解
         Table table = EAnnotationUtil.getAnnotation( mClass , Table.class);
         if(table == null){
             throw new RuntimeException("@Table is not find");
         }
-        return getSqlParaForJpaQuery(table.name(),queryParams);
+        // 如果有关键字的话，还需要根据数据库类型进行调整
+        return getSqlParaForJpaQuery(table.name(),queryParams,dialect);
     }
 }

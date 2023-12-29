@@ -2976,7 +2976,7 @@ public class EDbPro extends DbPro {
      */
     public <T> T findFirst(Class<T> tClass,EDbQuery eDbQuery) {
         // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery);
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery,config.getDialect());
         return findFirst(tClass,sqlPara);
     }
 
@@ -3011,7 +3011,7 @@ public class EDbPro extends DbPro {
      */
     public <T> T findOnlyOne(Class<T> tClass, EDbQuery eDbQuery) {
         // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery);
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery,config.getDialect());
         return findOnlyOne(tClass,sqlPara);
     }
 
@@ -3081,7 +3081,7 @@ public class EDbPro extends DbPro {
      */
     public <T> List<T> find(Class<T> tClass,EDbQuery eDbQuery){
         // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery);
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery,config.getDialect());
         return find(tClass,sqlPara);
     }
 
@@ -3109,7 +3109,7 @@ public class EDbPro extends DbPro {
      */
     public <T> List<T> find(Class<T> tClass,EDbQuery eDbQuery,int limit,Integer offset){
         // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery);
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery,config.getDialect());
         if(offset == null){
             sqlPara.setSql(EDbSelectUtil.returnLimitSql(sqlPara.getSql(),limit));
         }else{
@@ -3133,7 +3133,7 @@ public class EDbPro extends DbPro {
      */
     public <M> Page<M> paginate(Class<M> mClass,int pageNumber, int pageSize, EDbQuery eDbQuery) {
         // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(mClass,eDbQuery);
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(mClass,eDbQuery,config.getDialect());
         return paginate(mClass,pageNumber,pageSize,sqlPara);
     }
 
@@ -3163,7 +3163,7 @@ public class EDbPro extends DbPro {
      */
     public <M> Page<M> paginate(Class<M> mClass,int pageNumber, int pageSize,long totalRow, EDbQuery eDbQuery) {
         // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(mClass,eDbQuery);
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(mClass,eDbQuery,config.getDialect());
         return paginate(mClass,pageNumber,pageSize,totalRow,sqlPara);
     }
 
@@ -3654,7 +3654,7 @@ public class EDbPro extends DbPro {
      */
     public <T> long count(Class<T> tClass,EDbQuery eDbQuery){
         // 解析 sqlpara
-        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery);
+        SqlPara sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(tClass,eDbQuery,config.getDialect());
         return sqlForCount(sqlPara);
     }
 

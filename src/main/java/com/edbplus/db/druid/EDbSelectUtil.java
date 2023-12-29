@@ -221,12 +221,20 @@ public class EDbSelectUtil {
         String sqlLower = sql.toLowerCase();
         int lastIdx = sqlLower.lastIndexOf("order");
         if(lastIdx > -1) { // 可能存在 order 关键字
+            // order 右侧必须是 by，所以还得校验下右侧的字符是否存在by，不然还得往前找 order
+            String lastSql =  sqlLower.substring(lastIdx,sql.length());
+            // 如果右侧没有 by 作为关键字的承载的话，则需要调整
+            if(lastSql.indexOf(" by ") == -1){ // 这种情况是规避关键字作为字段的情况，导致无法匹配的问题，有些小伙伴的设计是有问题的
+                lastSql = sqlLower.substring(0,lastIdx);
+                lastIdx = lastSql.lastIndexOf("order");
+            }
+
             String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
             String rightIdxStr = sqlLower.substring(lastIdx + 5,lastIdx + 6); // limit 长度为5,关键字右侧字符串
             // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
             if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 存在关键字 order
                 // 由于 order 的场景比较特殊
-                String lastSql =  sqlLower.substring(lastIdx,sql.length()); // 最后尾部 limit(包含) 右侧的字符串
+                lastSql =  sqlLower.substring(lastIdx,sql.length()); // 最后尾部 limit(包含) 右侧的字符串
                 // 内部limit函数，则都会在右侧嵌套 ) 以表示结束，所以只要判断这个，就可以在外围加 limit
                 if(lastSql.indexOf(")") > -1){ // 可能存在 order 关键字
                     // in | exist (select xxx from xxx order by xxx) 场景模式需要过滤
