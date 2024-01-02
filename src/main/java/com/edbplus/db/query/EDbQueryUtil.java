@@ -401,15 +401,15 @@ public class EDbQueryUtil {
             if(order.getProperty().toLowerCase(Locale.ROOT).equals("order")){
                 //
                 if (dialect instanceof MysqlDialect) {
-                    orderSql.append("`").append(order.getProperty()).append("` ").append(order.getDirection().name());
+                    orderSql.append(" `").append(order.getProperty()).append("` ").append(order.getDirection().name());
                 }else if (dialect instanceof PostgreSqlDialect){
                     // 先默认全小写，避免 pg 库不区分大小写的时候报错
-                    orderSql.append("\"").append(order.getProperty().toLowerCase(Locale.ROOT)).append("\" ").append(order.getDirection().name());
+                    orderSql.append(" \"").append(order.getProperty().toLowerCase(Locale.ROOT)).append("\" ").append(order.getDirection().name());
                 }else{
-                    orderSql.append(order.getProperty()).append(" ").append(order.getDirection().name()).append(" ");
+                    orderSql.append(" ").append(order.getProperty()).append(" ").append(order.getDirection().name());
                 }
             }else{
-                orderSql.append(order.getProperty()).append(order.getDirection().name());
+                orderSql.append(" ").append(order.getProperty()).append(" ").append(order.getDirection().name());
             }
 
 
