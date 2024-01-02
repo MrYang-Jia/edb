@@ -396,15 +396,23 @@ public class EDbQueryUtil {
         for(int i=0;i< queryParams.getOrders().size();i++){
             //
             order = (Order) queryParams.getOrders().get(i);
-            //
-            if (dialect instanceof MysqlDialect){
-                orderSql.append("`").append(order.getProperty()).append("` ").append(order.getDirection().name());
-            }else if (dialect instanceof PostgreSqlDialect){
-                // 先默认全小写，避免 pg 库不区分大小写的时候报错
-                orderSql.append("\"").append(order.getProperty().toLowerCase(Locale.ROOT)).append("\" ").append(order.getDirection().name());
+
+            // order 关键字才处理，否则不携带，避免引发心的问题
+            if(order.getProperty().toLowerCase(Locale.ROOT).equals("order")){
+                //
+                if (dialect instanceof MysqlDialect) {
+                    orderSql.append("`").append(order.getProperty()).append("` ").append(order.getDirection().name());
+                }else if (dialect instanceof PostgreSqlDialect){
+                    // 先默认全小写，避免 pg 库不区分大小写的时候报错
+                    orderSql.append("\"").append(order.getProperty().toLowerCase(Locale.ROOT)).append("\" ").append(order.getDirection().name());
+                }else{
+                    orderSql.append(order.getProperty()).append(" ").append(order.getDirection().name()).append(" ");
+                }
             }else{
-                orderSql.append(order.getProperty()).append(" ").append(order.getDirection().name()).append(" ");
+                orderSql.append(order.getProperty()).append(order.getDirection().name());
             }
+
+
             //
             if(i < queryParams.getOrders().size() - 1) {
                 orderSql.append(",");
