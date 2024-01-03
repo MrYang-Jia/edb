@@ -195,10 +195,14 @@ public class EDbQueryUtil {
                 EDbFilter.getValue() instanceof String[] ||
                 EDbFilter.getValue() instanceof Integer[] ||
                 EDbFilter.getValue() instanceof Long[] ||
-                EDbFilter.getValue() instanceof List) {
+                EDbFilter.getValue() instanceof List ||
+                EDbFilter.getValue() instanceof HashSet
+        ) {
             Object[] values = null;
             if(EDbFilter.getValue() instanceof List){
                 values = ((List<Object>) EDbFilter.getValue()).toArray();
+            }else if(EDbFilter.getValue() instanceof HashSet){
+                values = ((HashSet) EDbFilter.getValue()).toArray();
             }else{
                 values = (Object[]) EDbFilter.getValue();
             }
