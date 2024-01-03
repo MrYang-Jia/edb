@@ -48,6 +48,14 @@ public class EDbQueryUtil {
             andSqlStr.append(eDbFilter.getProperty());
         }
 
+        // 枚举的处理方式，将数值进行转换 -- 一般来说查询条件不会再拿来做判断，暂时不做处理，直接改值即可
+        if(eDbFilter.getValue()!=null){
+            if(eDbFilter.getValue() instanceof Enum){
+                // 如果是枚举类型，需要转换枚举的属性名
+                eDbFilter.setValue(((Enum)eDbFilter.getValue()).name());
+            }
+        }
+
         // 等于
         if(eDbFilter.getOperator() == EDbFilter.Operator.eq){
             if(eDbFilter.getValue() == null ){
