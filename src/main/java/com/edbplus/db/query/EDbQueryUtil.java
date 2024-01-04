@@ -21,6 +21,7 @@ import com.jfinal.plugin.activerecord.SqlPara;
 import javax.persistence.Table;
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -39,6 +40,15 @@ public class EDbQueryUtil {
      * @param paramsList
      */
     public static void loadFilter(EDbFilter eDbFilter, StringBuffer andSqlStr, List<Object> paramsList){
+
+        // 枚举的处理方式，将数值进行转换 -- 一般来说查询条件不会再拿来做判断，暂时不做处理，直接改值即可
+        if(eDbFilter.getValue()!=null){
+            if(eDbFilter.getValue() instanceof Enum){
+                // 如果是枚举类型，需要转换枚举的属性名
+                eDbFilter.setValue(((Enum)eDbFilter.getValue()).name());
+            }
+        }
+
         // 等于
         if(eDbFilter.getOperator() == EDbFilter.Operator.eq){
             if(eDbFilter.getValue() == null ){
@@ -137,10 +147,14 @@ public class EDbQueryUtil {
                 EDbFilter.getValue() instanceof String[] ||
                 EDbFilter.getValue() instanceof Integer[] ||
                 EDbFilter.getValue() instanceof Long[] ||
-                EDbFilter.getValue() instanceof List) {
+                EDbFilter.getValue() instanceof List ||
+                EDbFilter.getValue() instanceof HashSet
+        ) {
             Object[] values = null;
             if(EDbFilter.getValue() instanceof List){
                 values = ((List<Object>) EDbFilter.getValue()).toArray();
+            }else if(EDbFilter.getValue() instanceof HashSet){
+                values = ((HashSet) EDbFilter.getValue()).toArray();
             }else{
                 values = (Object[]) EDbFilter.getValue();
             }

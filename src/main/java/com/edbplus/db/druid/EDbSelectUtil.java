@@ -15,6 +15,7 @@
  */
 package com.edbplus.db.druid;
 
+import cn.hutool.core.util.NumberUtil;
 import com.alibaba.druid.sql.SQLUtils;
 import com.alibaba.druid.sql.ast.SQLExpr;
 import com.alibaba.druid.sql.ast.SQLLimit;
@@ -67,7 +68,7 @@ public class EDbSelectUtil {
      * @return
      */
     public static boolean  checkSpecialCharacters(String leftIdxStr,String rightIdxStr){
-        // 回车 、 换行 、 制表符 、空格 (一般是不会有 \r 换行，避免万一，所以代入)
+        // 回车 、 换行 、 制表符 、空格
         if(leftIdxStr.equals("") || leftIdxStr.indexOf("\n")>-1 || leftIdxStr.indexOf("\r")>-1 || leftIdxStr.indexOf(" ")>-1 || leftIdxStr.indexOf("\t")>-1) {
             if (rightIdxStr.indexOf("\n") > -1 || leftIdxStr.indexOf("\r") > -1 || rightIdxStr.indexOf(" ") > -1 || rightIdxStr.indexOf("\t") > -1) {
                 return true;
@@ -77,9 +78,63 @@ public class EDbSelectUtil {
     }
 
     /**
+     * offset 下标设置
+     * @param sql
+     * @param offsetIdx
+     * @return
+     */
+    public static String returnOffsetSql(String sql,Integer offsetIdx){
+        String sqlLower = sql.toLowerCase();
+        int lastIdx = sqlLower.lastIndexOf("offset");
+        if(lastIdx > -1){ // 可能存在 offset 关键字
+            String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
+            String rightIdxStr = sqlLower.substring(lastIdx + 6,lastIdx + 7); // offset 长度为6,关键字右侧字符串
+            // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
+            if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 确认存在 offset 关键字
+                String lastSql =  sqlLower.substring(lastIdx,sql.length()); // 最后尾部 offset(包含) 右侧的字符串
+                // 内部 offset 函数，则都会在右侧嵌套 ) 以表示结束，所以只要判断这个，就可以在外围加 limit
+                if(lastSql.indexOf(")") > -1){
+                    return sql + " offset " + offsetIdx;
+                }else{
+                    int limitIdx =  lastSql.indexOf("limit"); // 最后一个 offset 右侧首个 limit 结尾的情况，可能存在换行符等 -> offset 0 limit 10\n
+                    if(limitIdx > -1){// 可能存在 limit 关键字
+                        leftIdxStr = lastSql.substring(limitIdx-1,limitIdx);// 关键字左侧字符串
+                        rightIdxStr = lastSql.substring(limitIdx + 5,limitIdx + 6); // offset 长度为6,关键字右侧字符串
+                        // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
+                        if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 确认是否存在 offset 关键字
+                            String limitSql = lastSql.substring(limitIdx,lastSql.length());
+                            return sql.substring(0,lastIdx) + " offset " + offsetIdx +" " + limitSql;
+                        }
+                    }
+                    return sql.substring(0,lastIdx) + " offset " + offsetIdx;
+                }
+            }
+        }
+        lastIdx = sqlLower.lastIndexOf("limit"); // 针对mysql的 limit offset,10 的特殊情况 --> 其实正常来说，尽量去避免这种写法会好点
+        if(lastIdx > -1) {
+            String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
+            String rightIdxStr = sqlLower.substring(lastIdx + 5,lastIdx + 6); // limit 长度为5,关键字右侧字符串
+            // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
+            if(checkSpecialCharacters(leftIdxStr,rightIdxStr)) { // 确认存在limit关键字
+                String lastSql = sqlLower.substring(lastIdx, sql.length()); // 最后尾部 limit(包含) 右侧的字符串
+                if(lastSql.indexOf(")") == -1){ // 右侧如果是 limit 1 ) 这种模式的，则需要屏蔽掉
+                    int limitFilterIdx = lastSql.indexOf(",");//特殊符号，一般是不会有什么特殊的场景，所以直接切割即可
+                    if (limitFilterIdx > -1) { // mysql 之 limit 0,10 转为 limit offset,10
+                        String limitFilterPreSql = lastSql.substring(limitFilterIdx + 1, lastSql.length());
+                        if(NumberUtil.isNumber(limitFilterPreSql)){ // 避免意外情况发生，只保留数字的情况
+                            return sql.substring(0, lastIdx) + " limit " + offsetIdx + "," + limitFilterPreSql;
+                        }
+                    }
+                }
+            }
+        }
+        return sql + " offset " + offsetIdx; // 不存在limit则直接拼接
+    }
+
+    /**
      * 修改原语句并返回limitSql
      * @param sql -- 原语句
-     * @param limitCount -- 返回条数，ps:当用户自己的sql结尾含有 limit xxx 时，以用户自己输入的为准进行改写，例如 returnLimitSql(sql,5) 结尾则会改写成 limit 5
+     * @param limitCount -- 返回条数，ps:当用户自己的sql结尾含有 limit xxx 时，以用户自己输入的为准
      * @return
      */
     public static String returnLimitSql(String sql,int limitCount){
@@ -95,7 +150,7 @@ public class EDbSelectUtil {
                 if(lastSql.indexOf(")") > -1){
                     return sql + " limit " + limitCount;
                 }else{
-                    int offsetIdx =  lastSql.indexOf("offset"); // 最后一个 limit 右侧首个 offset 结尾的情况，可能存在换行符等
+                    int offsetIdx =  lastSql.indexOf("offset"); // 最后一个 limit 右侧首个 offset 结尾的情况，可能存在换行符等 -> limit 10 offset 0\n
                     if(offsetIdx > -1){// 可能存在 offset 关键字
                         leftIdxStr = lastSql.substring(offsetIdx-1,offsetIdx);// 关键字左侧字符串
                         rightIdxStr = lastSql.substring(offsetIdx + 6,offsetIdx + 7); // offset 长度为6,关键字右侧字符串
@@ -166,12 +221,20 @@ public class EDbSelectUtil {
         String sqlLower = sql.toLowerCase();
         int lastIdx = sqlLower.lastIndexOf("order");
         if(lastIdx > -1) { // 可能存在 order 关键字
+            // order 右侧必须是 by，所以还得校验下右侧的字符是否存在by，不然还得往前找 order
+            String lastSql =  sqlLower.substring(lastIdx,sql.length());
+            // 如果右侧没有 by 作为关键字的承载的话，则需要调整
+            if(lastSql.indexOf(" by ") == -1){ // 这种情况是规避关键字作为字段的情况，导致无法匹配的问题，有些小伙伴的设计是有问题的
+                lastSql = sqlLower.substring(0,lastIdx);
+                lastIdx = lastSql.lastIndexOf("order");
+            }
+
             String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
             String rightIdxStr = sqlLower.substring(lastIdx + 5,lastIdx + 6); // limit 长度为5,关键字右侧字符串
             // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
             if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 存在关键字 order
                 // 由于 order 的场景比较特殊
-                String lastSql =  sqlLower.substring(lastIdx,sql.length()); // 最后尾部 limit(包含) 右侧的字符串
+                lastSql =  sqlLower.substring(lastIdx,sql.length()); // 最后尾部 limit(包含) 右侧的字符串
                 // 内部limit函数，则都会在右侧嵌套 ) 以表示结束，所以只要判断这个，就可以在外围加 limit
                 if(lastSql.indexOf(")") > -1){ // 可能存在 order 关键字
                     // in | exist (select xxx from xxx order by xxx) 场景模式需要过滤
