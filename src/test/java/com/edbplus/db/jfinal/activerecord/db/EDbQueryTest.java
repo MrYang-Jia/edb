@@ -1,7 +1,11 @@
 package com.edbplus.db.jfinal.activerecord.db;
 
+import com.alibaba.druid.filter.Filter;
 import com.edbplus.db.EDb;
+import com.edbplus.db.druid.filter.EDbDruidSqlLogFilter;
+import com.edbplus.db.jfinal.activerecord.db.base.JpaListener;
 import com.edbplus.db.jpa.VehicleType;
+import com.edbplus.db.listener.EDbListener;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
@@ -31,6 +35,9 @@ public class EDbQueryTest {
     @BeforeTest
     public void init(){
 
+        List<Filter> filterList = new ArrayList<>();
+        EDbDruidSqlLogFilter eDbDruidSqlLogFilter = new EDbDruidSqlLogFilter();
+
         List<String> sqlTplList = new ArrayList<>();
         // todo: 基于项目的sql模板，你直接添加在这里，就能快速的进行测试
         sqlTplList.add("/sql/all.sql");
@@ -39,8 +46,11 @@ public class EDbQueryTest {
         // 添加共享sql模板
 //        shareSqlTplList.add("/sql/sharedfunction/common_function.sql");
 
+        filterList.add(eDbDruidSqlLogFilter);
+
         // 初始化
-        GenJdbc.initForEnjoy(jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList);
+        GenJdbc.initForEnjoy(null,jdbcUrl,userName,pwd,sqlTplList,shareSqlTplList,filterList);
+
 
     }
 
@@ -90,5 +100,13 @@ public class EDbQueryTest {
 
 
 
+    }
+
+
+    @Test
+    public void test2(){
+        EDbQuery eDbQuery = new EDbQuery();
+        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, null));
+        System.out.println(EDb.findFirst(VehicleType.class,eDbQuery));
     }
 }

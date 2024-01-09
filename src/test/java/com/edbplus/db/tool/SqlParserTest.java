@@ -262,7 +262,11 @@ public class SqlParserTest {
     @Test
     public void removeOrderTest(){
         // 第一个语句搞一个比较特殊的，就是 order 作为字段名来排序的情况
-        String sql = " select 1 from tb order by `order` desc";
+        String sql = " select 1 from tb ";
+        System.out.println("-1=>"+EDbSelectUtil.removeOrder(sql));
+        Assert.assertEquals(" select 1 from tb ",EDbSelectUtil.removeOrder(sql));
+
+        sql = " select 1 from tb order by `order_by` desc";
         System.out.println("0=>"+EDbSelectUtil.removeOrder(sql));
         Assert.assertEquals(" select 1 from tb ",EDbSelectUtil.removeOrder(sql));
 
@@ -304,7 +308,24 @@ public class SqlParserTest {
         System.out.println("8=>"+EDbSelectUtil.removeOrder(sql));
         Assert.assertEquals(" select 1 from tb where gs='N' group by id  limit 10",EDbSelectUtil.removeOrder(sql));
 
+
+        sql = " select 1 from t where gs='N' group by id ORDER BY\n" +
+                "        CASE\n" +
+                "            WHEN t.state = 6 THEN 99\n" +
+                "            ELSE 1 -- 其他状态排在前面 END,\n" +
+                "        CASE\n" +
+                "            WHEN t.origin = 10 THEN 0  -- 将值为 10 的行排在前面\n" +
+                "            ELSE 3 END,\n" +
+                "            t.is_it_urgent DESC,\n" +
+                "        CASE WHEN t.is_internal_company = 0 THEN 0  -- 将值为 0 的行排在前面\n" +
+                "            ELSE 1 END,\n" +
+                "            t.publish_time DESC,\n" +
+                "            t.sku_source_need_id DESC desc limit 10";
+        System.out.println("9=>"+EDbSelectUtil.removeOrder(sql));
+        Assert.assertEquals(" select 1 from t where gs='N' group by id  limit 10",EDbSelectUtil.removeOrder(sql));
+
     }
+
 
     @Test
     public void returnOffsetTest(){
