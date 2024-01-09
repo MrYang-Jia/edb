@@ -262,7 +262,11 @@ public class SqlParserTest {
     @Test
     public void removeOrderTest(){
         // 第一个语句搞一个比较特殊的，就是 order 作为字段名来排序的情况
-        String sql = " select 1 from tb order by order desc";
+        String sql = " select 1 from tb ";
+        System.out.println("-1=>"+EDbSelectUtil.removeOrder(sql));
+        Assert.assertEquals(" select 1 from tb ",EDbSelectUtil.removeOrder(sql));
+
+        sql = " select 1 from tb order by `order_by` desc";
         System.out.println("0=>"+EDbSelectUtil.removeOrder(sql));
         Assert.assertEquals(" select 1 from tb ",EDbSelectUtil.removeOrder(sql));
 

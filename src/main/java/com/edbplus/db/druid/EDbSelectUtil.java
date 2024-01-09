@@ -213,22 +213,36 @@ public class EDbSelectUtil {
 
 
     /**
+     * 获取最后一个 order 关键字排序
+     * @param sql
+     * @return
+     */
+    public static Integer lastOrderIdx(String sql){
+        String sqlLower = sql.toLowerCase();
+        int lastIdx = sqlLower.lastIndexOf("order");
+        if(lastIdx==-1){
+            return -1;
+        }
+        String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
+        String rightIdxStr = sqlLower.substring(lastIdx + 5,lastIdx + 6); // limit 长度为5,关键字右侧字符串
+        if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 是否 order 关键字
+            return lastIdx;
+        }else{
+            return lastOrderIdx(sqlLower.substring(0,lastIdx)); // 不是关键字，继续往前找关键字
+        }
+    }
+
+    /**
      * 移除 order 关键字相关的语法
      * @param sql
      * @return
      */
     public static String removeOrder(String sql){
         String sqlLower = sql.toLowerCase();
-        int lastIdx = sqlLower.lastIndexOf("order");
+        String lastSql = null;
+//        int lastIdx = sqlLower.lastIndexOf("order");
+        int lastIdx = lastOrderIdx(sqlLower);
         if(lastIdx > -1) { // 可能存在 order 关键字
-            // order 右侧必须是 by，所以还得校验下右侧的字符是否存在by，不然还得往前找 order
-            String lastSql =  sqlLower.substring(lastIdx,sql.length());
-            // 如果右侧没有 by 作为关键字的承载的话，则需要调整
-            if(lastSql.indexOf(" by ") == -1){ // 这种情况是规避关键字作为字段的情况，导致无法匹配的问题，有些小伙伴的设计是有问题的
-                lastSql = sqlLower.substring(0,lastIdx);
-                lastIdx = lastSql.lastIndexOf("order");
-            }
-
             String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
             String rightIdxStr = sqlLower.substring(lastIdx + 5,lastIdx + 6); // limit 长度为5,关键字右侧字符串
             // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
