@@ -13,6 +13,7 @@ public class GeneralSqlTest {
     public void getTableInfoSql(){
         //System.out.println(GenMysql.getTableInfoSql("tra_goods_source"));
         System.out.println(GenPg.getTableInfoSql("tra_goods_source,ah_oauth_user_map"));
+        System.out.println(GenPg.getTableNamesSql("xzwpro","public"));
     }
 
     @Test
