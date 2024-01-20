@@ -81,6 +81,21 @@ public class GenPg {
         return sql.toString();
     }
 
+
+    /**
+     * 返回数据库表名
+     * @param dbName
+     * @param tableSchema
+     * @return
+     */
+    public static String getTableNamesSql(String dbName,String tableSchema){
+        StringBuilder sql = new StringBuilder();
+        sql.append(" select \"table_name\" from information_schema.tables where \"table_catalog\" = '")
+                .append(dbName)
+                .append("' and \"table_schema\" = '").append(tableSchema).append("' ");
+        return sql.toString();
+    }
+
     /**
      * 返回表字段信息sql
      * @param tableName
