@@ -92,7 +92,7 @@ public class GenPg {
         StringBuilder sql = new StringBuilder();
         sql.append(" select \"table_name\" from information_schema.tables where \"table_catalog\" = '")
                 .append(dbName)
-                .append("' and \"table_schema\" = '").append(tableSchema).append("' ");
+                .append("' and \"table_schema\" = '").append(tableSchema).append("' and table_type='BASE TABLE' ");
         return sql.toString();
     }
 
