@@ -15,12 +15,14 @@
  */
 package com.edbplus.db.dialect;
 
+import com.jfinal.plugin.activerecord.Record;
+import com.jfinal.plugin.activerecord.Table;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Date;
+import java.util.*;
 
 /**
  * @ClassName EDbPostgreSqlDialect
@@ -33,6 +35,96 @@ public class EDbPostgreSqlDialect extends PostgreSqlDialect {
 
     // 有值时将会触发调用 EDbRro.setRowMaxs(PreparedStatement) 方法，然后设置 PreparedStatement.setMaxRows 方法，以此控制返回的最大row条数
     public Integer maxRows = null;
+
+    public Boolean isToLower = false; // 表名或表字段转小写
+
+    public String forTableBuilderDoBuild(String tableName)
+    {
+        if(isToLower){
+            tableName = tableName.toLowerCase(Locale.ROOT);// 转小写
+        }
+        return super.forTableBuilderDoBuild(tableName);
+    }
+
+    public String forFindAll(String tableName){
+        if(isToLower){
+            tableName = tableName.toLowerCase(Locale.ROOT);// 转小写
+        }
+        return super.forFindAll(tableName);
+    }
+
+    public String forDbFindById(String tableName, String[] pKeys) {
+        if(isToLower){
+            tableName = tableName.toLowerCase(Locale.ROOT);// 转小写
+            if(pKeys!=null && pKeys.length>0){
+//                for (String obj:pKeys){
+//                    obj = obj.toLowerCase(Locale.ROOT); // 字符串转小写，但是数组的指针没有指向，就不会改写数组的值，所以注释掉
+//                }
+                for (int i = 0; i < pKeys.length; i++) {
+                    pKeys[i] = pKeys[i].toLowerCase(); // 将每个元素转换为小写形式
+                }
+            }
+        }
+        return super.forDbFindById(tableName,pKeys);
+    }
+
+
+    public String forDbDeleteById(String tableName, String[] pKeys){
+        if(isToLower){
+            tableName = tableName.toLowerCase(Locale.ROOT);// 转小写
+            if(pKeys!=null && pKeys.length>0){
+                for (int i = 0; i < pKeys.length; i++) {
+                    pKeys[i] = pKeys[i].toLowerCase(); // 将每个元素转换为小写形式
+                }
+            }
+        }
+        return super.forDbDeleteById(tableName,pKeys);
+    }
+
+    public void forDbSave(String tableName, String[] pKeys, Record record, StringBuilder sql, List<Object> paras) {
+        if(isToLower){
+            tableName = tableName.toLowerCase(Locale.ROOT);// 转小写
+            if(pKeys!=null && pKeys.length>0){
+                for (int i = 0; i < pKeys.length; i++) {
+                    pKeys[i] = pKeys[i].toLowerCase(); // 将每个元素转换为小写形式
+                }
+            }
+
+            if(record!=null &&record.getColumns()!=null && record.getColumns().size()>0){
+                Map<String,Object> toLowerKeyData =new HashMap<>();
+                for (Map.Entry<String, Object> entry : record.getColumns().entrySet()) {
+                    toLowerKeyData.put(entry.getKey().toLowerCase(Locale.ROOT),entry.getValue());
+                }
+                record.setColumns(toLowerKeyData);
+            }
+        }
+        // 执行保存
+        super.forDbSave(tableName,pKeys,record,sql,paras);
+    }
+
+
+    public void forDbUpdate(String tableName, String[] pKeys, Object[] ids, Record record, StringBuilder sql, List<Object> paras){
+        if(isToLower){
+            tableName = tableName.toLowerCase(Locale.ROOT);// 转小写
+            if(pKeys!=null && pKeys.length>0){
+                for (int i = 0; i < pKeys.length; i++) {
+                    pKeys[i] = pKeys[i].toLowerCase(); // 将每个元素转换为小写形式
+                }
+            }
+
+            if(record!=null &&record.getColumns()!=null && record.getColumns().size()>0){
+                Map<String,Object> toLowerKeyData =new HashMap<>();
+                for (Map.Entry<String, Object> entry : record.getColumns().entrySet()) {
+                    toLowerKeyData.put(entry.getKey().toLowerCase(Locale.ROOT),entry.getValue());
+                }
+                record.setColumns(toLowerKeyData);
+            }
+        }
+        // 执行更新
+        super.forDbUpdate(tableName,pKeys,ids,record,sql,paras);
+    }
+
+
 
     /**
      * 改写sql统计语句，避免内部包含除了 order By 外未被优化后影响统计性能和结果相关的关键字
