@@ -4,9 +4,11 @@ package com.edbplus.db.jpa;
 import cn.hutool.core.convert.NumberChineseFormatter;
 import cn.hutool.core.convert.NumberWordFormatter;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ReUtil;
 import com.edbplus.db.EDb;
+import com.edbplus.db.EDbThreadSet;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
 import com.edbplus.db.jpa.pip.JpaRelPip;
 import com.edbplus.db.proxy.EDbRelProxy;
@@ -45,12 +47,16 @@ public class JpaEnjoyTest extends BaseTest {
         long start = System.currentTimeMillis();
         // 模板的指定 可以看 BaseTest.java 类里的 init() 方法
         // 通过enjoySql 模板的方式
+        EDbThreadSet.setQueryTimeOut(3);
         SqlPara sqlPara = EDb.getSqlPara("test.findTf", 101);
         // pg 的问题是会出现全小写，用大写获取不到，除非是字段转移的时候，加上双引号 -> field as "FIELD"
         System.out.println(EDb.use("pg").findFirst(sqlPara)); // .getStr("tFid".toLowerCase())
 
+        EDbThreadSet.setQueryTimeOut(5);
         EDb.use().template("test.findTf", 101).paginate(1,10,100);
-        EDb.template("test.findTf", Kv.by("id",1)).paginate(VehicleType.class,1,10,100);
+
+//        ThreadUtil.sleep(3000);
+//        EDb.template("test.findTf", Kv.by("id",1)).paginate(VehicleType.class,1,10,100);
 
     }
 

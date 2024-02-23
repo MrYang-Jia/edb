@@ -1775,6 +1775,9 @@ public class EDbPro extends SpringDbPro {
                     pst.setMaxRows(eDbPostgreSqlDialect.maxRows);
                 }
             }
+            // 这里拦截设置 pst 的查询时长
+            Integer queryTimeOut = EDbThreadSet.setQueryTimeOut(pst);
+//            System.out.println("超时控制:"+queryTimeOut);
         } catch (Throwable throwables) {
             throwables.printStackTrace();
         }
