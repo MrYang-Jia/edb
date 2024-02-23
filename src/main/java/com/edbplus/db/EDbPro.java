@@ -1994,6 +1994,8 @@ public class EDbPro extends DbPro {
                     pst.setMaxRows(eDbPostgreSqlDialect.maxRows);
                 }
             }
+            // 允许设置超时时间
+            Integer queryTimeOut = EDbThreadSet.setQueryTimeOut(pst);
         } catch (Throwable throwables) {
             throwables.printStackTrace();
         }
