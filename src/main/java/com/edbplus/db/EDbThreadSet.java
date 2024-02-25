@@ -22,7 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * @ClassName EDbThreadSet
- * @Description: edb线程设置对象
+ * @Description: edb线程设置对象，不太适合 quarkus，可能会导致可能性内存溢出，需要改造下，
+ *               因为quarkus是 eventGroup 类型，线程创建后会自动消亡，如果执行前发生err事件，虽然概率低，但是会因此造成可能性的内存堆积
  * @Author 杨志佳
  * @Date 2024/2/23
  * @Version V1.0
