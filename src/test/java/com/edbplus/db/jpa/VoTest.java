@@ -1,15 +1,12 @@
 package com.edbplus.db.jpa;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.druid.DbType;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
-import com.edbplus.db.jpa.view.VehicleView;
+import com.edbplus.db.jpa.model.Cat;
 import com.edbplus.db.jpa.vo.CrVehicleTypeVo;
-import com.edbplus.db.proxy.EDbProxyFactory;
 import com.edbplus.db.query.lambda.EDbLambdaQuery;
-import com.edbplus.db.query.lambda.LambdaQuery;
 import com.edbplus.db.query.lambda.LambdaSelectQuery;
 import com.edbplus.db.util.code.MapToCode;
 import com.edbplus.db.util.code.SqlToCode;
@@ -18,8 +15,6 @@ import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.plugin.activerecord.Record;
 import org.testng.annotations.Test;
 
-import java.lang.reflect.Method;
-import java.sql.Timestamp;
 import java.util.*;
 
 public class VoTest extends BaseTest {
