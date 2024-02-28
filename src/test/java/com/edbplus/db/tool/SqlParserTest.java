@@ -17,10 +17,7 @@ package com.edbplus.db.tool;
 
 import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.edbplus.db.druid.EDbSelectUtil;
-import com.edbplus.db.jpa.Cat;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
