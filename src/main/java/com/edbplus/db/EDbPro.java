@@ -1768,16 +1768,26 @@ public class EDbPro extends SpringDbPro {
      * @param pst
      */
     public void setRowMaxs(PreparedStatement pst){
-        try { // 由于postgresql 无法通过jdbcUrl 设置 maxRows 保护系统运行时返回的系统内存，然后使用
+        setPreparedStatement(pst);
+    }
+
+
+    /**
+     * 设置 PreparedStatement 相关参数
+     * 1、设置 maxRows ，可以控制系统返回的数据条数，从而保护系统的内存不会溢出，相当于并发高峰期的时候设置了总线程最大内存值
+     * 2、设置 QueryTimeOut ，设置每次服务执行sql的最大耗时，从而避免系统有因为某些死锁服务，导致服务只能通过重启解决问题，而不是让服务自动销毁，自动解锁，通过设置该参数，可以有效提升系统存活率与死锁问题暴露情况
+     * @param pst
+     */
+    public void setPreparedStatement(PreparedStatement pst){
+        try { // 由于postgresql 无法通过jdbcUrl 设置 maxRows 保护系统运行时返回的系统内存
             if(this.config.getDialect() instanceof EDbPostgreSqlDialect){
                 EDbPostgreSqlDialect eDbPostgreSqlDialect = ((EDbPostgreSqlDialect) this.config.getDialect());
                 if(eDbPostgreSqlDialect.maxRows!=null){
                     pst.setMaxRows(eDbPostgreSqlDialect.maxRows);
                 }
             }
-            // 这里拦截设置 pst 的查询时长
+            // 允许设置超时时间,可以通过设置 最大时间，例如 3-5秒，每次执行的sql语句来暴露可能性的服务死锁问题
             Integer queryTimeOut = EDbThreadSet.setQueryTimeOut(pst);
-//            System.out.println("超时控制:"+queryTimeOut);
         } catch (Throwable throwables) {
             throwables.printStackTrace();
         }

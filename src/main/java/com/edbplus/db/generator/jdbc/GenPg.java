@@ -104,13 +104,26 @@ public class GenPg {
     public static String getTableColumnsSql(String tableName){
         return getTableColumnsSql(tableName,null);
     }
+
+
     /**
-     * 返回表字段信息sql
+     * 获取表结构
      * @param tableName
      * @param columnName
      * @return
      */
     public static String getTableColumnsSql(String tableName,String columnName){
+        return getTableColumnsSql(tableName,null,columnName);
+    }
+
+    /**
+     * 返回表字段信息sql
+     * @param tableName
+     * @param schema
+     * @param columnName
+     * @return
+     */
+    public static String getTableColumnsSql(String tableName,String schema,String columnName){
         StringBuilder sql = new StringBuilder();
         sql.append(" SELECT ");
         sql.append(" ordinal_position as \"ordinalPosition\", ");
@@ -158,13 +171,17 @@ public class GenPg {
         sql.append(" FROM information_schema.columns cls  ");
         sql.append(" WHERE 1=1 ");
         //sql.append(" -- and (table_schema, table_name) = ('public', 'tra_goods_source') ");
-        sql.append(" and table_schema = 'public'  ");
+        if(schema!=null){
+            sql.append(" and table_schema = '"+schema+"'  ");
+        }else{
+            sql.append(" and table_schema = current_schema() ");
+        }
         // table表名称
         if(tableName != null && tableName.length() > 0){
             if(tableName.contains(",")){
                 sql.append(" AND  table_name in (").append(getTablesSql(tableName)).append(") ");
             }else{
-                sql.append(" AND  table_name = '").append(tableName).append("' ");
+                sql.append(" AND  table_name = ").append(getTablesSql(tableName)).append(" ");
             }
         }
         // 根据传入的字段过滤掉其他信息
@@ -177,7 +194,7 @@ public class GenPg {
             }
         }
         //sql.append(" and table_name =  'tra_goods_source' ");
-        sql.append(" ORDER BY table_name,ordinal_position; ");
+        sql.append(" ORDER BY table_name,ordinal_position ");
         return sql.toString();
     }
 
