@@ -112,6 +112,8 @@ public class EDbFilter implements Serializable {
         orderBy(" order by "),
 
         limit(" limit "),
+        // 模板填充
+        tpl(" "),
         ;
 
 //        /** 正则表达式 */
@@ -419,6 +421,16 @@ public class EDbFilter implements Serializable {
      */
     public static EDbFilter having(String havingSql,Object... values) {
         return new EDbFilter(havingSql,Operator.having, values);
+    }
+
+    /**
+     * 模板填充sql
+     * @param tplSql
+     * @param values
+     * @return
+     */
+    public static EDbFilter tpl(String tplSql,Object... values) {
+        return new EDbFilter(tplSql,Operator.tpl, values);
     }
 
 
