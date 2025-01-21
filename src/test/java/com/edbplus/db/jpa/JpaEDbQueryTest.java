@@ -75,6 +75,8 @@ public class JpaEDbQueryTest extends BaseTest {
         eDbQuery.or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "2"));
         eDbQuery.andCom().or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "3")).or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "4"));
         eDbQuery.orCom().or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "5")).or(new EDbFilter("VEHICLE_TYPE_ID", EDbFilter.Operator.eq, "6"));
+        // 允许 sql 填充拼接，目前只支持 ? 填充占位
+        eDbQuery.and(EDbFilter.tpl(" VEHICLE_TYPE_ID in (?,?)  ", "99",100));
         List<VehicleType> vehicleTypes = EDb.use().find(VehicleType.class,eDbQuery);
         EDb.use().count(VehicleType.class,eDbQuery);//
     }

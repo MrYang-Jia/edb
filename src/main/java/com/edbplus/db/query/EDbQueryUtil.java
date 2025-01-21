@@ -134,6 +134,17 @@ public class EDbQueryUtil {
         if(eDbFilter.getOperator() == EDbFilter.Operator.isNull){
             andSqlStr.append(" is null ");
         }
+
+        if(eDbFilter.getOperator() == EDbFilter.Operator.tpl){
+            // 拼接sql语句在前置已实现，所以这里无需单独写入
+//            andSqlStr.append(" "+eDbFilter.getProperty()+" ");
+            if(eDbFilter.getValue() instanceof Object[]){
+                Object[] opts = (Object[]) eDbFilter.getValue();
+                for (Object opt:opts){
+                    paramsList.add(opt);
+                }
+            }
+        }
     }
 
     /**

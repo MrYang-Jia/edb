@@ -5,6 +5,7 @@ import com.edbplus.db.EDb;
 import com.edbplus.db.druid.filter.EDbDruidSqlLogFilter;
 import com.edbplus.db.generator.jdbc.GenJdbc;
 import com.edbplus.db.jpa.VehicleType;
+import com.edbplus.db.listener.impl.SqlListener;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.log.EDbLogUtil;
 import org.testng.annotations.BeforeTest;
@@ -26,12 +27,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BaseTest {
 
     // useAffectedRows=true时，update语句执行多次时，只有修改成功时才会返回1，若记录的值没有变化，返回0.
-    // defaultFetchSize 配合 useCursorFetch 可以节约每次读取大量数据的性能场景以及内存场景
-    String jdbcUrl = "jdbc:mariadb://192.168.1.106:13306/tra_log?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&useCompression=true&useAffectedRows=true&dontTrackOpenResources=true&defaultFetchSize=1&useCursorFetch=true";
+    String jdbcUrl = "jdbc:mariadb://192.168.1.106:13306/test_log?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false&useCompression=true&useAffectedRows=true&maxRows=500&TimeZone=Asia/Shanghai";
     String userName = "root";
     String pwd = "dev-whbj@WHBJ";
     // 测试库 stringtype=unspecified -> 允许pg可以输入字符串类型的时间参数
-    String jdbcUrl2 = "jdbc:postgresql://192.168.1.208:15432/tra_log?stringtype=unspecified&currentSchema=public&reWriteBatchedInserts=true&useUnicode=true&characterEncoding=utf8";
+    // https://jdbc.postgresql.org/documentation/head/connect.html#connection-parameters
+    String jdbcUrl2 = "jdbc:postgresql://192.168.1.208:15432/tra_log?stringtype=unspecified&currentSchema=public&reWriteBatchedInserts=true&useUnicode=true&characterEncoding=utf8&defaultFetchSize=2"; // maxResultBuffer=100M 最大内存会溢出
     // 账号
     String userName2 = "postgres";
     String pwd2 = "whbj123456";
@@ -39,7 +40,7 @@ public class BaseTest {
 
     @BeforeTest
     public void init(){
-
+        SqlListener sqlListener = new SqlListener();
         List<String> sqlTplList = new ArrayList<>();
         // edb 通用模板sql 加载
 //        sqlTplList.add("/edb/sql/all.sql");
@@ -67,15 +68,14 @@ public class BaseTest {
         eDbDruidSqlLogFilter.setDbType(2); //pg类型的解析,但是 druid 对于日新月异的 druid sql支持，还是有点弱，例如特殊符号强转则无法格式化
         // 添加sql日志打印信息
         filterList.add(eDbDruidSqlLogFilter);
-
-        JpaListener jpaListener = new JpaListener();
-        // 初始化
-        EDb.use().setEDbListener(jpaListener);
-//        EDb.use().setSaveAndFlush(true);
-
 //        GenJdbc.initForEnjoy("pg",jdbcUrl2,userName2,pwd2,sqlTplList,shareSqlTplList,filterList);
+//        JpaListener jpaListener = new JpaListener();
+//        // 初始化
+//        EDb.use().setEDbListener(jpaListener);
+//        EDb.use().setConnectListener(sqlListener);
 //        // 一个数据库只能设定一个监听 ，所以要绑定监听的数据库对象
 //        EDb.use("pg").setEDbListener(jpaListener);
+//        EDb.use("pg").setConnectListener(sqlListener);
     }
 
 
@@ -125,7 +125,7 @@ public class BaseTest {
 
 
 
-//        @Test
+    //        @Test
     public void testCk(){
         EDb.use("pg").find(" select gsid,CREATETIME from tra_goods_source where gsid in('45259508','45259504') ");
     }
@@ -181,7 +181,7 @@ public class BaseTest {
             return false;
         });
         //
-       System.out.println("对象2:"+EJSONUtil.toJsonStr(EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId())));
+        System.out.println("对象2:"+EJSONUtil.toJsonStr(EDb.findById(VehicleType.class,vehicleType.getVehicleTypeId())));
 
         EDb.use("pg").txInNewThread(Connection.TRANSACTION_SERIALIZABLE, () -> {
             EDb.use("pg").find(" select * from app_activity limit 1 ");

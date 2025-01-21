@@ -7,8 +7,8 @@
     <groupId>com.edbplus</groupId>
     <artifactId>spring-jf-edb</artifactId>
     <!-- 每次deploy后必须调整版本号 -->
-    <!-- 目前生产最新版本为 1.7.2 版本 -->
-    <version>1.7.2</version>
+    <!-- 目前生产最新版本为 1.7.2 版本，未对外发包 1.8.0 版本 2025.01.21 -->
+    <version>1.8.0</version>
 
     <name>edb</name>
     <description>EDB is a database operation tool extension based on jfinal, an open source project, so that jfinal can better execute in spring transactions</description>
