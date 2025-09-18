@@ -110,6 +110,14 @@ public class JpaEDbQueryTest extends BaseTest {
     }
 
     @Test
+    public void likeLambdaTest(){
+        EDbQuery eDbQuery = new EDbQuery();
+        // 根据情况设置查询条件
+        eDbQuery.and( EDbFilter.like(true,VehicleType::getVehicleTypeName, "1"));
+        VehicleType vehicleType = EDb.use().findFirst(VehicleType.class,eDbQuery);
+    }
+
+    @Test
     public void test(){
 
         // ================== 通用查询自定义组合 开始  ===================

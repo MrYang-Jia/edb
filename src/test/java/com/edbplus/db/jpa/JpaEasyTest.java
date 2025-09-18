@@ -46,7 +46,7 @@ public class JpaEasyTest extends BaseTest {
         int readCt = 0;
         for(int i=0;i<t;i++){
 //            records = eDbPro.find("select VEHICLE_TYPE_ID from cr_vehicle_type limit ?,3",offset);
-            records = eDbPro.find("select VEHICLE_TYPE_ID from cr_vehicle_type offset ? limit 3",offset);
+            records = eDbPro.find("select VEHICLE_TYPE_ID from cr_vehicle_type  limit 3 offset ?",offset);
             System.out.println(records);
             offset+=3;
             readCt += records.size();
@@ -60,7 +60,7 @@ public class JpaEasyTest extends BaseTest {
         VehicleType vehicleType = eDbPro.findFirst(VehicleType.class,"select * from cr_vehicle_type where VEHICLE_TYPE_ID =#para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
         System.out.println(vehicleType);
         vehicleType.setCreateTime(new Date());
-        EDb.update(vehicleType);
+        EDb.update(vehicleType,true);
         Record record = eDbPro.findFirst("select * from cr_vehicle_type where VEHICLE_TYPE_ID = #para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
 
         System.out.println(record);

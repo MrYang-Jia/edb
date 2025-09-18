@@ -16,7 +16,11 @@
 package com.edbplus.db.query;
 
 
+import com.edbplus.db.query.lambda.EDbColumnFunc;
+import com.edbplus.db.query.lambda.EDbLambdaUtil;
+
 import java.io.Serializable;
+import java.lang.invoke.SerializedLambda;
 import java.util.LinkedList;
 
 
@@ -270,6 +274,31 @@ public class EDbFilter implements Serializable {
         return new EDbFilter(property, EDbFilter.Operator.like, value);
     }
 
+    /**
+     * 返回左相似筛选
+     *
+     * @param property
+     *            属性
+     * @param value
+     *            值
+     * @return 相似筛选
+     */
+    public static EDbFilter llk(String property, Object value) {
+        return new EDbFilter(property, EDbFilter.Operator.llk, value);
+    }
+
+    /**
+     * 返回右相似筛选
+     *
+     * @param property
+     *            属性
+     * @param value
+     *            值
+     * @return 相似筛选
+     */
+    public static EDbFilter rlk(String property, Object value) {
+        return new EDbFilter(property, EDbFilter.Operator.rlk, value);
+    }
 
     /**
      * 返回包含筛选
@@ -500,6 +529,227 @@ public class EDbFilter implements Serializable {
         this.value = value;
     }
 
+
+    // ==================== Lambda 表达式支持（带条件判断）====================
+
+    /**
+     * Lambda 版本 eq - 带条件判断
+     */
+    public static <T> EDbFilter eq(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.eq, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 ne - 带条件判断
+     */
+    public static <T> EDbFilter ne(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.ne, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 gt - 带条件判断
+     */
+    public static <T> EDbFilter gt(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.gt, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 lt - 带条件判断
+     */
+    public static <T> EDbFilter lt(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.lt, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 ge - 带条件判断
+     */
+    public static <T> EDbFilter ge(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.ge, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 le - 带条件判断
+     */
+    public static <T> EDbFilter le(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.le, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 like - 带条件判断
+     */
+    public static <T> EDbFilter like(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.like, value);
+        }
+        return null;
+    }
+    /**
+     * Lambda 版本 left like - 带条件判断
+     */
+    public static <T> EDbFilter llk(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.llk, value);
+        }
+        return null;
+    }
+    /**
+     * Lambda 版本 right like - 带条件判断
+     */
+    public static <T> EDbFilter rlk(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.rlk, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 in - 带条件判断
+     */
+    public static <T> EDbFilter in(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.in, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 notIn - 带条件判断
+     */
+    public static <T> EDbFilter notIn(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.notIn, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 isNull - 带条件判断
+     */
+    public static <T> EDbFilter isNull(boolean condition, EDbColumnFunc<T, ?> getter) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.isNull, null);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 isNotNull - 带条件判断
+     */
+    public static <T> EDbFilter isNotNull(boolean condition, EDbColumnFunc<T, ?> getter) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.isNotNull, null);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 notLike - 带条件判断
+     */
+    public static <T> EDbFilter notLike(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.notLike, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 notLlk - 带条件判断
+     */
+    public static <T> EDbFilter notLlk(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.notLlk, value);
+        }
+        return null;
+    }
+
+    /**
+     * Lambda 版本 notRlk - 带条件判断
+     */
+    public static <T> EDbFilter notRlk(boolean condition, EDbColumnFunc<T, ?> getter, Object value) {
+        if (condition) {
+            Class<?> entityClass = getEntityClass(getter);
+            String columnName = getColumnName(entityClass, getter);
+            return new EDbFilter(columnName, Operator.notRlk, value);
+        }
+        return null;
+    }
+
+    // ==================== 私有辅助方法 ====================
+
+    /**
+     * 从 Lambda 表达式中获取实体类
+     */
+    private static Class<?> getEntityClass(EDbColumnFunc<?, ?> getter) {
+        try {
+            SerializedLambda serializedLambda = EDbLambdaUtil.getSerializedLambda(getter);
+            String className = serializedLambda.getImplClass().replace("/", ".");
+            return Class.forName(className);
+        } catch (Exception e) {
+            throw new RuntimeException("无法获取实体类", e);
+        }
+    }
+
+    /**
+     * 获取数据库列名
+     */
+    private static String getColumnName(Class<?> entityClass, EDbColumnFunc<?, ?> getter) {
+        javax.persistence.Column column = EDbLambdaUtil.getColumn(entityClass, getter);
+        if (column != null && !column.name().isEmpty()) {
+            return column.name();
+        } else {
+            SerializedLambda serializedLambda = EDbLambdaUtil.getSerializedLambda(getter);
+            String getterName = serializedLambda.getImplMethodName();
+            return EDbLambdaUtil.resolveFieldName(getterName);
+        }
+    }
 
 
 
