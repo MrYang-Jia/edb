@@ -25,6 +25,7 @@ import com.edbplus.db.jpa.pip.JpaRelPip;
 import com.edbplus.db.proxy.EDbRelProxy;
 import com.edbplus.db.jpa.task.JpaRelTask;
 import com.edbplus.db.util.EDbPageUtil;
+import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import com.edbplus.db.util.hutool.rul.EReUtil;
 import com.edbplus.db.util.hutool.web.EPageUtil;
@@ -233,8 +234,9 @@ public class JpaRelUtil {
                     }else{
                         // 单体对象
                         try {
-                            entityClass = Class.forName(fieldType.getTypeName());
-                        } catch (ClassNotFoundException e1) {
+//                            entityClass = Class.forName(fieldType.getTypeName());
+                            entityClass = EDbBeanUtil.getClass(fieldType.getTypeName());
+                        } catch (Throwable e1) {
                             e1.printStackTrace();
                         }
                         // 返回sql对象 -- 参数单独返回，最后统一拼凑

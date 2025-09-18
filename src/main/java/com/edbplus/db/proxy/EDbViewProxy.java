@@ -169,7 +169,8 @@ public class EDbViewProxy implements MethodInterceptor {
 //                    //
 //                    object = eDbPro.find(entityClass,sqlPara);
                 }else{
-                    entityClass = Class.forName(returnType.getTypeName());
+//                    entityClass = Class.forName(returnType.getTypeName());
+                    entityClass = EDbBeanUtil.getClass(returnType.getTypeName());
                     object = eDbPro.findFirst(entityClass,sqlPara);
                 }
                 // 字段赋值 -- 反射赋值会比较消耗毫秒数

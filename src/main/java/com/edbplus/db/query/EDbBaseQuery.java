@@ -70,88 +70,106 @@ public class EDbBaseQuery {
 
     /**
      * 添加一个and条件
-     * @param EDbFilter 该条件
+     * @param eDbFilter 该条件
      * @return 链式调用
      */
-    public  EDbBaseQuery and(EDbFilter EDbFilter){
-        this.andEDbFilters.add(EDbFilter);
-        this.querySize++;
+    public  EDbBaseQuery and(EDbFilter eDbFilter){
+        if (eDbFilter!=null){
+            this.andEDbFilters.add(eDbFilter);
+            this.querySize++;
+        }
         return this;
     }
 
     /**
      * 移除一个and条件
-     * @param EDbFilter
+     * @param eDbFilter
      * @return
      */
-    public  EDbBaseQuery andRm(EDbFilter EDbFilter){
-        this.andEDbFilters.remove(EDbFilter);
-        this.querySize--;
+    public  EDbBaseQuery andRm(EDbFilter eDbFilter){
+        if (eDbFilter!=null){
+            this.andEDbFilters.remove(eDbFilter);
+            this.querySize--;
+        }
         return this;
     }
 
     /**
      * 添加多个and条件
-     * @param EDbFilter 该条件
+     * @param eDbFilters 该条件
      * @return 链式调用
      */
-    public  EDbBaseQuery and(EDbFilter... EDbFilter){
-        this.andEDbFilters.addAll(Arrays.asList(EDbFilter));
-        querySize += EDbFilter.length;
+    public  EDbBaseQuery and(EDbFilter... eDbFilters){
+        if (eDbFilters!=null){
+            this.andEDbFilters.addAll(Arrays.asList(eDbFilters));
+            querySize += eDbFilters.length;
+        }
         return this;
     }
 
     /**
      * 删除多个条件表达
-     * @param EDbFilter
+     * @param eDbFilters
      * @return
      */
-    public  EDbBaseQuery andRm(EDbFilter... EDbFilter){
-        this.andEDbFilters.removeAll(Arrays.asList(EDbFilter));
-        querySize -= EDbFilter.length;
+    public  EDbBaseQuery andRm(EDbFilter... eDbFilters){
+        if (eDbFilters!=null){
+            this.andEDbFilters.removeAll(Arrays.asList(eDbFilters));
+            querySize -= eDbFilters.length;
+        }
         return this;
     }
     /**
      * 添加一个or条件
-     * @param EDbFilter 该条件
+     * @param eDbFilter 该条件
      * @return 链式调用
      */
-    public  EDbBaseQuery or(EDbFilter EDbFilter){
-        this.orEDbFilters.add(EDbFilter);
-        this.querySize++;
+    public  EDbBaseQuery or(EDbFilter eDbFilter){
+        if (eDbFilter!=null){
+            this.orEDbFilters.add(eDbFilter);
+            this.querySize++;
+        }
         return this;
     }
 
     /**
      * or条件移除，必须是同一个 EDbFilter 对象
-     * @param EDbFilter
+     * @param eDbFilter
      * @return
      */
-    public  EDbBaseQuery orRm(EDbFilter EDbFilter){
-        this.orEDbFilters.remove(EDbFilter);
-        this.querySize--;
+    public  EDbBaseQuery orRm(EDbFilter eDbFilter){
+        if (eDbFilter!=null){
+            this.orEDbFilters.remove(eDbFilter);
+            this.querySize--;
+        }
+
         return this;
     }
 
     /**
      * or条件批量移除
-     * @param EDbFilter
+     * @param eDbFilters
      * @return
      */
-    public  EDbBaseQuery orRm(EDbFilter... EDbFilter){
-        this.orEDbFilters.removeAll(Arrays.asList(EDbFilter));
-        querySize -= EDbFilter.length;
+    public  EDbBaseQuery orRm(EDbFilter... eDbFilters){
+        if (eDbFilters!=null){
+            this.orEDbFilters.removeAll(Arrays.asList(eDbFilters));
+            querySize -= eDbFilters.length;
+        }
         return this;
     }
 
     /**
      * 添加多个or条件
-     * @param EDbFilter 该条件
+     * @param eDbFilters 该条件
      * @return 链式调用
      */
-    public  EDbBaseQuery or(EDbFilter... EDbFilter){
-        this.orEDbFilters.addAll(Arrays.asList(EDbFilter));
-        querySize += EDbFilter.length;
+    public  EDbBaseQuery or(EDbFilter... eDbFilters){
+        if (eDbFilters!=null){
+            this.orEDbFilters.addAll(Arrays.asList(eDbFilters));
+            querySize += eDbFilters.length;
+        }
+
         return this;
     }
 
@@ -161,7 +179,9 @@ public class EDbBaseQuery {
      * @return
      */
     public  EDbBaseQuery groupBy(String propertys){
-        this.groupByFilter = EDbFilter.groupBy(propertys);
+        if (propertys!=null){
+            this.groupByFilter = EDbFilter.groupBy(propertys);
+        }
         return this;
     }
 
@@ -171,7 +191,9 @@ public class EDbBaseQuery {
      * @return
      */
     public  EDbBaseQuery having(String havingSql){
-        this.havingFilter = EDbFilter.having(havingSql);
+        if (havingSql!=null){
+            this.havingFilter = EDbFilter.having(havingSql);
+        }
         return this;
     }
 
@@ -182,7 +204,9 @@ public class EDbBaseQuery {
      * @return
      */
     public  EDbBaseQuery having(String havingSql,Object... values){
-        this.havingFilter = EDbFilter.having(havingSql,values);
+        if (havingSql!=null && values!=null){
+            this.havingFilter = EDbFilter.having(havingSql,values);
+        }
         return this;
     }
 

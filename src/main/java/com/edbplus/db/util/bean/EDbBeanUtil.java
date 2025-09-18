@@ -19,6 +19,7 @@ import com.edbplus.db.util.hutool.bean.EBeanUtil;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EDbBeanUtil {
 
@@ -63,5 +64,39 @@ public class EDbBeanUtil {
 
             }
         }
+    }
+
+
+    public static final Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
+
+    public static Class<?> getClass(String className) {
+        if (className == null || className.isEmpty()) {
+            throw new IllegalArgumentException("类名不能为空");
+        }
+
+        // 先从缓存获取
+        return classCache.computeIfAbsent(className, key -> {
+            try {
+                // 优先使用线程上下文类加载器
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                if (classLoader == null) {
+                    // 回退到当前类的类加载器
+                    classLoader = EDbBeanUtil.class.getClassLoader();
+                }
+                return Class.forName(key, false, classLoader);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("无法加载类: " + key, e);
+            }
+        });
+    }
+
+    // 清理缓存的方法（可选）
+    public static void clearClassCache() {
+        classCache.clear();
+    }
+
+    // 移除特定类的缓存（可选）
+    public static void removeClassFromCache(String className) {
+        classCache.remove(className);
     }
 }

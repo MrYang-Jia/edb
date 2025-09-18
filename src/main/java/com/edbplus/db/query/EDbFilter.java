@@ -18,6 +18,7 @@ package com.edbplus.db.query;
 
 import com.edbplus.db.query.lambda.EDbColumnFunc;
 import com.edbplus.db.query.lambda.EDbLambdaUtil;
+import com.edbplus.db.util.bean.EDbBeanUtil;
 
 import java.io.Serializable;
 import java.lang.invoke.SerializedLambda;
@@ -727,11 +728,11 @@ public class EDbFilter implements Serializable {
     /**
      * 从 Lambda 表达式中获取实体类
      */
-    private static Class<?> getEntityClass(EDbColumnFunc<?, ?> getter) {
+    public static Class<?> getEntityClass(EDbColumnFunc<?, ?> getter) {
         try {
             SerializedLambda serializedLambda = EDbLambdaUtil.getSerializedLambda(getter);
             String className = serializedLambda.getImplClass().replace("/", ".");
-            return Class.forName(className);
+            return EDbBeanUtil.getClass(className);
         } catch (Exception e) {
             throw new RuntimeException("无法获取实体类", e);
         }
@@ -740,7 +741,7 @@ public class EDbFilter implements Serializable {
     /**
      * 获取数据库列名
      */
-    private static String getColumnName(Class<?> entityClass, EDbColumnFunc<?, ?> getter) {
+    public static String getColumnName(Class<?> entityClass, EDbColumnFunc<?, ?> getter) {
         javax.persistence.Column column = EDbLambdaUtil.getColumn(entityClass, getter);
         if (column != null && !column.name().isEmpty()) {
             return column.name();

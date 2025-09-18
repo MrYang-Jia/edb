@@ -17,6 +17,7 @@ package com.edbplus.db.query.lambda;
 
 import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
+import com.edbplus.db.util.bean.EDbBeanUtil;
 import com.jfinal.kit.StrKit;
 
 import javax.persistence.Column;
@@ -47,7 +48,8 @@ public class EDbLambdaUtil {
 //            Class<?> capturingClass = Class.forName(serializedLambda.getCapturingClass().replace("/", "."));
 //            System.out.println(capturingClass.getName()); // 调用类
             if(entityClass == null){
-                entityClass = (Class<T>) Class.forName(serializedLambda.getImplClass().replace("/", "."));
+//                entityClass = (Class<T>) Class.forName(serializedLambda.getImplClass().replace("/", "."));
+                entityClass = EDbBeanUtil.getClass(serializedLambda.getImplClass().replace("/", "."));
             }
 //            System.out.println(domainClass.getName()); // 实体类
             // 利用hutool的类反射对象

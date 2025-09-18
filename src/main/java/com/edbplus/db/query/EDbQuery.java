@@ -16,6 +16,7 @@
 package com.edbplus.db.query;
 
 import com.edbplus.db.query.em.SqlConnectorEnum;
+import com.edbplus.db.query.lambda.EDbColumnFunc;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -120,18 +121,56 @@ public class EDbQuery extends EDbBaseQuery{
      * @return 链式调用
      */
     public  EDbQuery orderASC(String property){
+        return orderByAsc(property);
+    }
+
+    /**
+     * 升序字段
+     * @param property 该字段对应变量名
+     * @return 链式调用
+     */
+    public  EDbQuery orderByAsc(String property){
         this.orders.add(Order.asc(property));
         return this;
     }
+
+    /**
+     * Lambda 版本 orderASC
+     */
+    public <T> EDbQuery orderByAsc(EDbColumnFunc<T, ?> getter) {
+        Class<?> entityClass = EDbFilter.getEntityClass(getter);
+        String columnName = EDbFilter.getColumnName(entityClass, getter);
+        return orderByAsc(columnName);
+    }
+
     /**
      * 降序字段
      * @param property 该字段对应变量名
      * @return 链式调用
      */
     public  EDbQuery orderDESC(String property){
+        return orderByDesc(property);
+    }
+
+    /**
+     * 降序字段
+     * @param property 该字段对应变量名
+     * @return 链式调用
+     */
+    public  EDbQuery orderByDesc(String property){
         this.orders.add(Order.desc(property));
         return this;
     }
+
+    /**
+     * Lambda 版本 orderDESC
+     */
+    public <T> EDbQuery orderByDESC(EDbColumnFunc<T, ?> getter) {
+        Class<?> entityClass = EDbFilter.getEntityClass(getter);
+        String columnName = EDbFilter.getColumnName(entityClass, getter);
+        return orderByDesc(columnName);
+    }
+
 
     // 返回的分页数量
     @Getter
