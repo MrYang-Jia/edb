@@ -115,7 +115,10 @@ public class JpaEDbQueryTest extends BaseTest {
         // 根据情况设置查询条件
         eDbQuery.and( EDbFilter.like(false,VehicleType::getVehicleTypeName, "1"));
         VehicleType vehicleType = EDb.use().findFirst(VehicleType.class,eDbQuery);
+        System.out.println(EDb.count(VehicleType.class,eDbQuery));
     }
+
+
 
     @Test
     public void test(){

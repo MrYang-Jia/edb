@@ -1480,7 +1480,7 @@ public class EDb extends Db{
      * @param <T>
      * @return
      */
-    public <T> long count(Class<T> tClass,EDbQuery eDbQuery){
+    public static <T> long count(Class<T> tClass,EDbQuery eDbQuery){
         return MAIN.count(tClass,eDbQuery);
     }
 

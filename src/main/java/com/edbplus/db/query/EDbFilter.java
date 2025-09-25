@@ -754,6 +754,133 @@ public class EDbFilter implements Serializable {
 
 
 
+    // =============== 带条件判断的静态方法 ===============
+
+    public static EDbFilter eq(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.eq, value);
+        return null;
+    }
+
+    public static EDbFilter ne(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.ne, value);
+        return null;
+    }
+
+    public static EDbFilter gt(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.gt, value);
+        return null;
+    }
+
+    public static EDbFilter lt(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.lt, value);
+        return null;
+    }
+
+    public static EDbFilter ge(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.ge, value);
+        return null;
+    }
+
+    public static EDbFilter le(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.le, value);
+        return null;
+    }
+
+    public static EDbFilter like(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.like, value);
+        return null;
+    }
+
+    public static EDbFilter llk(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.llk, value);
+        return null;
+    }
+
+    public static EDbFilter rlk(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.rlk, value);
+        return null;
+    }
+
+    public static EDbFilter in(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.in, value);
+        return null;
+    }
+
+    public static EDbFilter notIn(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.notIn, value);
+        return null;
+    }
+
+    public static EDbFilter notLike(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.notLike, value);
+        return null;
+    }
+
+    public static EDbFilter notLlk(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.notLlk, value);
+        return null;
+    }
+
+    public static EDbFilter notRlk(boolean condition, String property, Object value) {
+        if (condition) return new EDbFilter(property, Operator.notRlk, value);
+        return null;
+    }
+
+    public static EDbFilter isNull(boolean condition, String property) {
+        if (condition) return new EDbFilter(property, Operator.isNull, null);
+        return null;
+    }
+
+    public static EDbFilter isNotNull(boolean condition, String property) {
+        if (condition) return new EDbFilter(property, Operator.isNotNull, null);
+        return null;
+    }
+
+    public static EDbFilter between(boolean condition, String property, Object begin, Object end) {
+        if (condition) {
+            LinkedList<Object> params = new LinkedList<>();
+            params.add(begin);
+            params.add(end);
+            return new EDbFilter(property, Operator.between, params);
+        }
+        return null;
+    }
+
+    public static EDbFilter notBetween(boolean condition, String property, Object begin, Object end) {
+        if (condition) {
+            LinkedList<Object> params = new LinkedList<>();
+            params.add(begin);
+            params.add(end);
+            return new EDbFilter(property, Operator.notBetween, params);
+        }
+        return null;
+    }
+
+    public static EDbFilter exists(boolean condition, String existsSql) {
+        if (condition) return new EDbFilter(null, Operator.exists, existsSql);
+        return null;
+    }
+
+    public static EDbFilter notExists(boolean condition, String existsSql) {
+        if (condition) return new EDbFilter(null, Operator.notExists, existsSql);
+        return null;
+    }
+
+    public static EDbFilter groupBy(boolean condition, String propertys) {
+        if (condition) return new EDbFilter(propertys, Operator.groupBy, null);
+        return null;
+    }
+
+    public static EDbFilter having(boolean condition, String havingSql, Object... values) {
+        if (condition) return new EDbFilter(havingSql, Operator.having, values);
+        return null;
+    }
+
+    public static EDbFilter tpl(boolean condition, String tplSql, Object... values) {
+        if (condition) return new EDbFilter(tplSql, Operator.tpl, values);
+        return null;
+    }
+
 
 }
 
