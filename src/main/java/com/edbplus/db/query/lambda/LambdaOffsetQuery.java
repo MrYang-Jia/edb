@@ -5,8 +5,8 @@ import com.jfinal.plugin.activerecord.Page;
 import java.util.List;
 
 /**
- * @ClassName LambdaDbQuery
- * @Description: LambdaDbQuery
+ * @ClassName LambdaOffsetQuery
+ * @Description: LambdaOffsetQuery
  * @Author 杨志佳
  * @Date 2022/4/5
  * @Version V1.0

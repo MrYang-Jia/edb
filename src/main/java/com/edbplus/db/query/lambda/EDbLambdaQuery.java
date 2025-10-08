@@ -41,27 +41,17 @@ import java.util.List;
  * @Version V1.0
  **/
 public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
-
     // sql连接操作符 and or
-
-
     // 参考1: https://blog.csdn.net/u012503481/article/details/100896507
     // 参考2: https://blog.csdn.net/weixin_38405253/article/details/121847323
     // 参考3：mybatiesPlus LambdaQueryWrapper 源码参考，发现是一个针对sql的封装操作，迭代处理sql
     // 关于native的问题处理解决方案，目前暂时没有比较好的头绪
     // 参考4：https://githubhot.com/repo/oracle/graal/issues/3756
-
     public EDbQuery eDbQuery = new EDbQuery(); // 基础封装对象
-
     public SqlConnectorEnum sqlConnector = SqlConnectorEnum.and;
-
     public List<EDbLambdaQuery<T>> andComs;
-
     public List<EDbLambdaQuery<T>> orComs;
-
     private EDbPro eDbPro;
-
-
     // class
     private Class<T> entityClass;
 
@@ -107,11 +97,15 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
 
     // =============================
     /**
-     * 封装 and 和 or 的拼接操作
+     * 封装 and 和 or 的拼接操作 - 内部使用，带条件判断
+     * @param condition - 是否执行此操作
      * @param sqlConnector
      * @param eDbFilter
      */
-    public void doSome(SqlConnectorEnum sqlConnector, EDbFilter eDbFilter){
+    public void doSome(boolean condition, SqlConnectorEnum sqlConnector, EDbFilter eDbFilter){
+        if (!condition) {
+            return; // 如果条件不满足，直接返回
+        }
         if(sqlConnector == SqlConnectorEnum.and){
             eDbQuery.and(eDbFilter);
         }
@@ -121,37 +115,54 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
         }
     }
 
-
     /**
-     * 获取字段注解 Column 属性
-     * @param func
-     * @return
+     * 封装 and 和 or 的拼接操作 - 原有方法，保持兼容性
+     * @param sqlConnector
+     * @param eDbFilter
      */
-    public Column getColumn(EDbColumnFunc<T, ?> func) {
-        return EDbLambdaUtil.getColumn(entityClass,func);
+    public void doSome(SqlConnectorEnum sqlConnector, EDbFilter eDbFilter){
+        doSome(true, sqlConnector, eDbFilter); // 默认条件为 true
     }
+
+    // 移除原来的 getColumn 方法
+    // public Column getColumn(EDbColumnFunc<T, ?> func) {
+    //     return EDbLambdaUtil.getColumn(entityClass,func);
+    // }
+
     // =============================
-
-
     /**
-     * 设置查询的字段
-     * @param funcs
+     * 设置查询的字段 (条件版本)
+     * @param condition - 是否应用此设置
+     * @param funcs - 字段选择器
      * @return
      */
-    public LambdaQuery<T> select(EDbColumnFunc<T, ?>... funcs){
-        Column column = null;
+    public LambdaQuery<T> select(boolean condition, EDbColumnFunc<T, ?>... funcs){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(funcs[0]); // 假设所有funcs都属于同一个实体类
         StringBuilder propertys = new StringBuilder("");
         for(EDbColumnFunc<T, ?> func : funcs){
-            column = getColumn(func);
             if(propertys.length()>0){
                 propertys.append(",");
             }
-            propertys.append(column.name());
+            // 使用 EDbFilter.getColumnName 获取列名
+            String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+            propertys.append(columnName);
         }
         eDbQuery.fields(propertys.toString());
         return this;
     }
 
+    /**
+     * 设置查询的字段 (无条件版本 - 保持原有行为)
+     * @param funcs
+     * @return
+     */
+    public LambdaQuery<T> select(EDbColumnFunc<T, ?>... funcs){
+        return select(true, funcs);
+    }
 
     /**
      * 设置查询的字段
@@ -162,7 +173,6 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
         eDbQuery.fields(coulumns);
         return this;
     }
-
 
     /**
      * and (...)
@@ -198,282 +208,628 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
         return this;
     }
 
-
+    /**
+     * 连接操作符转变成 or (条件版本)
+     * @param condition - 是否切换到 or 模式
+     * @return
+     */
+    public LambdaQuery<T> or(boolean condition){
+        if (condition) {
+            sqlConnector = SqlConnectorEnum.or;
+        }
+        return this; // 返回自己本身
+    }
 
     /**
-     * 连接操作符转变成 or , 右侧将是 or xxx or xxx ，除非再调用1次 and 方法，激活操作符转换
+     * 连接操作符转变成 or (无条件版本 - 保持原有行为)
      * @return
      */
     public LambdaQuery<T> or(){
-        sqlConnector = SqlConnectorEnum.or;
+        return or(true); // 默认切换
+    }
+
+    /**
+     * 连接操作符转变成 and (条件版本)
+     * @param condition - 是否切换到 and 模式
+     * @return
+     */
+    public LambdaQuery<T> and(boolean condition){
+        if (condition) {
+            sqlConnector = SqlConnectorEnum.and;
+        }
         return this; // 返回自己本身
     }
 
     /**
-     * 连接操作符转变成 and
+     * 连接操作符转变成 and (无条件版本 - 保持原有行为)
      * @return
      */
     public LambdaQuery<T> and(){
-        sqlConnector = SqlConnectorEnum.and;
+        return and(true); // 默认切换
+    }
+
+    /**
+     * 小于 < (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> lt(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.lt, value));
         return this; // 返回自己本身
     }
 
-
-
     /**
-     * 小于 <
+     * 小于 < (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> lt(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.lt, value));
+        return lt(true, func, value);
+    }
+
+    /**
+     * 小于等于 <= (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> le(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.le, value));
         return this; // 返回自己本身
     }
 
     /**
-     * 小于等于 <=
+     * 小于等于 <= (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> le(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.le, value));
+        return le(true, func, value);
+    }
+
+    /**
+     * 等于 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> eq(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.eq, value));
         return this; // 返回自己本身
     }
 
     /**
-     * 等于
+     * 等于 (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> eq(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.eq, value));
+        return eq(true, func, value);
+    }
+
+    /**
+     * 不等于 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> ne(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.ne, value));
         return this; // 返回自己本身
     }
 
     /**
-     * 不等于
+     * 不等于 (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> ne(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.ne, value));
+        return ne(true, func, value);
+    }
+
+    /**
+     * 等于 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> in(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.in, value));
         return this; // 返回自己本身
     }
 
     /**
-     * 等于
+     * 等于 (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> in(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.in, value));
+        return in(true, func, value);
+    }
+
+    /**
+     * 等于 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> notIn(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.notIn, value));
         return this; // 返回自己本身
     }
 
     /**
-     * 等于
+     * 等于 (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> notIn(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.notIn, value));
+        return notIn(true, func, value);
+    }
+
+    /**
+     * 大于 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> gt(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.gt, value));
         return this; // 返回自己本身
     }
 
     /**
-     * 大于
+     * 大于 (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> gt(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.gt, value));
+        return gt(true, func, value);
+    }
+
+    /**
+     * 大于等于 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func - 对象字段方法
+     * @param value - 赋值
+     * @return LambdaQuery<T>
+     */
+    public LambdaQuery<T> ge(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.ge, value));
         return this; // 返回自己本身
     }
 
     /**
-     * 大于等于
+     * 大于等于 (无条件版本 - 保持原有行为)
+     * @param func - 对象字段方法
+     * @param value - 赋值
+     * @return LambdaQuery<T>
+     */
+    public LambdaQuery<T> ge(EDbColumnFunc<T, ?> func, Object value){
+        return ge(true, func, value);
+    }
+
+    /**
+     * like %匹配% (条件版本)
+     * @param condition - 是否添加此条件
      * @param func
      * @param value
      * @return
      */
-    public LambdaQuery<T> ge(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.ge, value));
+    public LambdaQuery<T> like(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.like, value));
         return this; // 返回自己本身
     }
 
     /**
-     * like %匹配%
+     * like %匹配% (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> like(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.like, value));
+        return like(true, func, value);
+    }
+
+    /**
+     * not like %匹配% (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> notLike(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.notLike, value));
         return this; // 返回自己本身
     }
 
     /**
-     * not like %匹配%
+     * not like %匹配% (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> notLike(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.notLike, value));
+        return notLike(true, func, value);
+    }
+
+    /**
+     * like 左匹配% (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> likeLeft(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.llk, value));
         return this; // 返回自己本身
     }
 
     /**
-     * like 左匹配%
+     * like 左匹配% (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> likeLeft(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.llk, value));
+        return likeLeft(true, func, value);
+    }
+
+    /**
+     * not like 左匹配% (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> notLikeLeft(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.notLlk, value));
         return this; // 返回自己本身
     }
 
     /**
-     * not like 左匹配%
+     * not like 左匹配% (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> notLikeLeft(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.notLlk, value));
+        return notLikeLeft(true, func, value);
+    }
+
+    /**
+     * like %右匹配 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> likeRight(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.rlk, value));
         return this; // 返回自己本身
     }
 
     /**
-     * like %右匹配
+     * like %右匹配 (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> likeRight(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.rlk, value));
+        return likeRight(true, func, value);
+    }
+
+    /**
+     * like %右匹配 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    public LambdaQuery<T> notLikeRight(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.notRlk, value));
         return this; // 返回自己本身
     }
 
     /**
-     * like %右匹配
+     * like %右匹配 (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> notLikeRight(EDbColumnFunc<T, ?> func, Object value){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.notRlk, value));
+        return notLikeRight(true, func, value);
+    }
+
+    /**
+     * 区间 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param begin
+     * @param end
+     * @return
+     */
+    public LambdaQuery<T> between(boolean condition, EDbColumnFunc<T, ?> func, Object begin, Object end){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, EDbFilter.between(columnName, begin, end));
         return this; // 返回自己本身
     }
 
-
     /**
-     * 区间
+     * 区间 (无条件版本 - 保持原有行为)
      * @param func
      * @param begin
      * @param end
      * @return
      */
     public LambdaQuery<T> between(EDbColumnFunc<T, ?> func, Object begin, Object end){
-        Column column = getColumn(func);
-        doSome(sqlConnector,EDbFilter.between(column.name(),begin,end));
+        return between(true, func, begin, end);
+    }
+
+    /**
+     * not 区间 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param begin
+     * @param end
+     * @return
+     */
+    public LambdaQuery<T> notBetween(boolean condition, EDbColumnFunc<T, ?> func, Object begin, Object end){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, EDbFilter.notBetween(columnName, begin, end));
         return this; // 返回自己本身
     }
 
     /**
-     * not 区间
+     * not 区间 (无条件版本 - 保持原有行为)
      * @param func
      * @param begin
      * @param end
      * @return
      */
     public LambdaQuery<T> notBetween(EDbColumnFunc<T, ?> func, Object begin, Object end){
-        Column column = getColumn(func);
-        doSome(sqlConnector,EDbFilter.notBetween(column.name(),begin,end));
+        return notBetween(true, func, begin, end);
+    }
+
+    /**
+     * exists (条件版本)
+     * @param condition - 是否添加此条件
+     * @param existsSql
+     * @return
+     */
+    public LambdaQuery<T> exists(boolean condition, String existsSql){
+        if (!condition) {
+            return this;
+        }
+        doSome(true, sqlConnector, EDbFilter.exists(existsSql));
         return this; // 返回自己本身
     }
 
     /**
-     * exists
+     * exists (无条件版本 - 保持原有行为)
      * @param existsSql
      * @return
      */
     public LambdaQuery<T> exists(String existsSql){
-        doSome(sqlConnector,EDbFilter.exists(existsSql));
+        return exists(true, existsSql);
+    }
+
+    /**
+     * not exists (条件版本)
+     * @param condition - 是否添加此条件
+     * @param existsSql
+     * @return
+     */
+    public LambdaQuery<T> notExists(boolean condition, String existsSql){
+        if (!condition) {
+            return this;
+        }
+        doSome(true, sqlConnector, EDbFilter.notExists(existsSql));
         return this; // 返回自己本身
     }
 
-    /**`
-     * not exists
+    /**
+     * not exists (无条件版本 - 保持原有行为)
      * @param existsSql
      * @return
      */
     public LambdaQuery<T> notExists(String existsSql){
-        doSome(sqlConnector,EDbFilter.notExists(existsSql));
+        return notExists(true, existsSql);
+    }
+
+    /**
+     * is null (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @return
+     */
+    public LambdaQuery<T> isNull(boolean condition, EDbColumnFunc<T, ?> func){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.isNull, null));
         return this; // 返回自己本身
     }
 
     /**
-     * is null
+     * is null (无条件版本 - 保持原有行为)
      * @param func
      * @return
      */
     public LambdaQuery<T> isNull(EDbColumnFunc<T, ?> func){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.isNull, null));
+        return isNull(true, func);
+    }
+
+    /**
+     * is not null (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @return
+     */
+    public LambdaQuery<T> isNotNull(boolean condition, EDbColumnFunc<T, ?> func){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.isNotNull, null));
         return this; // 返回自己本身
     }
 
     /**
-     * is not null
+     * is not null (无条件版本 - 保持原有行为)
      * @param func
      * @return
      */
     public LambdaQuery<T> isNotNull(EDbColumnFunc<T, ?> func){
-        Column column = getColumn(func);
-        doSome(sqlConnector,new EDbFilter(column.name(), EDbFilter.Operator.isNotNull, null));
-        return this; // 返回自己本身
+        return isNotNull(true, func);
     }
 
     /**
-     * groupBy
+     * groupBy (条件版本)
+     * @param condition - 是否应用此设置
+     * @param funcs - 分组字段
+     * @return
+     */
+    public LambdaGroupQuery<T> groupBy(boolean condition, EDbColumnFunc<T, ?>... funcs){
+        if (!condition) {
+            return this; // 返回 LambdaGroupQuery 类型
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(funcs[0]); // 假设所有funcs都属于同一个实体类
+        StringBuilder propertys = new StringBuilder("");
+        for(EDbColumnFunc<T, ?> func:funcs){
+            if(propertys.length()>0){
+                propertys.append(",");
+            }
+            // 使用 EDbFilter.getColumnName 获取列名
+            String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+            propertys.append(columnName);
+        }
+        eDbQuery.groupBy(propertys.toString());;
+        return this; // 返回 LambdaGroupQuery 类型
+    }
+
+    /**
+     * groupBy (无条件版本 - 保持原有行为)
      * @param funcs
      * @return
      */
     public LambdaGroupQuery<T> groupBy(EDbColumnFunc<T, ?>... funcs){
-        Column column = null;
-        StringBuilder propertys = new StringBuilder("");
-        for(EDbColumnFunc<T, ?> func:funcs){
-            column = getColumn(func);
-            if(propertys.length()>0){
-                propertys.append(",");
-            }
-            propertys.append(column.name());
-        }
-        eDbQuery.groupBy(propertys.toString());;
-        return this;
+        return groupBy(true, funcs);
     }
 
     /**
@@ -498,51 +854,107 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
     }
 
     /**
-     * order by column asc
+     * order by column asc (条件版本)
+     * @param condition - 是否应用此设置
+     * @param funcs - 排序字段
+     * @return
+     */
+    public  LambdaOrderQuery<T> orderByAsc(boolean condition, EDbColumnFunc<T, ?>... funcs){
+        if (!condition) {
+            return this; // 返回 LambdaOrderQuery 类型
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(funcs[0]); // 假设所有funcs都属于同一个实体类
+        for(EDbColumnFunc<T, ?> func:funcs){
+            // 使用 EDbFilter.getColumnName 获取列名
+            String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+            eDbQuery.orderASC(columnName);
+        }
+        return this; // 返回 LambdaOrderQuery 类型
+    }
+
+    /**
+     * order by column asc (无条件版本 - 保持原有行为)
      * @param funcs
      * @return
      */
     public  LambdaOrderQuery<T> orderByAsc(EDbColumnFunc<T, ?>... funcs){
-        Column column = null;
-        for(EDbColumnFunc<T, ?> func:funcs){
-            column = getColumn(func);
-            eDbQuery.orderASC(column.name());
-        }
-        return this;
+        return orderByAsc(true, funcs);
     }
 
     /**
-     * order by column desc
+     * order by column desc (条件版本)
+     * @param condition - 是否应用此设置
+     * @param funcs - 排序字段
+     * @return
+     */
+    public  LambdaOrderQuery<T> orderByDesc(boolean condition, EDbColumnFunc<T, ?>... funcs){
+        if (!condition) {
+            return this; // 返回 LambdaOrderQuery 类型
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(funcs[0]); // 假设所有funcs都属于同一个实体类
+        for(EDbColumnFunc<T, ?> func:funcs){
+            // 使用 EDbFilter.getColumnName 获取列名
+            String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+            eDbQuery.orderDESC(columnName);
+        }
+        return this; // 返回 LambdaOrderQuery 类型
+    }
+
+    /**
+     * order by column desc (无条件版本 - 保持原有行为)
      * @param funcs
      * @return
      */
     public  LambdaOrderQuery<T> orderByDesc(EDbColumnFunc<T, ?>... funcs){
-        Column column = null;
-        for(EDbColumnFunc<T, ?> func:funcs){
-            column = getColumn(func);
-            eDbQuery.orderDESC(column.name());
-        }
-        return this;
+        return orderByDesc(true, funcs);
     }
 
     /**
-     * limit count
+     * limit count (条件版本)
+     * @param condition - 是否应用此设置
+     * @param limitCount
+     * @return
+     */
+    public  LambdaLimitQuery<T> limit(boolean condition, int limitCount){
+        if (!condition) {
+            return this; // 返回 LambdaLimitQuery 类型
+        }
+        eDbQuery.limit(limitCount);
+        return this; // 返回 LambdaLimitQuery 类型
+    }
+
+    /**
+     * limit count (无条件版本 - 保持原有行为)
      * @param limitCount
      * @return
      */
     public  LambdaLimitQuery<T> limit(int limitCount){
-        eDbQuery.limit(limitCount);
-        return this;
+        return limit(true, limitCount);
     }
 
     /**
-     * offset offsetIdx
+     * offset offsetIdx (条件版本)
+     * @param condition - 是否应用此设置
+     * @param offsetIdx
+     * @return
+     */
+    public LambdaOffsetQuery<T> offset(boolean condition, int offsetIdx){
+        if (!condition) {
+            return this; // 返回 LambdaOffsetQuery 类型
+        }
+        eDbQuery.offset(offsetIdx);
+        return this; // 返回 LambdaOffsetQuery 类型
+    }
+
+    /**
+     * offset offsetIdx (无条件版本 - 保持原有行为)
      * @param offsetIdx
      * @return
      */
     public LambdaOffsetQuery<T> offset(int offsetIdx){
-        eDbQuery.offset(offsetIdx);
-        return this;
+        return offset(true, offsetIdx);
     }
 
     /**
@@ -599,12 +1011,4 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
     public long count(){
         return eDbPro.count(entityClass,eDbQuery);
     }
-
-
-
-
-
-    
-
-   
 }

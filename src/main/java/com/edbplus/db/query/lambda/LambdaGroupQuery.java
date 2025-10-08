@@ -13,26 +13,51 @@ import java.util.List;
  **/
 public interface LambdaGroupQuery<T> {
     public  LambdaHavingQuery<T> having(String havingSql);
+
     /**
-     * order by column asc
+     * order by column asc (无条件版本)
      * @param funcs
      * @return
      */
     public  LambdaOrderQuery<T> orderByAsc(EDbColumnFunc<T, ?>... funcs);
 
     /**
-     * order by column desc
+     * order by column asc (条件版本)
+     * @param condition - 是否应用此设置
+     * @param funcs - 排序字段
+     * @return
+     */
+    public  LambdaOrderQuery<T> orderByAsc(boolean condition, EDbColumnFunc<T, ?>... funcs);
+
+    /**
+     * order by column desc (无条件版本)
      * @param funcs
      * @return
      */
     public  LambdaOrderQuery<T> orderByDesc(EDbColumnFunc<T, ?>... funcs);
 
     /**
-     * limit count
+     * order by column desc (条件版本)
+     * @param condition - 是否应用此设置
+     * @param funcs - 排序字段
+     * @return
+     */
+    public  LambdaOrderQuery<T> orderByDesc(boolean condition, EDbColumnFunc<T, ?>... funcs);
+
+    /**
+     * limit count (无条件版本)
      * @param limitCount
      * @return
      */
     public  LambdaLimitQuery<T> limit(int limitCount);
+
+    /**
+     * limit count (条件版本)
+     * @param condition - 是否应用此设置
+     * @param limitCount
+     * @return
+     */
+    public  LambdaLimitQuery<T> limit(boolean condition, int limitCount);
 
     /**
      * 返回查询列表

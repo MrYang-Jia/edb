@@ -3,8 +3,8 @@ package com.edbplus.db.query.lambda;
 import java.util.List;
 
 /**
- * @ClassName LambdaOrderQuery
- * @Description: LambdaOrderQuery
+ * @ClassName LambdaLimitQuery
+ * @Description: LambdaLimitQuery
  * @Author 杨志佳
  * @Date 2022/4/5
  * @Version V1.0
@@ -12,11 +12,19 @@ import java.util.List;
 public interface LambdaLimitQuery<T> {
 
     /**
-     * offset offsetIdx
+     * offset offsetIdx (无条件版本)
      * @param offsetIdx
      * @return
      */
     public LambdaOffsetQuery<T> offset(int offsetIdx);
+
+    /**
+     * offset offsetIdx (条件版本)
+     * @param condition - 是否应用此设置
+     * @param offsetIdx
+     * @return
+     */
+    public LambdaOffsetQuery<T> offset(boolean condition, int offsetIdx);
 
     /**
      * 返回查询列表
@@ -37,7 +45,5 @@ public interface LambdaLimitQuery<T> {
      * @return
      */
     public List<T> list(int limitCount,int offsetIdx);
-
-
 
 }
