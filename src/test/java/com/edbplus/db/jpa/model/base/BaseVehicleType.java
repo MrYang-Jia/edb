@@ -47,6 +47,10 @@ public class BaseVehicleType implements Serializable{
    @Column(name="MODIFY_TIME")
    private  Date modifyTime;
 
+
+   // 不存在数据库的字段
+   private String notFound;
+
 //
 //   @Column(name="v_type")
 //   private Integer vType;

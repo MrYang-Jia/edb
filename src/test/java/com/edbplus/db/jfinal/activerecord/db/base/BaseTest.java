@@ -69,9 +69,9 @@ public class BaseTest {
         // 添加sql日志打印信息
         filterList.add(eDbDruidSqlLogFilter);
 //        GenJdbc.initForEnjoy("pg",jdbcUrl2,userName2,pwd2,sqlTplList,shareSqlTplList,filterList);
-//        JpaListener jpaListener = new JpaListener();
+        JpaListener jpaListener = new JpaListener();
 //        // 初始化
-//        EDb.use().setEDbListener(jpaListener);
+        EDb.use().setEDbListener(jpaListener);
 //        EDb.use().setConnectListener(sqlListener);
 //        // 一个数据库只能设定一个监听 ，所以要绑定监听的数据库对象
 //        EDb.use("pg").setEDbListener(jpaListener);

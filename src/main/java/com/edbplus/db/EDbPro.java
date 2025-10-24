@@ -27,6 +27,7 @@ import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.em.RunSqlType;
 import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.jpa.JpaBuilder;
+import com.edbplus.db.jpa.util.JpaRelUtil;
 import com.edbplus.db.listener.ConnectListener;
 import com.edbplus.db.listener.EDbListener;
 import com.edbplus.db.em.RunStatus;
@@ -49,6 +50,7 @@ import com.jfinal.plugin.activerecord.*;
 import com.jfinal.plugin.activerecord.Record; // 必须指定 Record 对象，不然jdk版本的问题，会导致异常，因为 Record 是关键性对象
 import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
+import lombok.Getter;
 import lombok.Setter;
 import javax.persistence.Table;
 import java.lang.reflect.Method;
@@ -71,13 +73,16 @@ public class EDbPro extends DbPro {
 //    protected final Config config;
     // jpa 监听
     @Setter
+    @Getter
     private EDbListener eDbListener;
 
     @Setter// 保存后自动重新根据主键再查询1次
+    @Getter
     private boolean saveAndFlush = false;
 
     // sql 连接监听，用于统计耗时，解析sql处理时使用
     @Setter
+    @Getter
     private ConnectListener connectListener;
 
     public EDbPro(){
@@ -533,7 +538,7 @@ public class EDbPro extends DbPro {
         tableHead.append(" insert into ").append(table.name()).append("(");
         // 获取所有字段列表
         List<FieldAndColumn> coumns  = JpaAnnotationUtil.getCoumns(tClass);
-
+        List<FieldAndColValue> coumnsValue = null;
 
         for(FieldAndColumn fieldAndColumn:coumns){
             // 拼接字段
@@ -545,6 +550,9 @@ public class EDbPro extends DbPro {
         tableHead.append(") values");
         Object value = null;
         T t = null;
+//        Record record = null;
+        CaseInsensitiveMap<String,Object> dataMap = null;
+        List<FieldAndColumn> allCoumns = null;
         // for 循环
         for(int i=0;i<objs.size();i++){
             // 如果对象有值，并且为一批次时，则进行一次提交
@@ -557,9 +565,31 @@ public class EDbPro extends DbPro {
                 // 主动清空insert对象
                 inserValues.delete( 0, inserValues.length() );
             }
-
             // 赋予对象
             t = objs.get(i);
+
+            // 保存前的监听
+            if(eDbListener!=null){
+                coumnsValue  = JpaAnnotationUtil.getCoumnValues(t);
+                dataMap = new CaseInsensitiveMap<String,Object>();
+                // 字段赋值
+                for(FieldAndColValue fieldAndColumn : coumnsValue){
+                    // 不剔除null值的话，会导致部分字段数据库定义了默认值，会无效化
+                    // 但是batchEntity 时，就必须指定了，否则字段长度不一致，是无法提交的
+                    if(fieldAndColumn.getFieldValue()!= null){
+                        // 字段赋值 -- 对象全字段赋值
+                        dataMap.put(fieldAndColumn.getColumn().name().toLowerCase(), fieldAndColumn.getFieldValue());
+                    }
+                }
+                // 获取所有字段列表
+                allCoumns  = JpaAnnotationUtil.getCoumns(t.getClass());
+                // 执行对象方法
+                eDbListener.beforeSave(t.getClass(),dataMap,allCoumns);
+                // 反向赋予对象 - 只是为了后续流程能正常衔接
+                t = (T) EBeanUtil.mapToBean(dataMap,t.getClass(),false);
+            }
+
+
             // 拼接起始位置
             inserValues.append("(");
             // 赋予数据 --- 拼接 values 的数值部分，并且用 , 隔开

@@ -9,14 +9,28 @@ import java.util.*;
 
 public class JpaListener implements EDbListener {
 
+    private static final List<String> BEFORE_SAVE_FIELDS = List.of(  "create_time", "modify_time");
     /**
      * jpa对象统一保存前的实现逻辑
      * @param jpaClass -- 表对象
      * @param saveMap -- 准备执行保存的相关字段
-     * @param coumns -- 表字段的相关信息
+     * @param columns -- 表字段的相关信息
      */
     @Override
-    public void beforeSave(Class jpaClass,Map<String, Object> saveMap, List<FieldAndColumn> coumns) {
+    public void beforeSave(Class jpaClass,Map<String, Object> saveMap, List<FieldAndColumn> columns) {
+
+        String columnName;
+        for (FieldAndColumn fieldAndColumn : columns) {
+            // 字段名转小写匹配
+            columnName = fieldAndColumn.getColumn().name().toLowerCase();
+//            if(fieldAndColumn.getIsPriKey()){
+//                // 自动赋予主键id
+//            }
+            if (!BEFORE_SAVE_FIELDS.contains(columnName)) {
+                continue;
+            }
+            saveMap.computeIfAbsent(columnName, k -> new Date());
+        }
         System.out.println("执行保存前的监听");
     }
 
