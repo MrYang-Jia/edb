@@ -28,6 +28,7 @@ import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
 import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.hutool.map.CaseInsensitiveMap;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
+import org.postgresql.jdbc.PgArray;
 
 import javax.persistence.*;
 import java.beans.PropertyDescriptor;
@@ -848,10 +849,17 @@ public class JpaAnnotationUtil {
      */
     public static  <T> void setFieldValue(T t,Field field,Object value){
         try {
+            Object valueObj = null;
+            if (value instanceof java.sql.Array){
+                // 这里获取正确的数组对象
+                valueObj = ((java.sql.Array) value).getArray();
+            }else{
+                valueObj = value;
+            }
             // 设置私有对象可以访问
             field.setAccessible(true);
             // 判断是否是枚举
-            if(field.getType().isEnum() && value!=null ){
+            if(field.getType().isEnum() && valueObj!=null ){
                 // 枚举类型赋值 -- 这样子可以避免枚举初始化时，碰到null值的情况
                 Enum fieldEnum = (Enum) field.getType().getEnumConstants()[0];
                 // 获取枚举对象集
@@ -863,7 +871,7 @@ public class JpaAnnotationUtil {
                         for(Enum enumObj :enums){
                             method = EReflectUtil.getMethod(enumObj.getClass(), "getValue");
                             // 根据数值返回枚举对象
-                            if(Objects.equals(value,method.invoke(fieldEnum))){
+                            if(Objects.equals(valueObj,method.invoke(fieldEnum))){
                                 field.set(t,enumObj);
                                 break;
                             }
@@ -872,7 +880,7 @@ public class JpaAnnotationUtil {
                     // 遍历枚举对象
                     for(Enum enumObj :enums){
                         // 根据枚举名称反向赋值
-                        if(Objects.equals(value,enumObj.name())){
+                        if(Objects.equals(valueObj,enumObj.name())){
                             field.set(t,enumObj);
                             // 跳出当前子循环
                             break;
@@ -880,19 +888,19 @@ public class JpaAnnotationUtil {
                     }
                 }
             }else{
-                if(value != null){
+                if(valueObj != null){
                     // 非枚举，直接赋值即可，使用该方式可以避免类型不一致，赋值出现异常情况
                     // 如果字段上有转换标志则需要将对象进行转换，目前只用于 json 字符串转bean对象
                     if(EAnnotationUtil.getAnnotation(field, EDbType.class) != null){
                         EDbType eDbType = field.getAnnotation(EDbType.class);
                         if(eDbType.type().equals(DataType.JSONSTRING)){ // json字符串转换,这时是回填到bean对象上，则需要转换 json 为bean
-                            EReflectUtil.setFieldValue(t,field,EJSONUtil.toBean((String) value,field.getType()));
+                            EReflectUtil.setFieldValue(t,field,EJSONUtil.toBean((String) valueObj,field.getType()));
                         }else{
-                            EReflectUtil.setFieldValue(t,field,value);
+                            EReflectUtil.setFieldValue(t,field,valueObj);
                         }
                     }else{
                         // 非枚举字段赋予对象值
-                        EReflectUtil.setFieldValue(t,field,value);
+                        EReflectUtil.setFieldValue(t,field,valueObj);
                     }
 
                 }
