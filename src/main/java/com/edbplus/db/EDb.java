@@ -619,8 +619,20 @@ public class EDb extends Db{
      * @param <M>
      * @return
      */
-    public <M> M findById(Class<M> mClass,String tableName, String primaryKey, Object idValue) {
+    public static  <M> M findById(Class<M> mClass,String tableName, String primaryKey, Object idValue) {
         return MAIN.findById(mClass,tableName,primaryKey,idValue);
+    }
+
+    /**
+     * 根据唯一主键找对象
+     * @param mClass
+     * @param primaryKey
+     * @param idValue
+     * @param <M>
+     * @return
+     */
+    public static  <M> M findById(Class<M> mClass, String primaryKey, Object idValue) {
+        return MAIN.findById(mClass,primaryKey,idValue);
     }
 
     /**

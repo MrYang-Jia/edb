@@ -1820,6 +1820,20 @@ public class EDbPro extends DbPro {
         }
     }
 
+
+    /**
+     * 根据唯一主键找对象
+     * @param mClass
+     * @param primaryKey
+     * @param idValue
+     * @param <M>
+     * @return
+     */
+    public <M> M findById(Class<M> mClass, String primaryKey, Object idValue) {
+        String tableName = tableName(mClass);
+        return findById(mClass, tableName, primaryKey, idValue);
+    }
+
     /**
      * 根据单主键对象传入 ids 串 ，返回数据对象
      * @param mClass
