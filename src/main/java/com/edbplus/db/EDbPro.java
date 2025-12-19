@@ -115,10 +115,22 @@ public class EDbPro extends DbPro {
     public <M> M findByGroupId(Class<M> mClass, Object... idValues ) {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        return findByGroupId(mClass,table.name(),idValues);
+    }
+
+
+    /**
+     * 根据Jpa对象返回实体
+     * @param mClass
+     * @param idValues -- 根据字段的顺序进行赋值
+     * @param <M>
+     * @return
+     */
+    public <M> M findByGroupId(Class<M> mClass,String tableName, Object... idValues ) {
         // 获取主键键值
         String keys = JpaAnnotationUtil.getPriKeys(mClass);
         // 根据主键返回对象
-        M record = this.findByGroupId(mClass,table.name(),keys,idValues);
+        M record = this.findByGroupId(mClass,tableName,keys,idValues);
         return record;
     }
 
@@ -1837,20 +1849,18 @@ public class EDbPro extends DbPro {
     /**
      * 根据单主键对象传入 ids 串 ，返回数据对象
      * @param mClass
+     * @param primaryKey
      * @param ids
      * @param <M>
      * @return
      */
-    public <M> List<M> findByIds(Class<M> mClass, List<Object> ids) {
-        // 返回表对象 -- 便于获取表名称
-        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
-        // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+    public <M> List<M> findByIds(Class<M> mClass,String tableName, String primaryKey, List<Object> ids) {
+        String keys = primaryKey;
         if(keys.split(",").length > 1){
             throw new RuntimeException(" 只支持单主键的多id传值 ");
         }
         // 基于表结构不区分大小写的写法 如果是 pa 只支持全小写的写法
-        StringBuilder sql = (new StringBuilder("select * from ")).append(table.name()).append(" where ").append(keys);
+        StringBuilder sql = (new StringBuilder("select * from ")).append(tableName).append(" where ").append(keys);
         sql.append(" in(");
         //
         for(int i = 0; i < ids.size(); ++i) {
@@ -1880,6 +1890,38 @@ public class EDbPro extends DbPro {
         // 执行查询结果
         List<M> result = this.find(mClass,sql.toString(), newIds.toArray());
         return result;
+    }
+
+    /**
+     * 根据单主键对象传入 ids 串 ，返回数据对象
+     * @param mClass
+     * @param primaryKey
+     * @param ids
+     * @param <M>
+     * @return
+     */
+    public <M> List<M> findByIds(Class<M> mClass, String primaryKey, List<Object> ids) {
+        // 返回表对象 -- 便于获取表名称
+        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        return findByIds(mClass,table.name(),primaryKey,ids);
+    }
+
+    /**
+     * 根据单主键对象传入 ids 串 ，返回数据对象
+     * @param mClass
+     * @param ids
+     * @param <M>
+     * @return
+     */
+    public <M> List<M> findByIds(Class<M> mClass, List<Object> ids) {
+//        // 返回表对象 -- 便于获取表名称
+//        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
+        // 获取主键键值
+        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        if(keys.split(",").length > 1){
+            throw new RuntimeException(" 只支持单主键的多id传值 ");
+        }
+        return findByIds(mClass,keys,ids);
     }
 
 

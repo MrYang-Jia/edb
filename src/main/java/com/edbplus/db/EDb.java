@@ -1050,6 +1050,44 @@ public class EDb extends Db{
         return MAIN.findByIds(mClass,ids);
     }
 
+
+    /**
+     * 根据Jpa对象返回实体
+     * @param mClass
+     * @param tableName
+     * @param idValues -- 根据字段的顺序进行赋值
+     * @param <M>
+     * @return
+     */
+    public static  <M> M findByGroupId(Class<M> mClass,String tableName, Object... idValues ){
+        return MAIN.findByGroupId(mClass,tableName,idValues);
+    }
+
+    /**
+     * 根据指向表和表主键键值返回数据
+     * @param mClass
+     * @param tableName
+     * @param primaryKey
+     * @param ids
+     * @return
+     * @param <M>
+     */
+    public static  <M> List<M> findByIds(Class<M> mClass,String tableName, String primaryKey, List<Object> ids){
+        return MAIN.findByIds(mClass,tableName,primaryKey,ids);
+    }
+
+    /**
+     * 根据表对象和主键键值返回对象数据列表
+     * @param mClass
+     * @param primaryKey
+     * @param ids
+     * @return
+     * @param <M>
+     */
+    public static  <M> List<M> findByIds(Class<M> mClass, String primaryKey, List<Object> ids){
+        return MAIN.findByIds(mClass,primaryKey,ids);
+    }
+
     /**
      * 根据单主键对象传入 ids 串 ，返回数据对象
      * @param mClass

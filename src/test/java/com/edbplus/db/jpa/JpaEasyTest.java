@@ -68,6 +68,21 @@ public class JpaEasyTest extends BaseTest {
 //        eDbPro.findFirst("select * from dd where VEHICLE_TYPE_NAME like #para(vehicleTypeId)", Kv.by("vehicleTypeId",100));
     }
 
+
+    @Test
+    public void oneSaveTest(){
+        // 数据对象
+        VehicleType vehicleType = new VehicleType();
+        vehicleType.setNotFound("数据库不存在的字段测试-不报错则成功"); // 不存在不会保存到数据库，呢么这个字段的用途 则用来做额外标记或查询时反向赋予
+        vehicleType.setVehicleTypeName("原:小汽车");
+        vehicleType.setCreatorName("小陈陈");
+//        vehicleType.setCreateTime(DateUtil.date());
+//        vehicleType.setModifyTime(DateUtil.date());
+        // 如果有多个数据库，可以用 EDb.use("数据库标识1") 指定
+//        eDbPro.insertValue(vehicleType);
+        eDbPro.save(vehicleType);
+    }
+
     /**
      * JPA 单体对象测试
      * 保存、查询、修改、删除
@@ -83,6 +98,7 @@ public class JpaEasyTest extends BaseTest {
              start = System.currentTimeMillis();
              // 数据对象
              VehicleType vehicleType = new VehicleType();
+             vehicleType.setNotFound("数据库不存在的字段测试-不报错则成功"); // 不存在不会保存到数据库，呢么这个字段的用途 则用来做额外标记或查询时反向赋予
              vehicleType.setVehicleTypeName("原:小汽车");
              vehicleType.setCreatorName("小陈陈");
              vehicleType.setCreateTime(DateUtil.date());
