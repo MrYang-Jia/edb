@@ -131,72 +131,59 @@ public class EDbSelectUtil {
         return sql + " offset " + offsetIdx; // 不存在limit则直接拼接
     }
 
+
+
     /**
      * 修改原语句并返回limitSql
      * @param sql -- 原语句
      * @param limitCount -- 返回条数，ps:当用户自己的sql结尾含有 limit xxx 时，以用户自己输入的为准
      * @return
      */
-    public static String returnLimitSql(String sql,int limitCount){
+    public static String returnLimitSql(String sql, int limitCount) {
+        if (sql == null || sql.isBlank()) return sql;
         String sqlLower = sql.toLowerCase();
         int lastIdx = sqlLower.lastIndexOf("limit");
-        if(lastIdx > -1){ // 可能存在 limit 关键字
-            String leftIdxStr = sqlLower.substring(lastIdx-1,lastIdx); // 关键字左侧字符串
-            String rightIdxStr = sqlLower.substring(lastIdx + 5,lastIdx + 6); // limit 长度为5,关键字右侧字符串
-            // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
-            if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 确认存在limit关键字
-                String lastSql =  sqlLower.substring(lastIdx,sql.length()); // 最后尾部 limit(包含) 右侧的字符串
-                // 内部limit函数，则都会在右侧嵌套 ) 以表示结束，所以只要判断这个，就可以在外围加 limit
-                if(lastSql.indexOf(")") > -1){
-                    return sql + " limit " + limitCount;
-                }else{
-                    int offsetIdx =  lastSql.indexOf("offset"); // 最后一个 limit 右侧首个 offset 结尾的情况，可能存在换行符等 -> limit 10 offset 0\n
-                    if(offsetIdx > -1){// 可能存在 offset 关键字
-                        leftIdxStr = lastSql.substring(offsetIdx-1,offsetIdx);// 关键字左侧字符串
-                        rightIdxStr = lastSql.substring(offsetIdx + 6,offsetIdx + 7); // offset 长度为6,关键字右侧字符串
-                        // 判断特殊字符 空格 制表符 换行符 回车 都认为是操作指令前的步骤
-                        if(checkSpecialCharacters(leftIdxStr,rightIdxStr)){ // 确认是否存在 offset 关键字
-                            String offsetSql = lastSql.substring(offsetIdx,lastSql.length());
-                            return sql.substring(0,lastIdx) + " limit " + limitCount +" " + offsetSql;
-                        }
-                    }
-                    int limitFilterIdx = lastSql.indexOf(",");//特殊符号，一般是不会有什么特殊的场景，所以直接切割即可
-                    if(limitFilterIdx > -1){ // mysql 之 limit 0,10 转为 limit 0,limitCount
-                        String limitFilterPreSql = lastSql.substring(0,limitFilterIdx);
-                        return sql.substring(0,lastIdx) +  limitFilterPreSql + "," + limitCount;
-                    }
-                    return sql.substring(0,lastIdx) + " limit " + limitCount;
+        if (lastIdx > -1 && lastIdx + 5 < sql.length()) {
+            // 👉 防越界保护
+            if (lastIdx == 0) {
+                return sql + " limit " + limitCount;
+            }
+            String leftIdxStr = sqlLower.substring(lastIdx - 1, lastIdx);
+            String rightIdxStr = sqlLower.substring(lastIdx + 5, Math.min(lastIdx + 6, sql.length()));
+            if (checkSpecialCharacters(leftIdxStr, rightIdxStr)) {
+                String lastSql = sqlLower.substring(lastIdx);
+                // 处理 limit ?
+                String afterLimit = lastSql.substring(5).trim();
+                if (afterLimit.startsWith("?")) {
+                    return sql; // 不处理
                 }
+                // 内部函数 limit(...) → 跳过
+                if (lastSql.contains(")")) {
+                    return sql + " limit " + limitCount;
+                }
+                // offset 处理
+                int offsetIdx = lastSql.indexOf("offset");
+                if (offsetIdx > -1 && offsetIdx + 6 < lastSql.length()) {
+                    String offsetLeft = lastSql.substring(offsetIdx - 1, offsetIdx);
+                    String offsetRight = lastSql.substring(offsetIdx + 6, Math.min(offsetIdx + 7, lastSql.length()));
+                    if (checkSpecialCharacters(offsetLeft, offsetRight)) {
+                        String offsetSql = sql.substring(lastIdx + offsetIdx);
+                        return sql.substring(0, lastIdx) + "limit " + limitCount + " " + offsetSql;
+                    }
+                }                // limit a,b
+                int commaIdx = lastSql.indexOf(",");
+                if (commaIdx > -1) {
+                    String prefix = sql.substring(lastIdx, lastIdx + commaIdx);
+                    return sql.substring(0, lastIdx) + prefix + "," + limitCount;
+                }
+                // 普通 limit a
+                return sql.substring(0, lastIdx) + "limit " + limitCount;
             }
         }
-        return sql + " limit " + limitCount; // 不存在limit则直接拼接
-//        if(sql.contains("::")){ // 如果非正常sql语句，包含 :: 特殊符号，则无法正常转换，druid并没有兼容该语法解析
-//            if(sql.indexOf("limit") == -1){
-//                return sql + " limit " + limitCount;
-//            }
-//        }else{
-//            // 获取sql实例对象 -- sql语句本身
-//            SQLSelectStatement sqlStatement = selectStatement(sql);
-//            // 避免解析语句的limit对象为null，则填充
-//            if(sqlStatement.getSelect().getFirstQueryBlock().getLimit() == null){
-//                SQLLimit sqlLimit = new SQLLimit();
-//                sqlStatement.getSelect().getFirstQueryBlock().setLimit(sqlLimit);
-//            }
-//            // sql解析
-//            SQLExpr limitExpr = sqlStatement.getSelect().getFirstQueryBlock().getLimit().getRowCount();
-//            // 修改标志 -- 用户如果有自己控制limit，则由用户自己控制返回个数
-//            Boolean changeType = true;
-//            if(limitExpr != null){
-//                changeType = false;
-//            }
-//            // 设置返回的记录集
-//            if(changeType){
-//                sqlStatement.getSelect().getFirstQueryBlock().getLimit().setRowCount(limitCount);
-//            }
-//            return sqlStatement.getSelect().toString();
-//        }
-//        return sql; // 其他情况比较复杂，则不做优化，避免优化过度，导致更多异常问题
+        // 不存在 limit
+        return sql + " limit " + limitCount;
     }
+
 
     /**
      * select语句实例对象

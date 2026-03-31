@@ -58,7 +58,7 @@ public class SqlParserTest {
         // 场景1
         String sql = " select 1,(select 1 from tb2 limit 1) from tb limit 9";
         System.out.println("1=>"+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1,(select 1 from tb2 limit 1) from tb  limit 1",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1,(select 1 from tb2 limit 1) from tb limit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
         sql = " select 1,(select 1 from tb2 limit 1) from tb ";
         System.out.println("2=>"+EDbSelectUtil.returnLimitSql(sql,1));
@@ -74,31 +74,31 @@ public class SqlParserTest {
 
         sql = " select 1 from tb limit 10 offset 7"; // 这个要特殊处理，右侧如果存在 offset 的情况，则必须保留，避免数据结果不一致，尤其是mysql版本
         System.out.println("5=>"+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1 from tb  limit 1 offset 7",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1 from tb limit 1 offset 7",EDbSelectUtil.returnLimitSql(sql,1));
 
         sql = " select 1 from tb offset 6 limit 9 ";
         System.out.println("6=>"+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1 from tb offset 6  limit 1",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1 from tb offset 6 limit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
         sql = " select 1 from tb offset 0\r\nlimit 9 "; // 特殊符号场景
         System.out.println("7=>"+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1 from tb offset 0\r\n limit 1",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1 from tb offset 0\r\nlimit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
         sql = " select 1_limit from tb offset 0 limit 9 ";
         System.out.println("8=>"+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1_limit from tb offset 0  limit 1",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1_limit from tb offset 0 limit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
         sql = " select 1  from tb where gs='N' offset 0 \tlimit 9 ";
         System.out.println("9=>"+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1  from tb where gs='N' offset 0 \t limit 1",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1  from tb where gs='N' offset 0 \tlimit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
         sql = " select 1_limit -- 换行 \n from tb offset 0 limit 9 ";
         System.out.println("10 => "+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1_limit -- 换行 \n from tb offset 0  limit 1",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1_limit -- 换行 \n from tb offset 0 limit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
         sql = " select 1_limit,'\\n 1' -- 回车 \r\n from tb where and offset 0 limit 9 ";
         System.out.println("11=>"+EDbSelectUtil.returnLimitSql(sql,1));
-        Assert.assertEquals(" select 1_limit,'\\n 1' -- 回车 \r\n from tb where and offset 0  limit 1",EDbSelectUtil.returnLimitSql(sql,1));
+        Assert.assertEquals(" select 1_limit,'\\n 1' -- 回车 \r\n from tb where and offset 0 limit 1",EDbSelectUtil.returnLimitSql(sql,1));
 
     }
 

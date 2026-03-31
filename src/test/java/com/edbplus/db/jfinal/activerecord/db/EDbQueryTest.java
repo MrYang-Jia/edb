@@ -90,6 +90,7 @@ public class EDbQueryTest {
         eDbQuery.orCom().and(new EDbFilter("CREATOR", EDbFilter.Operator.eq, "创建人-0"));
         //  增加 CREATOR 作为降序要素
         eDbQuery.orderDESC("CREATOR");
+        eDbQuery.limit(1);
         // 重新解析 sqlpara
         sqlPara = EDbQueryUtil.getSqlParaForJpaQuery(VehicleType.class,eDbQuery);
 
@@ -97,6 +98,7 @@ public class EDbQueryTest {
 //        System.out.println(EJSONUtil.toJsonStr(sqlPara.getPara()));
         // 结果会发现都包含了100 和 200 的数据
         System.out.println(EJSONUtil.toJsonStr(EDb.find(VehicleType.class,sqlPara)));
+        System.out.println(EJSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,sqlPara)));
 
 
 
