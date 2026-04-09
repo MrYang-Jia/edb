@@ -32,7 +32,7 @@ public class BaseTest {
     String pwd = "dev-whbj@WHBJ";
     // 测试库 stringtype=unspecified -> 允许pg可以输入字符串类型的时间参数
     // https://jdbc.postgresql.org/documentation/head/connect.html#connection-parameters
-    String jdbcUrl2 = "jdbc:postgresql://192.168.1.208:15432/tra_log?stringtype=unspecified&currentSchema=public&reWriteBatchedInserts=true&useUnicode=true&characterEncoding=utf8&defaultFetchSize=2"; // maxResultBuffer=100M 最大内存会溢出
+    String jdbcUrl2 = "jdbc:postgresql://192.168.1.208:15432/test_log?stringtype=unspecified&currentSchema=public&reWriteBatchedInserts=true&useUnicode=true&characterEncoding=utf8&defaultFetchSize=2"; // maxResultBuffer=100M 最大内存会溢出
     // 账号
     String userName2 = "postgres";
     String pwd2 = "whbj123456";
@@ -68,14 +68,14 @@ public class BaseTest {
         eDbDruidSqlLogFilter.setDbType(2); //pg类型的解析,但是 druid 对于日新月异的 druid sql支持，还是有点弱，例如特殊符号强转则无法格式化
         // 添加sql日志打印信息
         filterList.add(eDbDruidSqlLogFilter);
-//        GenJdbc.initForEnjoy("pg",jdbcUrl2,userName2,pwd2,sqlTplList,shareSqlTplList,filterList);
+        GenJdbc.initForEnjoy("pg",jdbcUrl2,userName2,pwd2,sqlTplList,shareSqlTplList,filterList);
         JpaListener jpaListener = new JpaListener();
 //        // 初始化
         EDb.use().setEDbListener(jpaListener);
 //        EDb.use().setConnectListener(sqlListener);
 //        // 一个数据库只能设定一个监听 ，所以要绑定监听的数据库对象
 //        EDb.use("pg").setEDbListener(jpaListener);
-//        EDb.use("pg").setConnectListener(sqlListener);
+        EDb.use("pg").setConnectListener(sqlListener);
     }
 
 

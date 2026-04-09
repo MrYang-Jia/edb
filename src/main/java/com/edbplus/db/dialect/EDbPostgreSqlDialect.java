@@ -98,8 +98,55 @@ public class EDbPostgreSqlDialect extends PostgreSqlDialect {
                 record.setColumns(toLowerKeyData);
             }
         }
+        resetRecordListToArray(record);
         // 执行保存
         super.forDbSave(tableName,pKeys,record,sql,paras);
+    }
+
+
+    /**
+     * 重新将 List 转换成 Array 数组
+     */
+    private void resetRecordListToArray(Record record) {
+        if (record == null || record.getColumns() == null || record.getColumns().isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<String, Object> entry : record.getColumns().entrySet()) {
+            Object value = entry.getValue();
+
+            // 只处理 List 类型 —— JDK8 写法
+            if (value instanceof List) {
+                List list = (List) value;
+
+                if (list.isEmpty()) {
+                    // 空 List 赋值空数组
+                    entry.setValue(new Object[0]);
+                    continue;
+                }
+
+                // 获取第一个元素判断类型
+                Object first = list.get(0);
+                Object array;
+
+                if (first instanceof String) {
+                    array = list.toArray(new String[0]);
+                } else if (first instanceof Integer) {
+                    array = list.toArray(new Integer[0]);
+                } else if (first instanceof Long) {
+                    array = list.toArray(new Long[0]);
+                } else if (first instanceof Double) {
+                    array = list.toArray(new Double[0]);
+                } else if (first instanceof Boolean) {
+                    array = list.toArray(new Boolean[0]);
+                } else {
+                    // 其他类型走 Object[]
+                    array = list.toArray();
+                }
+
+                entry.setValue(array);
+            }
+        }
     }
 
 
@@ -120,6 +167,7 @@ public class EDbPostgreSqlDialect extends PostgreSqlDialect {
                 record.setColumns(toLowerKeyData);
             }
         }
+        resetRecordListToArray(record);
         // 执行更新
         super.forDbUpdate(tableName,pKeys,ids,record,sql,paras);
     }
