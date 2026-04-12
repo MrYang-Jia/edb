@@ -28,9 +28,7 @@ import com.edbplus.db.query.lambda.update.LambdaUpdate;
 import org.testng.annotations.Test;
 
 import java.io.ObjectStreamClass;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @ClassName LambdaTest
@@ -47,6 +45,8 @@ public class LambdaTest extends BaseTest {
     @Test
     public void lambdaSelectQueryTest(){
         LambdaSelectQuery<VehicleType> eDbLambdaQuery = LambdaOpt.select.lambdaQuery(VehicleType.class);
+        // 多个时用in
+        eDbLambdaQuery.in(VehicleType::getVehicleTypeId,List.of(100,300));
         eDbLambdaQuery.likeLeft(VehicleType::getVehicleTypeId,100).findFirst();
     }
 
