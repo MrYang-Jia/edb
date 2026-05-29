@@ -16,6 +16,7 @@
 package com.edbplus.db.jpa;
 
 import cn.hutool.core.lang.SimpleCache;
+import com.edbplus.db.annotation.EDbIncNull;
 import com.edbplus.db.annotation.EDbRel;
 import com.edbplus.db.annotation.EDbType;
 import com.edbplus.db.annotation.EDbView;
@@ -29,6 +30,7 @@ import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.hutool.map.CaseInsensitiveMap;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import org.postgresql.jdbc.PgArray;
+import org.postgresql.util.PGobject;
 
 import javax.persistence.*;
 import java.beans.PropertyDescriptor;
@@ -64,6 +66,56 @@ public class JpaAnnotationUtil {
 
     // 缓存视图对象
     private static final SimpleCache<Class<?>, List<FieldAndView>> VIEW_CACHE = new SimpleCache();
+
+    /**
+     * 是否强制列名转小写（兼容数据库字段全小写场景）
+     * 按数据源配置，key = EDbPro.getConfig().getName() (数据源名称)
+     * 默认 false：保留 @Column 注解的原始大小写
+     * 设为 true：列名统一转小写（旧项目兼容用）
+     */
+    private static final Map<String, Boolean> FORCE_LOWERCASE_COLUMN_MAP = new HashMap<>();
+
+    /**
+     * 全局默认值，当指定数据源未配置时使用
+     */
+    public static boolean DEFAULT_FORCE_LOWERCASE = true;
+
+    /**
+     * 设置指定数据源的列名大小写策略
+     * @param configName 数据源名称 (this.getConfig().getName())
+     * @param forceLower true = 兼容数据库全小写字段；false = 保留原始大小写
+     */
+    public static void setForceLowercaseColumn(String configName, boolean forceLower) {
+        FORCE_LOWERCASE_COLUMN_MAP.put(configName, forceLower);
+    }
+
+    /**
+     * 设置全局默认大小写策略（所有未单独配置的数据源使用该策略）
+     * @param forceLower true = 兼容数据库全小写字段；false = 保留原始大小写
+     */
+    public static void setDefaultForceLowercaseColumn(boolean forceLower) {
+        DEFAULT_FORCE_LOWERCASE = forceLower;
+    }
+
+    /**
+     * 获取指定数据源的列名大小写策略
+     * @param configName 数据源名称
+     * @return true = 强制小写；false = 保留原始大小写
+     */
+    public static boolean isForceLowercaseColumn(String configName) {
+        return FORCE_LOWERCASE_COLUMN_MAP.getOrDefault(configName, DEFAULT_FORCE_LOWERCASE);
+    }
+
+    /**
+     * 根据配置规范化列名大小写
+     * 统一入口，避免 EDbPro 等调用处到处判断 FORCE_LOWERCASE_COLUMN
+     * @param configName 数据源名称 (this.getConfig().getName())
+     * @param columnName @Column 注解的原始列名
+     * @return 根据配置返回小写或原始列名
+     */
+    public static String normalizeColumnName(String configName, String columnName) {
+        return isForceLowercaseColumn(configName) ? columnName.toLowerCase() : columnName;
+    }
 
 
     /**
@@ -607,6 +659,17 @@ public class JpaAnnotationUtil {
     }
 
     /**
+     * 返回主键字段字符串（按数据源配置大小写策略）
+     * @param mClass 实体类
+     * @param configName 数据源名称
+     * @return
+     */
+    public static String getPriKeys(Class mClass, String configName) {
+        List<Column> idColumns = getIdCoumns(mClass);
+        return getPriKeys(idColumns, configName);
+    }
+
+    /**
      * 返回主键字段
      * @param idColumns
      * @return
@@ -615,11 +678,28 @@ public class JpaAnnotationUtil {
         // 这里没有对 idColumns 做判断，是因为有异常的时候会直接抛出
         StringBuffer keys= new StringBuffer();
         for(Column column : idColumns){
-            // 统一小写，避免无法识别
-            keys.append(column.name().toLowerCase()).append(",");
+            // 保留原始列名（无配置时默认不转小写）
+            keys.append(column.name()).append(",");
         }
         // 删除最后一个字符串
         keys.deleteCharAt(keys.length()-1);
+        return keys.toString();
+    }
+
+    /**
+     * 返回主键字段（按数据源配置大小写策略）
+     * @param idColumns 主键列
+     * @param configName 数据源名称
+     * @return
+     */
+    public static String getPriKeys(List<Column> idColumns, String configName) {
+        StringBuffer keys = new StringBuffer();
+        String columnName = null;
+        for (Column column : idColumns) {
+            columnName = normalizeColumnName(configName, column.name());
+            keys.append(columnName).append(",");
+        }
+        keys.deleteCharAt(keys.length() - 1);
         return keys.toString();
     }
 
@@ -632,11 +712,27 @@ public class JpaAnnotationUtil {
         // 这里没有对 idColumns 做判断，是因为有异常的时候会直接抛出
         StringBuffer keys= new StringBuffer();
         for(FieldAndColumn fieldAndColumn : idFieldAndColumns){
-            // 统一小写，避免无法识别
-            keys.append(fieldAndColumn.getColumn().name().toLowerCase()).append(",");
+            keys.append(fieldAndColumn.getColumn().name()).append(",");
         }
         // 删除最后一个字符串
         keys.deleteCharAt(keys.length()-1);
+        return keys.toString();
+    }
+
+    /**
+     * 返回主键字段（按数据源配置大小写策略）
+     * @param idFieldAndColumns 主键列
+     * @param configName 数据源名称
+     * @return
+     */
+    public static String getPriKeysByFieldAndColumn(List<FieldAndColumn> idFieldAndColumns, String configName) {
+        StringBuffer keys = new StringBuffer();
+        String columnName = null;
+        for (FieldAndColumn fieldAndColumn : idFieldAndColumns) {
+            columnName = normalizeColumnName(configName, fieldAndColumn.getColumn().name());
+            keys.append(columnName).append(",");
+        }
+        keys.deleteCharAt(keys.length() - 1);
         return keys.toString();
     }
 
@@ -685,23 +781,34 @@ public class JpaAnnotationUtil {
      * @return
      */
     public static <T> Map<String,Object> getJpaMap(T t,boolean containsNullValue){
-        //
+        return getJpaMap(t, containsNullValue, null);
+    }
+
+    /**
+     * 将对象转换成map（按数据源配置大小写策略）
+     * @param t 实体对象
+     * @param containsNullValue - true - 包含null , false - 不包含null
+     * @param configName 数据源名称
+     * @param <T>
+     * @return
+     */
+    public static <T> Map<String,Object> getJpaMap(T t, boolean containsNullValue, String configName) {
         Map<String,Object> dataMap = new HashMap<>();
-        // 获取对象类上的所有字段
         List<FieldAndColValue> fields = getCoumnValues(t);
-        //
+        String columnName = null;
         for(FieldAndColValue fieldAndColValue : fields){
-            // 不包含null的情况
+            columnName = normalizeColumnName(configName, fieldAndColValue.getColumn().name());
+            Object fieldValue = fieldAndColValue.getFieldValue();
+            // 判断是否包含null值更新字段
+            boolean isIncNull = fieldAndColValue.getField().getAnnotation(EDbIncNull.class) != null;
             if(!containsNullValue){
-                if(fieldAndColValue.getFieldValue() != null){
-                    // 赋予对象数值
-                    dataMap.put(fieldAndColValue.getColumn().name().toLowerCase(),fieldAndColValue.getFieldValue());
+                // 如果字段有 @EDbIncNull 注解，即使是null也要包含
+                if(fieldValue != null || isIncNull){
+                    dataMap.put(columnName, fieldValue);
                 }
             }else{
-                // 赋予对象数值 -- 赋予对象为null的情况
-                dataMap.put(fieldAndColValue.getColumn().name().toLowerCase(),fieldAndColValue.getFieldValue());
+                dataMap.put(columnName, fieldValue);
             }
-
         }
         return dataMap;
     }
@@ -713,15 +820,25 @@ public class JpaAnnotationUtil {
      * @return
      */
     public static <T> Map<String,Object> getJpaMap(T t,List<String> updateFields){
-        //
+        return getJpaMap(t, updateFields, null);
+    }
+
+    /**
+     * 将对象转换成map（按数据源配置大小写策略）
+     * @param t 实体对象
+     * @param updateFields 需要转换的字段
+     * @param configName 数据源名称
+     * @return
+     */
+    public static <T> Map<String,Object> getJpaMap(T t, List<String> updateFields, String configName) {
         Map<String,Object> dataMap = new HashMap<>();
-        // 获取keyValue的对象集
         Map<String,FieldAndColValue> fieldAndColValueMap = getCoumnValuesMap(t);
         FieldAndColValue fieldAndColValue = null;
-        // 只匹配对应的字段数据
+        String columnName = null;
         for(String fieldName:updateFields){
             fieldAndColValue = fieldAndColValueMap.get(fieldName);
-            dataMap.put(fieldAndColValue.getColumn().name().toLowerCase(),fieldAndColValue.getFieldValue());
+            columnName = normalizeColumnName(configName, fieldAndColValue.getColumn().name());
+            dataMap.put(columnName, fieldAndColValue.getFieldValue());
         }
         return dataMap;
     }
@@ -891,12 +1008,35 @@ public class JpaAnnotationUtil {
                 if(valueObj != null){
                     // 非枚举，直接赋值即可，使用该方式可以避免类型不一致，赋值出现异常情况
                     // 如果字段上有转换标志则需要将对象进行转换，目前只用于 json 字符串转bean对象
-                    if(EAnnotationUtil.getAnnotation(field, EDbType.class) != null){
+                    if (EAnnotationUtil.getAnnotation(field, EDbType.class) != null) {
                         EDbType eDbType = field.getAnnotation(EDbType.class);
-                        if(eDbType.type().equals(DataType.JSONSTRING)){ // json字符串转换,这时是回填到bean对象上，则需要转换 json 为bean
-                            EReflectUtil.setFieldValue(t,field,EJSONUtil.toBean((String) valueObj,field.getType()));
-                        }else{
-                            EReflectUtil.setFieldValue(t,field,valueObj);
+                        // 先判断数据库返回的是不是 PGobject
+                        if (valueObj instanceof PGobject) {
+                            PGobject pgObj = (PGobject) valueObj;
+                            String jsonStr = pgObj.getValue(); // 取出真实json字符串
+
+                            // 判断实体字段类型是不是 PGobject 类型
+                            if (field.getType() == PGobject.class) {
+                                // 字段类型就是 PGobject → 直接赋值
+                                EReflectUtil.setFieldValue(t, field, valueObj);
+                            } else {
+                                // 字段不是 PGobject → 把 jsonStr 转成对应 Bean
+                                if (eDbType.type().equals(DataType.JSONSTRING)) {
+                                    // JSON字符串 → 转成Bean（hutool）
+                                    Object bean = EJSONUtil.toBean(jsonStr, field.getType());
+                                    EReflectUtil.setFieldValue(t, field, bean);
+                                } else {
+                                    // 其他类型直接赋值
+                                    EReflectUtil.setFieldValue(t, field, jsonStr);
+                                }
+                            }
+                        } else {
+                            // 不是 PGobject 类型，走原来逻辑
+                            if (eDbType.type().equals(DataType.JSONSTRING)) {
+                                EReflectUtil.setFieldValue(t, field, EJSONUtil.toBean((String) valueObj, field.getType()));
+                            } else {
+                                EReflectUtil.setFieldValue(t, field, valueObj);
+                            }
                         }
                     }else{
                         // 非枚举字段赋予对象值

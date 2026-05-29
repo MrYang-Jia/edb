@@ -12,6 +12,7 @@ public enum CreaterEnum {
     XiaoMing,
     ChenHong;
 
+
     public String getLabel() {
         switch (this) {
             case XiaoMing:

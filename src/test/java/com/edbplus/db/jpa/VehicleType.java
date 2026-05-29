@@ -29,15 +29,23 @@ public class VehicleType extends BaseVehicleType{
      */
     @EDbSave
     public void beforeSave(Map<String,Object> saveMap,List<FieldAndColumn> coumns){
-
         // coumns 取出的是jpa对象上的 @Column 集合，用于判断时，建议取统一小写去判断字段，避免研发人员开发时不小心大写或小写定义问题，导致数据更新不一致的情况发生
-        if(saveMap.get("CREATE_TIME")== null){
-            saveMap.put("CREATE_TIME",new Date());
+        for (FieldAndColumn fieldAndColumn : coumns) {
+
+            if (saveMap.get(fieldAndColumn.getColumn().name()) == null
+             && (fieldAndColumn.getColumn().name().toUpperCase().equals("CREATE_TIME")
+            || fieldAndColumn.getColumn().name().toUpperCase().equals("UPDATE_TIME"))
+            ) {
+                if (JpaAnnotationUtil.DEFAULT_FORCE_LOWERCASE){
+                    saveMap.put(fieldAndColumn.getColumn().name().toLowerCase(),new Date());
+                }else {
+                    saveMap.put(fieldAndColumn.getColumn().name(),new Date());
+                }
+
+            }
         }
-        // 忽视大小写
-        if(saveMap.get("MODIFY_tiME")== null){
-            saveMap.put("MODIFY_TIME",new Date());
-        }
+
+
         System.out.println("执行 @EDbSave 后："+ EJSONUtil.toJsonStr(saveMap));
     }
 
@@ -49,14 +57,14 @@ public class VehicleType extends BaseVehicleType{
     @EDbUpdate
     public void beforeUpdate(Map<String,Object> updateMap, List<FieldAndColumn> coumns){
         // 忽视大小写
-        if(updateMap.get("MODIFY_TIME")==null){
-            updateMap.put("MODIFY_TIME", new Date());
-        }else
-        {
-            // + 5秒
-            updateMap.put("MODIFY_TIME", EDateUtil.offsetSecond((Date) updateMap.get("MODIFY_TIME"),5));
-        }
-        System.out.println("执行 @EDbUpdate 后："+EJSONUtil.toJsonStr(updateMap));
+//        if(updateMap.get("MODIFY_TIME")==null){
+//            updateMap.put("MODIFY_TIME", new Date());
+//        }else
+//        {
+//            // + 5秒
+//            updateMap.put("MODIFY_TIME", EDateUtil.offsetSecond((Date) updateMap.get("MODIFY_TIME"),5));
+//        }
+//        System.out.println("执行 @EDbUpdate 后："+EJSONUtil.toJsonStr(updateMap));
     }
 
 

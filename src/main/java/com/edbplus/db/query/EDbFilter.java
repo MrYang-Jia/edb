@@ -117,6 +117,12 @@ public class EDbFilter implements Serializable {
         orderBy(" order by "),
 
         limit(" limit "),
+
+        // 数组包含所有
+        arrAll(" @> ARRAY "),
+        // 数组包含其中任意一个
+        arrAny(" && ARRAY "),
+
         // 模板填充
         tpl(" "),
         ;
@@ -878,6 +884,16 @@ public class EDbFilter implements Serializable {
 
     public static EDbFilter tpl(boolean condition, String tplSql, Object... values) {
         if (condition) return new EDbFilter(tplSql, Operator.tpl, values);
+        return null;
+    }
+
+    public static EDbFilter arrAll(boolean condition, String tplSql, Object... values) {
+        if (condition) return new EDbFilter(tplSql, Operator.arrAll, values);
+        return null;
+    }
+
+    public static EDbFilter arrAny(boolean condition, String tplSql, Object... values) {
+        if (condition) return new EDbFilter(tplSql, Operator.arrAny, values);
         return null;
     }
 

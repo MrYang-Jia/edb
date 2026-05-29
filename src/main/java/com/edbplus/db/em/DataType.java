@@ -8,7 +8,8 @@ package com.edbplus.db.em;
  * @Version V1.0
  **/
 public enum DataType {
-    JSONSTRING("jsonString");
+    JSONSTRING("jsonString"),
+    JSONMAP("jsonMap");
 
     DataType( String name) {
 

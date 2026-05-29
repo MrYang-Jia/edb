@@ -62,12 +62,13 @@ public class LambdaTest extends BaseTest {
 //        eDbLambdaQuery.set(VehicleType::getCreatorName,"小可2").set(VehicleType::getModifyTime, DateUtil.parse("2022-04-15 11:22:00"))
 //        .eq(VehicleType::getVehicleTypeId,100)
 //                .update();
+        //  LambdaOpt.select.lambdaQuery(VehicleType.class,"pg"); // 指定pg库
         // 查询
         LambdaSelectQuery<VehicleType> eDbLambdaQuery = LambdaOpt.select.lambdaQuery(VehicleType.class);
-        VehicleType vehicleType = eDbLambdaQuery.eq(VehicleType::getVehicleTypeId,300).findFirst();
+        VehicleType vehicleType = eDbLambdaQuery.eq(VehicleType::getVehicleTypeId,1378).findFirst();
 
         LambdaUpdate<VehicleType> delVehicle = LambdaOpt.update.lambda(VehicleType.class);
-        delVehicle.eq(VehicleType::getVehicleTypeId,300).delete();
+        delVehicle.eq(VehicleType::getVehicleTypeId,1378).delete();
 
         vehicleType.setCreateTime(null);
         vehicleType.setModifyTime(null);

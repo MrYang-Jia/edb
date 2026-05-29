@@ -17,19 +17,11 @@ package com.edbplus.db.query.lambda;
 
 import com.edbplus.db.EDb;
 import com.edbplus.db.EDbPro;
-import com.edbplus.db.dto.FieldAndColumn;
-import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.em.SqlConnectorEnum;
-import com.jfinal.kit.StrKit;
 import com.jfinal.plugin.activerecord.Page;
 
-import javax.persistence.Column;
-import java.io.*;
-import java.lang.invoke.SerializedLambda;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -389,7 +381,7 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
     }
 
     /**
-     * 等于 (条件版本)
+     * 不包含 (条件版本)
      * @param condition - 是否添加此条件
      * @param func
      * @param value
@@ -407,13 +399,72 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
     }
 
     /**
-     * 等于 (无条件版本 - 保持原有行为)
+     * 不包含 (无条件版本 - 保持原有行为)
      * @param func
      * @param value
      * @return
      */
     public LambdaQuery<T> notIn(EDbColumnFunc<T, ?> func, Object value){
         return notIn(true, func, value);
+    }
+
+    /**
+     * 包含所有 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    @Override
+    public LambdaQuery<T> arrAll(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.arrAll, value));
+        return this; // 返回自己本身
+    }
+
+    /**
+     * 包含所有 (无条件版本 - 保持原有行为)
+     * @param func
+     * @param value
+     * @return
+     */
+    @Override
+    public LambdaQuery<T> arrAll(EDbColumnFunc<T, ?> func, Object value){
+        return arrAll(true, func, value);
+    }
+
+    /**
+     * 涵盖 (条件版本)
+     * @param condition - 是否添加此条件
+     * @param func
+     * @param value
+     * @return
+     */
+    @Override
+    public LambdaQuery<T> arrAny(boolean condition, EDbColumnFunc<T, ?> func, Object value){
+        if (!condition) {
+            return this;
+        }
+        // 使用 EDbFilter 的方法获取列名
+        Class<?> currentEntityClass = EDbFilter.getEntityClass(func);
+        String columnName = EDbFilter.getColumnName(currentEntityClass, func);
+        doSome(true, sqlConnector, new EDbFilter(columnName, EDbFilter.Operator.arrAny, value));
+        return this; // 返回自己本身
+    }
+    /**
+     * 涵盖 (无条件版本 - 保持原有行为)
+     * @param func
+     * @param value
+     * @return
+     */
+    @Override
+    public LambdaQuery<T> arrAny(EDbColumnFunc<T, ?> func, Object value){
+        return arrAny(true, func, value);
     }
 
     /**
@@ -962,6 +1013,14 @@ public class EDbLambdaQuery<T>  implements LambdaSelectQuery<T>{
      * @return
      */
     public T findFirst(){
+        return eDbPro.findFirst(entityClass,eDbQuery);
+    }
+
+    /**
+     * 获取第一个对象
+     * @return T
+     */
+    public T one(){
         return eDbPro.findFirst(entityClass,eDbQuery);
     }
 

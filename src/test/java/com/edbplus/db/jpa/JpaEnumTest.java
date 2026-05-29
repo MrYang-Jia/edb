@@ -106,7 +106,10 @@ public class JpaEnumTest extends BaseTest {
      */
     @Test
     public void findTest(){
-        List<BaseCrVehicleTypeForEnum> list = EDb.use().find(BaseCrVehicleTypeForEnum.class,"select * from cr_vehicle_type where VEHICLE_TYPE_NAME = '测试枚举类型' ");
+        List<BaseCrVehicleTypeForEnum> list = EDb.use().find(BaseCrVehicleTypeForEnum.class,
+//                "select * from cr_vehicle_type where VEHICLE_TYPE_NAME = '测试枚举类型' "
+                "select * from cr_vehicle_type  limit 2"
+        );
 
         for(BaseCrVehicleTypeForEnum baseCrVehicleTypeForEnum:list){
             if(baseCrVehicleTypeForEnum.getCreator()!=null){

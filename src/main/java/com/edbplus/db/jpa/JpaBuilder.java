@@ -15,6 +15,10 @@
  */
 package com.edbplus.db.jpa;
 
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.edbplus.db.annotation.EDbStrToBean;
 import com.edbplus.db.dto.FieldAndColValue;
 import com.edbplus.db.dto.FieldAndColumn;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
@@ -28,6 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.*;
 
@@ -99,9 +105,9 @@ public class JpaBuilder  {
         // 获取根据 columnName 字段存储的map对象
         CaseInsensitiveMap<String,List<FieldAndColumn>> coumnNameDataMap = JpaAnnotationUtil.getCoumnsMapForColumnName(beanClass);
         Object ar = null;
-        Table table = null;
-        //
-        String keys = null;
+//        Table table = null;
+//        //
+//        String keys = null;
         // 获取所有构造函数，包括无构造参数对象的实例化
         // Constructor<?> cons[]= beanClass.getConstructors();
         while (rs.next()) {
@@ -155,13 +161,17 @@ public class JpaBuilder  {
 //            BeanUtil.fillBeanWithMapIgnoreCase(attrs, ar, false);
             // 兼容枚举回填的类型(忽略 静态变量 和 常量 字段)
             JpaAnnotationUtil.fillBeanWithMap(attrs, ar);
+
+            // 处理 @EDbStrToBean 注解 - 将JSON字符串转换为Bean
+            processEDbStrToBean(ar, attrs);
+
             //
-            try {
-                table = JpaAnnotationUtil.getTableAnnotation(beanClass);
-                keys = JpaAnnotationUtil.getPriKeys(beanClass);
-            }catch (Throwable e){
-                // 如果不是jpa对象，则会抛出异常，不用理会
-            }
+//            try {
+//                table = JpaAnnotationUtil.getTableAnnotation(beanClass);
+//                keys = JpaAnnotationUtil.getPriKeys(beanClass);
+//            }catch (Throwable e){
+//                // 如果不是jpa对象，则会抛出异常，不用理会
+//            }
 
             // 由于 cglib 动态代理太消耗内存，所以放弃使用，代码保留
 //            if(table!=null && keys!=null){
@@ -333,6 +343,120 @@ public class JpaBuilder  {
         }
 
         return updateMap;
+    }
+
+    /**
+     * 处理 @EDbStrToBean 注解 - 将数据库返回的JSON字符串转换为Java对象
+     *
+     * @param bean  目标对象
+     * @param attrs 属性Map（包含数据库返回的所有字段值）
+     */
+    private static void processEDbStrToBean(Object bean, Map<String, Object> attrs) {
+        // 获取所有字段
+        Field[] fields = EReflectUtil.getFields(bean.getClass());
+        for (Field field : fields) {
+            // 获取 @EDbStrToBean 注解
+            EDbStrToBean strToBean = field.getAnnotation(EDbStrToBean.class);
+            if (strToBean == null) {
+                continue;
+            }
+
+            // 获取配置的数据库字段名
+            String colName = strToBean.col();
+            if (colName == null || colName.trim().isEmpty()) {
+                continue;
+            }
+
+            // 从attrs中获取JSON字符串值（支持驼峰和下划线两种key）
+            Object jsonValue = attrs.get(colName);
+            if (jsonValue == null) {
+                // 尝试驼峰格式
+                jsonValue = attrs.get(EStrUtil.toCamelCase(colName.toLowerCase()));
+            }
+
+            if (jsonValue == null) {
+                continue;
+            }
+
+            // 转换为字符串
+            String jsonStr = jsonValue.toString();
+            if (jsonStr.trim().isEmpty()) {
+                continue;
+            }
+
+            try {
+                // 根据字段类型进行转换
+                Object convertedValue = convertJsonToFieldType(jsonStr, field);
+                if (convertedValue != null) {
+                    EReflectUtil.setFieldValue(bean, field, convertedValue);
+                }
+            } catch (Exception e) {
+                // 转换失败时静默处理，保持原值
+                // 可以根据需要添加日志
+            }
+        }
+    }
+
+    /**
+     * 将JSON字符串转换为字段对应的类型
+     *
+     * @param jsonStr JSON字符串
+     * @param field   目标字段
+     * @return 转换后的对象
+     */
+    private static Object convertJsonToFieldType(String jsonStr, Field field) {
+        Class<?> fieldType = field.getType();
+
+        // 判断是否为List类型
+        if (List.class.isAssignableFrom(fieldType)) {
+            // 获取泛型类型
+            Type genericType = field.getGenericType();
+            if (genericType instanceof ParameterizedType) {
+                Type[] actualTypeArgs = ((ParameterizedType) genericType).getActualTypeArguments();
+                if (actualTypeArgs.length > 0) {
+                    Class<?> elementType = (Class<?>) actualTypeArgs[0];
+                    // 使用 hutool 的 JSONArray 转换为 List
+                    JSONArray jsonArray = JSONUtil.parseArray(jsonStr);
+                    List<Object> result = new ArrayList<>();
+                    for (int i = 0; i < jsonArray.size(); i++) {
+                        JSONObject jsonObj = jsonArray.getJSONObject(i);
+                        if (jsonObj != null) {
+                            result.add(jsonObj.toBean(elementType));
+                        }
+                    }
+                    return result;
+                }
+            }
+        }
+
+        // 判断是否为Map类型
+        if (Map.class.isAssignableFrom(fieldType)) {
+            // JSON对象转Map
+            return JSONUtil.toBean(jsonStr, fieldType);
+        }
+
+        // 判断是否为数组类型
+        if (fieldType.isArray()) {
+            Class<?> componentType = fieldType.getComponentType();
+            JSONArray jsonArray = JSONUtil.parseArray(jsonStr);
+            Object array = java.lang.reflect.Array.newInstance(componentType, jsonArray.size());
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONObject jsonObj = jsonArray.getJSONObject(i);
+                if (jsonObj != null) {
+                    java.lang.reflect.Array.set(array, i, jsonObj.toBean(componentType));
+                }
+            }
+            return array;
+        }
+
+        // 单个对象类型
+        if (jsonStr.trim().startsWith("{")) {
+            // JSON对象
+            return JSONUtil.toBean(jsonStr, fieldType);
+        }
+
+        // 字符串类型直接返回
+        return jsonStr;
     }
 
 

@@ -191,6 +191,20 @@ public class EDbQueryUtil {
             andSqlStr.append(" is null ");
         }
 
+        // 全部包含
+        if(eDbFilter.getOperator() == EDbFilter.Operator.arrAll){
+            andSqlStr.append(" @> ARRAY  [");
+            filterArrayFun(eDbFilter,andSqlStr,paramsList);
+            andSqlStr.append("]");
+        }
+
+        // 包含任意一个
+        if(eDbFilter.getOperator() == EDbFilter.Operator.arrAny){
+            andSqlStr.append(" && ARRAY  [");
+            filterArrayFun(eDbFilter,andSqlStr,paramsList);
+            andSqlStr.append("]");
+        }
+
         if(eDbFilter.getOperator() == EDbFilter.Operator.tpl){
             // 拼接sql语句在前置已实现，所以这里无需单独写入
 //            andSqlStr.append(" "+eDbFilter.getProperty()+" ");

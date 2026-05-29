@@ -70,6 +70,12 @@ public interface LambdaHavingQuery<T> {
     public T findFirst();
 
     /**
+     * 获取第一个对象
+     * @return T
+     */
+    public T one();
+
+    /**
      * 返回条数
      * @param limitCount
      * @param offsetIdx

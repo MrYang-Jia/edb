@@ -105,7 +105,7 @@ public class JpaEDbQueryTest extends BaseTest {
     public void likeTest(){
         EDbQuery eDbQuery = new EDbQuery();
         // 根据情况设置查询条件
-        eDbQuery.and(new EDbFilter("VEHICLE_TYPE_NAME", EDbFilter.Operator.llk, "1"));
+        eDbQuery.and(new EDbFilter("vehicle_type_name", EDbFilter.Operator.llk, "1"));
         VehicleType vehicleType = EDb.use().findFirst(VehicleType.class,eDbQuery);
     }
 
@@ -189,8 +189,8 @@ public class JpaEDbQueryTest extends BaseTest {
 
         eDbQuery = new EDbQuery();
         // 基于时间范围的查询
-        eDbQuery.and(EDbFilter.like("VEHICLE_TYPE_NAME","车"));
-        //eDbQuery.and(new EDbFilter("VEHICLE_TYPE_NAME",EDbFilter.Operator.like,"%车%"));
+        eDbQuery.and(EDbFilter.like("vehicle_type_name","车"));
+        //eDbQuery.and(new EDbFilter("vehicle_type_name",EDbFilter.Operator.like,"%车%"));
         start = System.currentTimeMillis();
         System.out.println(EJSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );
@@ -198,8 +198,8 @@ public class JpaEDbQueryTest extends BaseTest {
 
         eDbQuery = new EDbQuery();
         // 车辆类型不为null的查询
-        eDbQuery.and(EDbFilter.isNotNull("VEHICLE_TYPE_NAME"));
-        //eDbQuery.and(new EDbFilter("VEHICLE_TYPE_NAME", EDbFilter.Operator.isNotNull, null));
+        eDbQuery.and(EDbFilter.isNotNull("vehicle_type_name"));
+        //eDbQuery.and(new EDbFilter("vehicle_type_name", EDbFilter.Operator.isNotNull, null));
         start = System.currentTimeMillis();
         System.out.println(EJSONUtil.toJsonStr(EDb.findFirst(VehicleType.class,eDbQuery)));
         System.out.println("耗时:"+ (System.currentTimeMillis()-start) );

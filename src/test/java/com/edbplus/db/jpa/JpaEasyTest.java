@@ -34,6 +34,9 @@ public class JpaEasyTest extends BaseTest {
 //        eDbPro =  EDb.use("pg");
         // 做一次查询连接，减少起始jdbc首次执行的耗时偏高问题
         eDbPro.findById(VehicleType.class,1);
+
+        // 设置 pg 库需要区分大小写的执行模式
+        JpaAnnotationUtil.setForceLowercaseColumn("pg", false);
     }
 
     @Test

@@ -15,9 +15,11 @@
  */
 package com.edbplus.db.dialect;
 
+import cn.hutool.json.JSONUtil;
 import com.jfinal.plugin.activerecord.Record;
 import com.jfinal.plugin.activerecord.Table;
 import com.jfinal.plugin.activerecord.dialect.PostgreSqlDialect;
+import org.postgresql.util.PGobject;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -222,6 +224,12 @@ public class EDbPostgreSqlDialect extends PostgreSqlDialect {
             }else  if (value instanceof Boolean) { // postgres bit(1) 与 boolean 类型一致的转换方式
                 pst.setObject(i + 1, boolToStringInt((Boolean) value));
             }
+//            else if (value instanceof Map) {
+//                PGobject jsonbObj = new PGobject();
+//                jsonbObj.setType("jsonb");
+//                jsonbObj.setValue(JSONUtil.toJsonStr(value)); // Map 转 JSON 字符串
+//                pst.setObject(i + 1, jsonbObj);
+//            }
             else {
                 pst.setObject(i + 1, value);
             }

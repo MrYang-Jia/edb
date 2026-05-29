@@ -34,4 +34,5 @@ public interface LambdaSelectQuery<T> extends LambdaQuery<T>{
      */
     public LambdaQuery<T> select(String coulumns);
 
+
 }

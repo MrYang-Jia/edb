@@ -181,7 +181,7 @@ public class EDbTest extends BaseTest {
             saveList.add(vehicleType);
         }
         // 批量插入 -- 以每批次插入3条数据位例子
-        int count=EDb.use().insertValues(VehicleType.class,saveList,3);
+        int count=EDb.use("pg").insertValues(VehicleType.class,saveList,3);
         System.out.println(count);
     }
 

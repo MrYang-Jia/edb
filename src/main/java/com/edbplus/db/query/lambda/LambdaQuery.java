@@ -438,6 +438,12 @@ public interface LambdaQuery<T> extends LambdaBaseQuery<T>,LambdaGroupQuery<T>,L
     public T findFirst();
 
     /**
+     * 获取第一个对象
+     * @return T
+     */
+    public T one();
+
+    /**
      * 返回条数
      * @param limitCount
      * @param offsetIdx
@@ -467,4 +473,12 @@ public interface LambdaQuery<T> extends LambdaBaseQuery<T>,LambdaGroupQuery<T>,L
      * @return
      */
     public long count();
+
+    LambdaQuery<T> arrAll(boolean condition, EDbColumnFunc<T, ?> func, Object value);
+
+    LambdaQuery<T> arrAll(EDbColumnFunc<T, ?> func, Object value);
+
+    LambdaQuery<T> arrAny(boolean condition, EDbColumnFunc<T, ?> func, Object value);
+
+    LambdaQuery<T> arrAny(EDbColumnFunc<T, ?> func, Object value);
 }

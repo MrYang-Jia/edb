@@ -3,6 +3,7 @@ package com.edbplus.db.jfinal.activerecord.db.base;
 import com.edbplus.db.EDbPro;
 import com.edbplus.db.dto.EDBListenerResult;
 import com.edbplus.db.dto.FieldAndColumn;
+import com.edbplus.db.jpa.JpaAnnotationUtil;
 import com.edbplus.db.listener.EDbListener;
 
 import java.util.*;
@@ -22,14 +23,17 @@ public class JpaListener implements EDbListener {
         String columnName;
         for (FieldAndColumn fieldAndColumn : columns) {
             // 字段名转小写匹配
-            columnName = fieldAndColumn.getColumn().name().toLowerCase();
+            columnName = fieldAndColumn.getColumn().name();
 //            if(fieldAndColumn.getIsPriKey()){
 //                // 自动赋予主键id
 //            }
-            if (!BEFORE_SAVE_FIELDS.contains(columnName)) {
+            if (!BEFORE_SAVE_FIELDS.contains(columnName.toLowerCase())) {
                 continue;
             }
-            saveMap.computeIfAbsent(columnName, k -> new Date());
+            if (JpaAnnotationUtil.DEFAULT_FORCE_LOWERCASE){
+                saveMap.computeIfAbsent(columnName.toLowerCase(), k -> new Date());
+            }
+
         }
         System.out.println("执行保存前的监听");
     }

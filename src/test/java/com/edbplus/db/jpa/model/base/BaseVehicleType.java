@@ -19,32 +19,32 @@ import java.util.Date;
 public class BaseVehicleType implements Serializable{
 
    @Id
-   @Column(name="VEHICLE_TYPE_ID")
+   @Column(name="vehicle_type_id")
    private Integer vehicleTypeId;
 
    /**字段说明:VEHICLE_TYPE_NAME*/
    /**描述说明:车辆类型名称*/
-   @Column(name="VEHICLE_TYPE_NAME")
+   @Column(name="vehicle_type_name")
    private  String vehicleTypeName;
 
    /**字段说明:CREATOR*/
    /**描述说明:创建人*/
-   @Column(name="CREATOR")
+   @Column(name="creator")
    private  String creatorName;
 
    /**字段说明:CREATE_TIME*/
    /**描述说明:创建时间*/
-   @Column(name="CREATE_TIME")
+   @Column(name="create_time")
    private  Date createTime;
 
    /**字段说明:MODIFIER*/
    /**描述说明:修改人*/
-   @Column(name="MODIFIER")
+   @Column(name="modifier")
    private  String modifier;
 
    /**字段说明:MODIFY_TIME*/
    /**描述说明:修改时间*/
-   @Column(name="MODIFY_TIME")
+   @Column(name="modify_time")
    private  Date modifyTime;
 
 

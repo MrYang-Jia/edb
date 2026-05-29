@@ -1,5 +1,6 @@
 package com.edbplus.db.jpa.model.base;
 
+import com.edbplus.db.annotation.EDbIncNull;
 import java.io.Serializable;
 import lombok.Data;
 import javax.persistence.*;
@@ -31,6 +32,7 @@ public class BaseCrVehicleTypeModeRel implements Serializable{
 
    /**字段说明:CREATOR*/
    /**描述说明:创建人*/
+   @EDbIncNull
    @Column(name="CREATOR")
    private  String creator;
 
@@ -41,6 +43,7 @@ public class BaseCrVehicleTypeModeRel implements Serializable{
 
    /**字段说明:MODIFIER*/
    /**描述说明:修改人*/
+   @EDbIncNull
    @Column(name="MODIFIER")
    private  String modifier;
 

@@ -16,9 +16,9 @@
 package com.edbplus.db;
 
 
-import cn.hutool.core.map.CaseInsensitiveMap;
 import com.edbplus.db.annotation.EDbSave;
 import com.edbplus.db.annotation.EDbUpdate;
+import com.edbplus.db.annotation.EDbIncNull;
 import com.edbplus.db.dialect.EDbPostgreSqlDialect;
 import com.edbplus.db.druid.EDbSelectUtil;
 import com.edbplus.db.dto.EDBListenerResult;
@@ -43,6 +43,7 @@ import com.edbplus.db.util.hutool.json.EJSONUtil;
 import com.edbplus.db.util.hutool.number.ENumberUtil;
 import com.edbplus.db.util.hutool.reflect.EReflectUtil;
 import com.edbplus.db.util.hutool.rul.EReUtil;
+import com.edbplus.db.util.map.IgnoreKeyCaseMap;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.kit.LogKit;
@@ -128,7 +129,7 @@ public class EDbPro extends DbPro {
      */
     public <M> M findByGroupId(Class<M> mClass,String tableName, Object... idValues ) {
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         // 根据主键返回对象
         M record = this.findByGroupId(mClass,tableName,keys,idValues);
         return record;
@@ -145,7 +146,7 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         // 根据主键返回对象
         M record = this.findById(mClass,table.name(),keys,idValue);
         return record;
@@ -178,7 +179,7 @@ public class EDbPro extends DbPro {
         Class<M> mClass = realJpaClass(m);
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         // 获取所有字段列表
         List<FieldAndColValue> coumns  = JpaAnnotationUtil.getCoumnValues(m);
 
@@ -187,9 +188,11 @@ public class EDbPro extends DbPro {
         for(FieldAndColValue fieldAndColumn : coumns){
             // 不剔除null值的话，会导致部分字段数据库定义了默认值，会无效化
             // 但是batchEntity 时，就必须指定了，否则字段长度不一致，是无法提交的
-            if(fieldAndColumn.getFieldValue()!= null){
+            // 如果字段有 @EDbIncNull 注解，即使是null也要包含
+            boolean isIncNull = fieldAndColumn.getField().getAnnotation(EDbIncNull.class) != null;
+            if(fieldAndColumn.getFieldValue()!= null || isIncNull){
                 // 字段赋值 -- 对象全字段赋值
-                record.set(fieldAndColumn.getColumn().name().toLowerCase(), fieldAndColumn.getFieldValue());
+                record.set(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name()), fieldAndColumn.getFieldValue());
             }
         }
 
@@ -197,7 +200,7 @@ public class EDbPro extends DbPro {
         if(eDbListener!=null){
             // 获取所有字段列表
             List<FieldAndColumn> allCoumns  = JpaAnnotationUtil.getCoumns(mClass);
-            Map<String,Object> dataMap =  new CaseInsensitiveMap(record.getColumns());
+            Map<String,Object> dataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeSave(mClass,dataMap,allCoumns);
             // 替换数据
@@ -209,7 +212,7 @@ public class EDbPro extends DbPro {
         //
         if(beforeUpdate != null){
             // 替换成 忽略 大小写的 map
-            Map<String,Object> dataMap =  new CaseInsensitiveMap(record.getColumns());
+            IgnoreKeyCaseMap<String,Object> dataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             EReflectUtil.invoke(m, beforeUpdate, dataMap,coumns);
             // 替换数据
@@ -222,7 +225,7 @@ public class EDbPro extends DbPro {
             for (FieldAndColValue fieldAndColumn : coumns) {
                 if (fieldAndColumn.getIsPriKey() && fieldAndColumn.getFieldValue() == null) {
                     // 剔除字段
-                    record.remove(fieldAndColumn.getColumn().name().toLowerCase());
+                    record.remove(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name()));
                 }
             }
         }
@@ -246,7 +249,7 @@ public class EDbPro extends DbPro {
             // 所有字段重新赋值，可能主键或者自定义键值产生变更（通过 beforeSave 方法调整变更的对象）
             for(FieldAndColumn fieldAndColumn : coumns) {
                 // 字段赋值
-                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())));
             }
         }
 
@@ -302,7 +305,7 @@ public class EDbPro extends DbPro {
                             record = records.get(i);
                             for(FieldAndColumn fieldAndColumn : coumns) {
                                 // 字段赋值 -- 反向赋予主键的键值
-                                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())));
                             }
                             rt++;
                         }
@@ -315,7 +318,7 @@ public class EDbPro extends DbPro {
                 record = new Record();
                 for (FieldAndColumn fieldAndColumn : coumns) {
                     // 字段赋值 -- 字段全小写
-                    record.set(fieldAndColumn.getColumn().name().toLowerCase(), JpaAnnotationUtil.getFieldValue(m, fieldAndColumn.getField()));
+                    record.set(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name()), JpaAnnotationUtil.getFieldValue(m, fieldAndColumn.getField()));
                 }
                 if (beforeSave == null) {
                     // 保存前的方法事件
@@ -325,7 +328,7 @@ public class EDbPro extends DbPro {
                 // 保存前的监听
                 if (eDbListener != null) {
                     // 忽略大小写
-                    dataMap = new CaseInsensitiveMap(record.getColumns());
+                    dataMap = new IgnoreKeyCaseMap(record.getColumns());
                     // 执行对象方法
                     eDbListener.beforeSave(mClass, dataMap, coumns);
                     // 替换数据
@@ -335,7 +338,7 @@ public class EDbPro extends DbPro {
                 // 保存前的监听 -- 在统一监听之后执行
                 if (beforeSave != null) {
                     // 替换成 忽略 大小写的 map
-                    dataMap = new CaseInsensitiveMap(record.getColumns());
+                    dataMap = new IgnoreKeyCaseMap(record.getColumns());
                     // 执行对象方法
                     EReflectUtil.invoke(m, beforeSave, dataMap, coumns);
                     // 替换数据
@@ -347,9 +350,9 @@ public class EDbPro extends DbPro {
                     // 主键
                     for (FieldAndColumn fieldAndColumn : priCoumns) {
                         // 如果是主键，主键没有键值，则删除该字段 -- 兼容 pg 模式，mysql本身是不需要剔除
-                        if (record.get(fieldAndColumn.getColumn().name().toLowerCase()) == null) {
+                        if (record.get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())) == null) {
                             // ? 模式无法添加
-                            record.remove(fieldAndColumn.getColumn().name().toLowerCase());
+                            record.remove(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name()));
                         }
                     }
                 }
@@ -366,7 +369,7 @@ public class EDbPro extends DbPro {
                 record = records.get(i);
                 for(FieldAndColumn fieldAndColumn : coumns) {
                     // 字段赋值 -- 反向赋予主键的键值
-                    JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                    JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())));
                 }
                 rt++;
             }
@@ -374,19 +377,6 @@ public class EDbPro extends DbPro {
             records = null; // 主动先清空内存
         }
 
-//        int[] resultSize = batchSave(mClass,table.name(),records,batchSize);
-        // 获取主键字段
-        //coumns = JpaAnnotationUtil.getIdFieldAndColumns(mClass);
-//        m = null;
-//        // 反向赋予键值
-//        for(int i=0;i<saveList.size();i++){
-//            m = saveList.get(i);
-//            record = records.get(i);
-//            for(FieldAndColumn fieldAndColumn : coumns) {
-//                // 字段赋值 -- 反向赋予主键的键值
-//                JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
-//            }
-//        }
 
 
         return resultSize;
@@ -444,7 +434,7 @@ public class EDbPro extends DbPro {
                 record = new Record();
                 for(FieldAndColumn fieldAndColumn : coumns){
                     // 字段赋值 -- 字段全小写
-                    record.set(fieldAndColumn.getColumn().name().toLowerCase(), JpaAnnotationUtil.getFieldValue(m,fieldAndColumn.getField()));
+                    record.set(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name()), JpaAnnotationUtil.getFieldValue(m,fieldAndColumn.getField()));
                 }
                 if(beforeSave == null){
                     // 保存前的方法事件
@@ -453,7 +443,7 @@ public class EDbPro extends DbPro {
 
                 // 保存前的监听
                 if(eDbListener!=null){
-                    dataMap =  new CaseInsensitiveMap(record.getColumns());
+                    dataMap =  new IgnoreKeyCaseMap(record.getColumns());
                     // 执行对象方法
                     eDbListener.beforeSave(mClass,dataMap,coumns);
                     // 替换数据
@@ -463,7 +453,7 @@ public class EDbPro extends DbPro {
                 // 全局监听之后
                 if(beforeSave != null){
                     // 替换成 忽略 大小写的 map
-                    dataMap =  new CaseInsensitiveMap(record.getColumns());
+                    dataMap =  new IgnoreKeyCaseMap(record.getColumns());
                     // 执行对象方法
                     EReflectUtil.invoke(m, beforeSave, dataMap,coumns);
                     // 替换数据
@@ -474,7 +464,7 @@ public class EDbPro extends DbPro {
                 for(int i=0;i<saveList.size();i++){
                     for(FieldAndColumn fieldAndColumn : coumns) {
                         // 字段赋值 -- 反向赋予主键的键值
-                        JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                        JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())));
                     }
                 }
 
@@ -482,8 +472,8 @@ public class EDbPro extends DbPro {
                     // 主键 -- 要嘛有主键，要嘛全无主键
                     for (FieldAndColumn fieldAndColumn : priCoumns) {
                         // 如果是主键，主键没有键值，则删除该字段 -- 兼容 pg 模式，mysql本身是不需要剔除
-                        if (record.get(fieldAndColumn.getColumn().name().toLowerCase()) == null) {
-                            record.remove(fieldAndColumn.getColumn().name().toLowerCase());
+                        if (record.get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())) == null) {
+                            record.remove(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name()));
                         }
                     }
                 }
@@ -563,7 +553,7 @@ public class EDbPro extends DbPro {
         Object value = null;
         T t = null;
 //        Record record = null;
-        CaseInsensitiveMap<String,Object> dataMap = null;
+        IgnoreKeyCaseMap<String,Object> dataMap = null;
         List<FieldAndColumn> allCoumns = null;
         // for 循环
         for(int i=0;i<objs.size();i++){
@@ -583,22 +573,31 @@ public class EDbPro extends DbPro {
             // 保存前的监听
             if(eDbListener!=null){
                 coumnsValue  = JpaAnnotationUtil.getCoumnValues(t);
-                dataMap = new CaseInsensitiveMap<String,Object>();
+                dataMap = new IgnoreKeyCaseMap<String,Object>();
                 // 字段赋值
                 for(FieldAndColValue fieldAndColumn : coumnsValue){
                     // 不剔除null值的话，会导致部分字段数据库定义了默认值，会无效化
                     // 但是batchEntity 时，就必须指定了，否则字段长度不一致，是无法提交的
                     if(fieldAndColumn.getFieldValue()!= null){
                         // 字段赋值 -- 对象全字段赋值
-                        dataMap.put(fieldAndColumn.getColumn().name().toLowerCase(), fieldAndColumn.getFieldValue());
+                        dataMap.put(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name()), fieldAndColumn.getFieldValue());
                     }
                 }
                 // 获取所有字段列表
                 allCoumns  = JpaAnnotationUtil.getCoumns(t.getClass());
                 // 执行对象方法
                 eDbListener.beforeSave(t.getClass(),dataMap,allCoumns);
-                // 反向赋予对象 - 只是为了后续流程能正常衔接
-                t = (T) EBeanUtil.mapToBean(dataMap,t.getClass(),false);
+                // 反向赋予对象 - 只是为了后续流程能正常衔接 （这里使用 hutool 转换的话，会导致枚举类型转换失败，所以调整了实现方案）
+//                t = (T) EBeanUtil.mapToBean(dataMap,t.getClass(),false);
+                // 正确写法：不经过 Hutool 自动转换，直接赋值
+                for (FieldAndColumn fieldAndColumn : allCoumns) {
+                    String colName = JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name());
+                    value = dataMap.get(colName);
+                    if (value != null) {
+                        // 直接反射赋值，不做任何类型转换
+                        JpaAnnotationUtil.setFieldValue(t, fieldAndColumn.getField(), value);
+                    }
+                }
             }
 
 
@@ -639,7 +638,9 @@ public class EDbPro extends DbPro {
                     {
                         if(this.getConfig().getDialect() instanceof PostgreSqlDialect){
                             // 如果是pg的话，则需要引入自增序列的方式进行 id 自增
-                            inserValues.append("nextval(pg_get_serial_sequence('").append(table.name().toLowerCase()).append("','").append(fieldAndColumn.getColumn().name().toLowerCase()).append("')),");
+                            inserValues.append("nextval(pg_get_serial_sequence('")
+                                    .append(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(),table.name())).append("','") // 根据配置转换大小写
+                                    .append(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())).append("')),");
                         }else{
                             if(fieldAndColumn.getField().getType().equals(Date.class)){
                                 inserValues.append("now").append(","); // tdengine 数据库支持的函数，可以支持到 纳秒
@@ -689,7 +690,7 @@ public class EDbPro extends DbPro {
             // 以后再给成英文 -- 中文国际通用 ^_^
             throw new RuntimeException("非数据库对象无法转换");
         }
-        return JpaAnnotationUtil.getJpaMap(m,!ignoreNullValue);
+        return JpaAnnotationUtil.getJpaMap(m, !ignoreNullValue, this.getConfig().getName());
     }
 
     /**
@@ -722,7 +723,7 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值 -- 小写
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         Record record = new Record();
         // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
         Map<String,Object> dataMap = new HashMap<>();
@@ -737,11 +738,11 @@ public class EDbPro extends DbPro {
             for(Map.Entry<String, Object> entry : updateData.entrySet()){
                 if(isColumnName){
                     // 由于使用工具类取出来的数据库字段命名是小写，所以统一转小写 ，这点是因为你永远无法知道用户到底是小写还是大写的命名规则决定的
-                    dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
+                    dataMap.put(entry.getKey(),entry.getValue());
                 }else{
                     // 驼峰字段赋值
                     if(fieldNameMap.get(entry.getKey())!=null && fieldNameMap.get(entry.getKey()).getColumn() != null){
-                        dataMap.put(fieldNameMap.get(entry.getKey()).getColumn().name().toLowerCase(),entry.getValue());
+                        dataMap.put(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldNameMap.get(entry.getKey()).getColumn().name()),entry.getValue());
                     }
                 }
             }
@@ -756,7 +757,7 @@ public class EDbPro extends DbPro {
         Map<String,Object> updateDataMap = null;
         // 保存前的监听
         if(eDbListener!=null){
-            updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
             // 替换数据
@@ -772,7 +773,7 @@ public class EDbPro extends DbPro {
                 e.printStackTrace();
             }
             // 替换成 忽略 大小写的 map
-            updateDataMap =  new CaseInsensitiveMap(dataMap);
+            updateDataMap =  new IgnoreKeyCaseMap(dataMap);
             // 执行对象方法
             EReflectUtil.invoke(ojb, beforeSave, updateDataMap,coumns);
             // 替换数据
@@ -873,7 +874,7 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
 //        System.out.println(updateData);
         // 必须定义record对象，否则无法更新操作
         Record record = new Record();
@@ -888,7 +889,7 @@ public class EDbPro extends DbPro {
 
         // 保存前的监听
         if(eDbListener!=null){
-            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            Map<String,Object> updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
             // 替换数据
@@ -898,7 +899,7 @@ public class EDbPro extends DbPro {
         //
         if(beforeSave != null){
             // 替换成 忽略 大小写的 map
-            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            Map<String,Object> updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             EReflectUtil.invoke(updateM, beforeSave, updateDataMap,coumns);
             // 替换数据
@@ -908,7 +909,7 @@ public class EDbPro extends DbPro {
         // 反向赋予键值
         for(FieldAndColumn fieldAndColumn : coumns) {
             // 字段赋值 -- 反向赋予主键的键值
-            JpaAnnotationUtil.setFieldValue(updateM,fieldAndColumn.getField(),record.getColumns().get(fieldAndColumn.getColumn().name().toLowerCase()));
+            JpaAnnotationUtil.setFieldValue(updateM,fieldAndColumn.getField(),record.getColumns().get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())));
         }
 
         // 更新对象
@@ -946,12 +947,12 @@ public class EDbPro extends DbPro {
         // 数据对象
         if(dataMap == null || dataMap.size() ==0 ){
             // 剔除null值
-            dataMap = JpaAnnotationUtil.getJpaMap(m,containsNullValue);
+            dataMap = JpaAnnotationUtil.getJpaMap(m, containsNullValue, this.getConfig().getName());
         }
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
 //        System.out.println(updateData);
         // 必须定义record对象，否则无法更新操作
         Record record = new Record();
@@ -963,7 +964,7 @@ public class EDbPro extends DbPro {
         Method beforeSave = JpaAnnotationUtil.getMethod(mClass, EDbUpdate.class);
         // 保存前的监听
         if(eDbListener!=null){
-            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            Map<String,Object> updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
             // 替换数据
@@ -973,7 +974,7 @@ public class EDbPro extends DbPro {
         //
         if(beforeSave != null){
             // 替换成 忽略 大小写的 map
-            Map<String,Object> updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            Map<String,Object> updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             EReflectUtil.invoke(m, beforeSave, updateDataMap,coumns);
             // 替换数据
@@ -983,7 +984,7 @@ public class EDbPro extends DbPro {
         // 反向赋予键值
         for(FieldAndColumn fieldAndColumn : coumns) {
             // 字段赋值 -- 反向赋予主键的键值
-            JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.getColumns().get(fieldAndColumn.getColumn().name().toLowerCase()));
+            JpaAnnotationUtil.setFieldValue(m,fieldAndColumn.getField(),record.getColumns().get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())));
         }
 
         // 更新对象
@@ -1067,7 +1068,7 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值 -- 小写
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         Record record = new Record();
         // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
         Map<String,Object> dataMap = new HashMap<>();
@@ -1075,7 +1076,7 @@ public class EDbPro extends DbPro {
         if(updateData.size() > 0){
             for(Map.Entry<String, Object> entry : updateData.entrySet()){
                 // 由于使用工具类取出来的数据库字段命名是小写，所以统一转小写 ，这点是因为你永远无法知道用户到底是小写还是大写的命名规则决定的
-                dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
+                dataMap.put(entry.getKey(),entry.getValue());
             }
         }else{
             throw new RuntimeException(" no update params ");
@@ -1089,7 +1090,7 @@ public class EDbPro extends DbPro {
         Map<String,Object> updateDataMap = null;
         // 保存前的监听
         if(eDbListener!=null){
-            updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
             // 替换数据
@@ -1104,7 +1105,7 @@ public class EDbPro extends DbPro {
                 e.printStackTrace();
             }
             // 替换成 忽略 大小写的 map
-            updateDataMap =  new CaseInsensitiveMap(dataMap);
+            updateDataMap =  new IgnoreKeyCaseMap(dataMap);
             // 执行对象方法
             EReflectUtil.invoke(ojb, beforeSave, updateDataMap,coumns);
             // 替换数据
@@ -1136,7 +1137,7 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值 -- 小写
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         Record record = new Record();
         // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
         Map<String,Object> dataMap = new HashMap<>();
@@ -1144,7 +1145,7 @@ public class EDbPro extends DbPro {
         if(updateData.size() > 0){
             for(Map.Entry<String, Object> entry : updateData.entrySet()){
                 // 由于使用工具类取出来的数据库字段命名是小写，所以统一转小写 ，这点是因为你永远无法知道用户到底是小写还是大写的命名规则决定的
-                dataMap.put(entry.getKey().toLowerCase(),entry.getValue());
+                dataMap.put(entry.getKey(),entry.getValue());
             }
         }else{
             throw new RuntimeException(" no update params ");
@@ -1158,7 +1159,7 @@ public class EDbPro extends DbPro {
         Map<String,Object> updateDataMap = null;
         // 保存前的监听
         if(eDbListener!=null){
-            updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+            updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
             // 执行对象方法
             eDbListener.beforeUpdate(mClass,updateDataMap,coumns);
             // 替换数据
@@ -1174,7 +1175,7 @@ public class EDbPro extends DbPro {
                 e.printStackTrace();
             }
             // 替换成 忽略 大小写的 map
-            updateDataMap =  new CaseInsensitiveMap(dataMap);
+            updateDataMap =  new IgnoreKeyCaseMap(dataMap);
             // 执行对象方法
             EReflectUtil.invoke(ojb, beforeSave, updateDataMap,coumns);
             // 替换数据
@@ -1419,7 +1420,7 @@ public class EDbPro extends DbPro {
         // 获取主键键值
 //        String keys = JpaAnnotationUtil.getPriKeys(mClass);
         List<FieldAndColumn> getIdFieldAndColumns = JpaAnnotationUtil.getIdFieldAndColumns(mClass); // 返回主键字段集合
-        String keys = JpaAnnotationUtil.getPriKeysByFieldAndColumn(getIdFieldAndColumns); // 返回字段解析结果
+        String keys = JpaAnnotationUtil.getPriKeysByFieldAndColumn(getIdFieldAndColumns, this.getConfig().getName()); // 返回字段解析结果
         // 匹配主键键值
         for(FieldAndColumn keyField:getIdFieldAndColumns){
             if(!updateFields.contains(keyField.getField().getName())){
@@ -1442,7 +1443,7 @@ public class EDbPro extends DbPro {
             record = new Record();
             dataMap = new HashMap<>();
             // 必须有更新条件，所以不用判断null
-            dataMap = JpaAnnotationUtil.getJpaMap(obj,updateFields); // 只获取指定的驼峰字段
+            dataMap = JpaAnnotationUtil.getJpaMap(obj, updateFields, this.getConfig().getName()); // 只获取指定的驼峰字段
             // 必须指定2个字段以上才允许更新，否则一点意义都没有，所以直接抛错，避免无效更新！！！
             if(dataMap.size() < 2 ){
                 throw new RuntimeException("updateFields size must be than 2,nowSize=> "+ dataMap.size() +" , pkId or other bean fieldName,nowIs ==> " + dataMap);
@@ -1456,7 +1457,7 @@ public class EDbPro extends DbPro {
 
             // 保存前的监听
             if(eDbListener!=null){
-                updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+                updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
                 // 执行对象方法
                 eDbListener.beforeUpdate(mClass , updateDataMap , coumns);
                 // 替换数据
@@ -1466,7 +1467,7 @@ public class EDbPro extends DbPro {
             //
             if(beforeUpdate != null){
                 // 替换成 忽略 大小写的 map
-                updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+                updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
                 // 执行对象方法
                 EReflectUtil.invoke(obj, beforeUpdate, updateDataMap,coumns);
                 // 替换数据
@@ -1476,7 +1477,7 @@ public class EDbPro extends DbPro {
             // 反向赋予键值
             for(FieldAndColumn fieldAndColumn : coumns) {
                 // 字段赋值 -- 反向赋予主键的键值
-                JpaAnnotationUtil.setFieldValue(obj,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                JpaAnnotationUtil.setFieldValue(obj,fieldAndColumn.getField(),record.get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())));
             }
 
             records.add(record);
@@ -1502,14 +1503,14 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         //JpaProxy jpaProxy = null;
         Record record = null;
         List<Record> records = new ArrayList<>();
         // 变更对象 -- 获取到变更的数据库字段值,反向填充到map
         Map<String,Object> dataMap = null;
         // 获取一条记录验证是否有值
-        dataMap = JpaAnnotationUtil.getJpaMap(updateList.get(0),containsNullValue);
+        dataMap = JpaAnnotationUtil.getJpaMap(updateList.get(0), containsNullValue, this.getConfig().getName());
         // 默认 keys 一定有值，所以就不判断了!
         for (String pKey:keys.split(",")){
             if(dataMap.get(pKey)==null){
@@ -1526,7 +1527,7 @@ public class EDbPro extends DbPro {
             record = new Record();
             dataMap = new HashMap<>();
             // 必须有更新条件，所以不用判断null
-            dataMap = JpaAnnotationUtil.getJpaMap(obj,containsNullValue);
+            dataMap = JpaAnnotationUtil.getJpaMap(obj, containsNullValue, this.getConfig().getName());
             // 设置到对象集
             record.setColumns(dataMap);
             if(beforeUpdate == null){
@@ -1536,7 +1537,7 @@ public class EDbPro extends DbPro {
 
             // 保存前的监听
             if(eDbListener!=null){
-                updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+                updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
                 // 执行对象方法
                 eDbListener.beforeUpdate(mClass , updateDataMap , coumns);
                 // 替换数据
@@ -1546,7 +1547,7 @@ public class EDbPro extends DbPro {
             //
             if(beforeUpdate != null){
                 // 替换成 忽略 大小写的 map
-                updateDataMap =  new CaseInsensitiveMap(record.getColumns());
+                updateDataMap =  new IgnoreKeyCaseMap(record.getColumns());
                 // 执行对象方法
                 EReflectUtil.invoke(obj, beforeUpdate, updateDataMap,coumns);
                 // 替换数据
@@ -1556,7 +1557,7 @@ public class EDbPro extends DbPro {
             // 反向赋予键值
             for(FieldAndColumn fieldAndColumn : coumns) {
                 // 字段赋值 -- 反向赋予主键的键值
-                JpaAnnotationUtil.setFieldValue(obj,fieldAndColumn.getField(),record.get(fieldAndColumn.getColumn().name().toLowerCase()));
+                JpaAnnotationUtil.setFieldValue(obj,fieldAndColumn.getField(),record.get(JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), fieldAndColumn.getColumn().name())));
             }
 
             records.add(record);
@@ -1577,11 +1578,11 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         // 监听操作
         if(eDbListener != null){
             // 定义删除的对象集 -- 主要是 id 的集合
-            CaseInsensitiveMap<String,Object> deleteMap =  new CaseInsensitiveMap();
+            IgnoreKeyCaseMap<String,Object> deleteMap =  new IgnoreKeyCaseMap();
             List<Map<String,Object>> deleteMaps = new ArrayList<>();
             String[] keyArray =  keys.split(",");
             for(int i=0;i<keyArray.length;i++){
@@ -1610,11 +1611,11 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         // 监听操作
         if(eDbListener != null){
             // 获取所有字段列表
-            CaseInsensitiveMap<String,Object> deleteMap =  new CaseInsensitiveMap();
+            IgnoreKeyCaseMap<String,Object> deleteMap =  new IgnoreKeyCaseMap();
             List<Map<String,Object>> deleteMaps = new ArrayList<>();
             deleteMap.put(keys,id);
             deleteMaps.add(deleteMap);
@@ -1653,11 +1654,11 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(tClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(tClass);
+        String keys = JpaAnnotationUtil.getPriKeys(tClass, this.getConfig().getName());
         // 监听操作
         if(eDbListener != null){
             // 定义map集合
-            CaseInsensitiveMap<String,Object> deleteMap =  new CaseInsensitiveMap();
+            IgnoreKeyCaseMap<String,Object> deleteMap =  new IgnoreKeyCaseMap();
             List<Map<String,Object>> deleteMaps = new ArrayList<>();
             List<Object> results = JpaAnnotationUtil.getPriKeyValues(t);
             if(results.size()==1){
@@ -1694,7 +1695,7 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(tClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(tClass);
+        String keys = JpaAnnotationUtil.getPriKeys(tClass, this.getConfig().getName());
         if(keys.split(",").length > 1){
             throw new RuntimeException(" 只支持单主键的多id传值 ");
         }
@@ -1720,7 +1721,7 @@ public class EDbPro extends DbPro {
         // 返回表对象 -- 便于获取表名称
         Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         if(keys.split(",").length > 1){
             throw new RuntimeException(" 只支持单主键的多id传值 ");
         }
@@ -1731,11 +1732,11 @@ public class EDbPro extends DbPro {
         // 监听操作
         if(eDbListener != null){
             // 定义删除的对象集 -- 主要是 id 的集合
-            CaseInsensitiveMap<String,Object> deleteMap =  new CaseInsensitiveMap();
+            IgnoreKeyCaseMap<String,Object> deleteMap =  new IgnoreKeyCaseMap();
             List<Map<String,Object>> deleteMaps = new ArrayList<>();
             //
             for(Object id : deleteIds.toArray()){
-                deleteMap =  new CaseInsensitiveMap();
+                deleteMap =  new IgnoreKeyCaseMap();
                 deleteMap.put(keys,id);
                 deleteMaps.add(deleteMap);
             }
@@ -1917,7 +1918,7 @@ public class EDbPro extends DbPro {
 //        // 返回表对象 -- 便于获取表名称
 //        Table table = JpaAnnotationUtil.getTableAnnotation(mClass);
         // 获取主键键值
-        String keys = JpaAnnotationUtil.getPriKeys(mClass);
+        String keys = JpaAnnotationUtil.getPriKeys(mClass, this.getConfig().getName());
         if(keys.split(",").length > 1){
             throw new RuntimeException(" 只支持单主键的多id传值 ");
         }
@@ -3468,7 +3469,7 @@ public class EDbPro extends DbPro {
                             // map 里的数据库字段，全小写
                             map = ((Record)list.get(i)).getColumns();
                             // 赋予主键键值
-                            map.put( priKey.getColumn().name().toLowerCase() ,keys[i]);
+                            map.put( JpaAnnotationUtil.normalizeColumnName(this.getConfig().getName(), priKey.getColumn().name()) ,keys[i]);
                         }
                     }
 
