@@ -223,6 +223,31 @@ public class EDbPostgreSqlDialect extends PostgreSqlDialect {
                 }
             }else  if (value instanceof Boolean) { // postgres bit(1) 与 boolean 类型一致的转换方式
                 pst.setObject(i + 1, boolToStringInt((Boolean) value));
+            }else if (value instanceof Object[]) { // 处理 PostgreSQL 数组类型
+                Object[] arrayValue = (Object[]) value;
+                if (arrayValue.length == 0) {
+                    pst.setObject(i + 1, null);
+                } else {
+                    // 根据数组元素类型确定 SQL 类型名称
+                    String typeName = "varchar";
+                    Object first = arrayValue[0];
+                    if (first instanceof String) {
+                        typeName = "varchar";
+                    } else if (first instanceof Integer) {
+                        typeName = "int4";
+                    } else if (first instanceof Long) {
+                        typeName = "int8";
+                    } else if (first instanceof Double) {
+                        typeName = "float8";
+                    } else if (first instanceof Float) {
+                        typeName = "float4";
+                    } else if (first instanceof Boolean) {
+                        typeName = "bool";
+                    } else if (first instanceof Number) {
+                        typeName = "numeric";
+                    }
+                    pst.setArray(i + 1, pst.getConnection().createArrayOf(typeName, arrayValue));
+                }
             }
 //            else if (value instanceof Map) {
 //                PGobject jsonbObj = new PGobject();

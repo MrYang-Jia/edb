@@ -16,8 +16,10 @@
 package com.edbplus.db.jpa;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import com.edbplus.db.EDb;
 import com.edbplus.db.jfinal.activerecord.db.base.BaseTest;
+import com.edbplus.db.jpa.model.Cat;
 import com.edbplus.db.query.EDbFilter;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.lambda.EDbLambdaQuery;
@@ -38,6 +40,37 @@ import java.util.*;
  * @Version V1.0
  **/
 public class LambdaTest extends BaseTest {
+
+
+
+    @Test
+    public void eDbLambdaQueryTest(){
+        // 建议调用模式，方便工具链路的统一原则
+        LambdaSelectQuery<Cat> eDbLambdaQuery = EDb.lambdaQuery(Cat.class);
+//        LambdaSelectQuery<Cat> eDbLambdaQuery = EDbLambdaQuery.lambdaQuery(Cat.class);
+        // LambdaQueryWrapper<User> lambda3 = Wrappers.<User>lambdaQuery();
+// name like '王%' and (age <40 or email in not null)
+//        lambda3.likeRight(User::getName, "王").and(
+//                qw -> qw.lt(User::getAge, 40).or().isNotNull(User::getEmail)
+//        );
+        eDbLambdaQuery.ge(Cat::getAge,3)
+                // 添加一个andCom条件
+                .andCom(p->
+                        p.ge(Cat::getAge,4)
+                                .ge(Cat::getAge,5)
+                )
+                .orCom(p->
+                        p.ge(Cat::getAge,6)
+                                .or().eq(Cat::getAge,8)
+                                .ne(Cat::getAge,8)
+                                .ge(Cat::getAge,7)
+                ).or().isNull(Cat::getAge)
+                .groupBy(Cat::getAge)
+                .having("count(1)>1").limit(5);
+        System.out.println(JSONUtil.toJsonStr(eDbLambdaQuery));
+//        System.out.println(JSONUtil.toJsonStr(eDbLambdaQuery.eDbQuery.andComs));
+//        System.out.println(JSONUtil.toJsonStr(eDbLambdaQuery.eDbQuery.orComs));
+    }
 
     /**
      * lambdaselect 测试
@@ -64,12 +97,18 @@ public class LambdaTest extends BaseTest {
 //                .update();
         //  LambdaOpt.select.lambdaQuery(VehicleType.class,"pg"); // 指定pg库
         // 查询
-        LambdaSelectQuery<VehicleType> eDbLambdaQuery = LambdaOpt.select.lambdaQuery(VehicleType.class);
+//        LambdaSelectQuery<VehicleType> eDbLambdaQuery = LambdaOpt.select.lambdaQuery(VehicleType.class);
+        LambdaSelectQuery<VehicleType> eDbLambdaQuery = EDb.lambdaQuery(VehicleType.class);
         VehicleType vehicleType = eDbLambdaQuery.eq(VehicleType::getVehicleTypeId,1378).findFirst();
 
-        LambdaUpdate<VehicleType> delVehicle = LambdaOpt.update.lambda(VehicleType.class);
+
+
+        LambdaUpdate<VehicleType> delVehicle = EDb.lambdaUpdate(VehicleType.class);
+//        LambdaUpdate<VehicleType> delVehicle = LambdaOpt.update.lambda(VehicleType.class);
+        // 删除它
         delVehicle.eq(VehicleType::getVehicleTypeId,1378).delete();
 
+        // 再添加回来
         vehicleType.setCreateTime(null);
         vehicleType.setModifyTime(null);
         EDb.save(vehicleType);

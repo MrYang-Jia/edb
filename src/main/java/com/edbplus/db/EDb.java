@@ -16,6 +16,10 @@
 package com.edbplus.db;
 
 import com.edbplus.db.query.EDbQuery;
+import com.edbplus.db.query.lambda.LambdaSelectQuery;
+import com.edbplus.db.query.lambda.EDbLambdaQuery;
+import com.edbplus.db.query.lambda.update.LambdaUpdate;
+import com.edbplus.db.query.lambda.update.EDbLambdaUpdate;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.jfinal.kit.SyncWriteMap;
@@ -1963,6 +1967,49 @@ public class EDb extends Db{
         MAIN.each(func, sql, paras);
     }
 
+    // ============================= Lambda 查询快捷方法 =============================
+
+    /**
+     * 创建 lambda 查询对象
+     * @param entityClass 实体类
+     * @param <T>
+     * @return LambdaSelectQuery 查询对象
+     */
+    public static <T> LambdaSelectQuery<T> lambdaQuery(Class<T> entityClass) {
+        return EDbLambdaQuery.lambdaQuery(entityClass);
+    }
+
+    /**
+     * 创建 lambda 查询对象，并指定数据库
+     * @param entityClass 实体类
+     * @param configName 数据库配置名称
+     * @param <T>
+     * @return LambdaSelectQuery 查询对象
+     */
+    public static <T> LambdaSelectQuery<T> lambdaQuery(Class<T> entityClass, String configName) {
+        return EDbLambdaQuery.lambdaQuery(entityClass, configName);
+    }
+
+    /**
+     * 创建 lambda 更新对象
+     * @param entityClass 实体类
+     * @param <T>
+     * @return LambdaUpdate 更新对象
+     */
+    public static <T> LambdaUpdate<T> lambdaUpdate(Class<T> entityClass) {
+        return EDbLambdaUpdate.lambda(entityClass);
+    }
+
+    /**
+     * 创建 lambda 更新对象，并指定数据库
+     * @param entityClass 实体类
+     * @param configName 数据库配置名称
+     * @param <T>
+     * @return LambdaUpdate 更新对象
+     */
+    public static <T> LambdaUpdate<T> lambdaUpdate(Class<T> entityClass, String configName) {
+        return EDbLambdaUpdate.lambda(entityClass, configName);
+    }
 
 
 
