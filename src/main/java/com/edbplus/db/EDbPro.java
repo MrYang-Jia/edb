@@ -33,6 +33,10 @@ import com.edbplus.db.listener.EDbListener;
 import com.edbplus.db.em.RunStatus;
 import com.edbplus.db.query.EDbQuery;
 import com.edbplus.db.query.EDbQueryUtil;
+import com.edbplus.db.query.lambda.EDbLambdaQuery;
+import com.edbplus.db.query.lambda.LambdaSelectQuery;
+import com.edbplus.db.query.lambda.update.EDbLambdaUpdate;
+import com.edbplus.db.query.lambda.update.LambdaUpdate;
 import com.edbplus.db.util.EDbRelUtil;
 import com.edbplus.db.util.EDbViewUitl;
 import com.edbplus.db.util.hutool.annotation.EAnnotationUtil;
@@ -92,6 +96,28 @@ public class EDbPro extends DbPro {
 
     public EDbPro(String  configName){
         super(configName);
+    }
+
+    // ============================= Lambda 查询快捷方法 =============================
+
+    /**
+     * 创建 lambda 查询对象（使用当前实例绑定的数据库配置）
+     * @param entityClass 实体类
+     * @param <T>
+     * @return LambdaSelectQuery 查询对象
+     */
+    public <T> LambdaSelectQuery<T> lambdaQuery(Class<T> entityClass) {
+        return EDbLambdaQuery.lambdaQuery(entityClass, this.getConfig().getName());
+    }
+
+    /**
+     * 创建 lambda 更新对象（使用当前实例绑定的数据库配置）
+     * @param entityClass 实体类
+     * @param <T>
+     * @return LambdaUpdate 更新对象
+     */
+    public <T> LambdaUpdate<T> lambdaUpdate(Class<T> entityClass) {
+        return EDbLambdaUpdate.lambda(entityClass, this.getConfig().getName());
     }
 
     /**
