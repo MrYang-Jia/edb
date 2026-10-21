@@ -223,16 +223,43 @@ public class EDbPostgreSqlDialect extends PostgreSqlDialect {
                 }
             }else  if (value instanceof Boolean) { // postgres bit(1) 与 boolean 类型一致的转换方式
                 pst.setObject(i + 1, boolToStringInt((Boolean) value));
+            }else if (value instanceof List) { // 处理 PostgreSQL 数组类型 -- 兼容 List 入参
+                List<?> listValue = (List<?>) value;
+                if (listValue.isEmpty()) {
+                    pst.setObject(i + 1, null);
+                } else {
+                    // 根据数组元素类型确定 SQL 类型名称
+                    // String 建 text[]（PG 默认字符串数组类型），与 text/text[] 列匹配
+                    String typeName = "text";
+                    Object first = listValue.get(0);
+                    if (first instanceof String) {
+                        typeName = "text";
+                    } else if (first instanceof Integer) {
+                        typeName = "int4";
+                    } else if (first instanceof Long) {
+                        typeName = "int8";
+                    } else if (first instanceof Double) {
+                        typeName = "float8";
+                    } else if (first instanceof Float) {
+                        typeName = "float4";
+                    } else if (first instanceof Boolean) {
+                        typeName = "bool";
+                    } else if (first instanceof Number) {
+                        typeName = "numeric";
+                    }
+                    pst.setArray(i + 1, pst.getConnection().createArrayOf(typeName, listValue.toArray()));
+                }
             }else if (value instanceof Object[]) { // 处理 PostgreSQL 数组类型
                 Object[] arrayValue = (Object[]) value;
                 if (arrayValue.length == 0) {
                     pst.setObject(i + 1, null);
                 } else {
                     // 根据数组元素类型确定 SQL 类型名称
-                    String typeName = "varchar";
+                    // String 建 text[]（PG 默认字符串数组类型），与 text/text[] 列匹配
+                    String typeName = "text";
                     Object first = arrayValue[0];
                     if (first instanceof String) {
-                        typeName = "varchar";
+                        typeName = "text";
                     } else if (first instanceof Integer) {
                         typeName = "int4";
                     } else if (first instanceof Long) {

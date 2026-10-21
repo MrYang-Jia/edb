@@ -193,16 +193,16 @@ public class EDbQueryUtil {
 
         // 全部包含
         if(eDbFilter.getOperator() == EDbFilter.Operator.arrAll){
-            andSqlStr.append(" @> ARRAY  [");
-            filterArrayFun(eDbFilter,andSqlStr,paramsList);
-            andSqlStr.append("]");
+            // PG 中 ARRAY[...] 字面量默认推导为 text[]，与左侧 varchar[] 等列类型不匹配会抛错
+            // 改为整数组参数绑定，由服务器端按操作符签名自动推断元素类型
+            andSqlStr.append(" @> ? ");
+            paramsList.add(eDbFilter.getValue());
         }
 
         // 包含任意一个
         if(eDbFilter.getOperator() == EDbFilter.Operator.arrAny){
-            andSqlStr.append(" && ARRAY  [");
-            filterArrayFun(eDbFilter,andSqlStr,paramsList);
-            andSqlStr.append("]");
+            andSqlStr.append(" && ? ");
+            paramsList.add(eDbFilter.getValue());
         }
 
         if(eDbFilter.getOperator() == EDbFilter.Operator.tpl){
