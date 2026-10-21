@@ -1966,6 +1966,29 @@ public class EDbPro extends DbPro {
     }
 
     /**
+     * 查询 Boolean 结果，兼容无数据（null）的场景，统一返回 false，避免调用方拆箱时报 NullPointerException
+     * @param sql
+     * @param paras
+     * @return
+     */
+    @Override
+    public Boolean queryBoolean(String sql, Object... paras) {
+        Boolean result = super.queryBoolean(sql, paras);
+        return result == null ? Boolean.FALSE : result;
+    }
+
+    /**
+     * 查询 Boolean 结果，兼容无数据（null）的场景，统一返回 false，避免调用方拆箱时报 NullPointerException
+     * @param sql
+     * @return
+     */
+    @Override
+    public Boolean queryBoolean(String sql) {
+        Boolean result = super.queryBoolean(sql);
+        return result == null ? Boolean.FALSE : result;
+    }
+
+    /**
      * 扩展方法体
      * @param sql
      * @param paras
