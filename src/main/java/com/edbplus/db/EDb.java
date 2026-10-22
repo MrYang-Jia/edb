@@ -1680,11 +1680,13 @@ public class EDb extends Db{
     }
 
     public static Boolean queryBoolean(String sql, Object... paras) {
-        return MAIN.queryBoolean(sql, paras);
+        Boolean result = MAIN.queryBoolean(sql, paras);
+        return result == null ? Boolean.FALSE : result;
     }
 
     public static Boolean queryBoolean(String sql) {
-        return MAIN.queryBoolean(sql);
+        Boolean result = MAIN.queryBoolean(sql);
+        return result == null ? Boolean.FALSE : result;
     }
 
     public static Short queryShort(String sql, Object... paras) {

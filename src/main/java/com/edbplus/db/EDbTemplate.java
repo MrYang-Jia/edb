@@ -183,4 +183,14 @@ public class EDbTemplate extends DbTemplate {
         return this.db.paginate(mClass,pageNumber,pageSize,isGroupBySql,this.sqlPara);
     }
 
+    /**
+     * 查询 Boolean 结果，兼容无数据（null）的场景，统一返回 false，避免调用方拆箱时报 NullPointerException
+     * @return
+     */
+    @Override
+    public Boolean queryBoolean() {
+        Boolean result = this.db.queryBoolean(this.sqlPara.getSql(), this.sqlPara.getPara());
+        return result == null ? Boolean.FALSE : result;
+    }
+
 }
